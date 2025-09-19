@@ -1,12 +1,15 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class MenuController : MonoBehaviour
 {
-    public Button[] menuButtons; // assign 2P, 3P, 4P in inspector
+    public Button[] menuButtons;
     private int currentIndex = 0;
+
+    private bool canMove = true; // debounce
+    private float deadzone = 0.5f;
 
     void Start()
     {
@@ -17,23 +20,33 @@ public class MenuController : MonoBehaviour
     {
         if (Gamepad.all.Count == 0) return;
 
-        var gamepad = Gamepad.all[0]; // take first connected controller for menu
-
+        var gamepad = Gamepad.all[0];
         Vector2 move = gamepad.leftStick.ReadValue();
 
-        // navigate menu up/down
-        if (move.y > 0.5f)
+        // Only allow movement if stick is past deadzone and canMove is true
+        if (canMove)
         {
-            currentIndex = Mathf.Max(0, currentIndex - 1);
-            HighlightButton();
-        }
-        else if (move.y < -0.5f)
-        {
-            currentIndex = Mathf.Min(menuButtons.Length - 1, currentIndex + 1);
-            HighlightButton();
+            if (move.y > deadzone)
+            {
+                currentIndex = Mathf.Max(0, currentIndex - 1);
+                HighlightButton();
+                canMove = false;
+            }
+            else if (move.y < -deadzone)
+            {
+                currentIndex = Mathf.Min(menuButtons.Length - 1, currentIndex + 1);
+                HighlightButton();
+                canMove = false;
+            }
         }
 
-        // confirm selection with "A" (south button)
+        // Reset canMove when stick goes back to neutral
+        if (Mathf.Abs(move.y) < 0.2f)
+        {
+            canMove = true;
+        }
+
+        // Confirm selection
         if (gamepad.buttonSouth.wasPressedThisFrame)
         {
             SelectOption(currentIndex);
@@ -52,7 +65,7 @@ public class MenuController : MonoBehaviour
 
     void SelectOption(int index)
     {
-        int players = index + 2; // since index 0 = 2 players, index 1 = 3 players, etc.
+        int players = index + 2;
         GameManager.Instance.playerCount = players;
         SceneManager.LoadScene("ControllerConnectScene");
     }
