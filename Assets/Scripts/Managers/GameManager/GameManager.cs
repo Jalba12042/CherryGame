@@ -7,6 +7,12 @@ public class GameManager : MonoBehaviour
     public int playerCount;
     public int[] controllerAssignments;
 
+    public enum GameState
+    {
+        Shop,
+        Round
+    }
+    public GameState currGameState { get; set; }
     private void Awake()
     {
         if (Instance == null)
