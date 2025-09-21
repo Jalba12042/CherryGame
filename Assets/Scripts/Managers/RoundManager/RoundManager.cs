@@ -36,6 +36,7 @@ public class RoundManager : MonoBehaviour
     {
         if (GameManager.Instance.currGameState == GameManager.GameState.Round)
         {
+            // we start with selecting a round and starting the timer
             if (!roundSelected)
             {
                 currRoundProgress = 0;
@@ -43,6 +44,7 @@ public class RoundManager : MonoBehaviour
                 roundSelected = true;
                 StartCoroutine(StartRound());
             }
+            // then every frame we check if the round is over
             if (currRoundProgress >= currRoundDurationInSecs)
             {
                 StopCoroutine(StartRound());
@@ -52,6 +54,7 @@ public class RoundManager : MonoBehaviour
         }
     }
 
+    // randomly selects a round depending on how many we have and if we want to allow repeats 
     private void SelectRound()
     {
         int roundIndex = -1;
@@ -74,11 +77,13 @@ public class RoundManager : MonoBehaviour
         loadRoundData();
     }
 
+    // loads in info based on current round
     private void loadRoundData()
     {
         currRoundDurationInSecs = roundList[currRoundIndex].roundTimeInSeconds;
     }
 
+    // our game timer
     private IEnumerator StartRound()
     {
         while (currRoundProgress < currRoundDurationInSecs)
