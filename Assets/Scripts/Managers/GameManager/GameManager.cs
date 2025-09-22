@@ -5,6 +5,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
+    // Stores how many players were chosen in the menu
     public int playerCount;
     public int[] controllerAssignments;
 
@@ -33,14 +34,15 @@ public class GameManager : MonoBehaviour
     public GameState currGameState;
     private void Awake()
     {
+        // If no instance exists yet, make this the instance
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            DontDestroyOnLoad(gameObject); // Keep this object when switching between scenes
         }
         else
         {
-            Destroy(gameObject);
+            Destroy(gameObject); // If another GameManager already exists, destroy this one
         }
     }
 

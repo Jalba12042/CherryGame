@@ -5,23 +5,28 @@ using UnityEngine.SceneManagement;
 
 public class MenuController : MonoBehaviour
 {
-    public Button[] menuButtons;
-    private int currentIndex = 0;
+    public Button[] menuButtons; // Array of buttons in the menu
+    private int currentIndex = 0;     // Tracks which button is currently highlighted
 
-    private bool canMove = true; // debounce
-    private float deadzone = 0.5f;
+
+    private bool canMove = true;     // Prevents input from being read too many times while joystick is held
+    private float deadzone = 0.5f;   // Threshold for how far the joystick must be tilted before registering a move
+
 
     void Start()
     {
-        HighlightButton();
+        HighlightButton();   // At the start of the scene, highlight the first button
+
     }
 
     void Update()
     {
+        // If no controller is connected, stop here
         if (Gamepad.all.Count == 0) return;
 
         var gamepad = Gamepad.all[0];
-        Vector2 move = gamepad.leftStick.ReadValue();
+        Vector2 move = gamepad.leftStick.ReadValue(); // Read the left stick input
+
 
         // Only allow movement if stick is past deadzone and canMove is true
         if (canMove)
@@ -53,6 +58,7 @@ public class MenuController : MonoBehaviour
         }
     }
 
+    // Highlights the currently selected button by changing its color
     void HighlightButton()
     {
         for (int i = 0; i < menuButtons.Length; i++)
@@ -63,6 +69,7 @@ public class MenuController : MonoBehaviour
         }
     }
 
+    // Runs when player presses confirm (A button)
     void SelectOption(int index)
     {
         int players = index + 2;
