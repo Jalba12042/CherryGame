@@ -14,9 +14,12 @@ public class RoundManager : MonoBehaviour
 
     private int currRoundIndex;
 
+    private Round currRound;
+
     private float currRoundDurationInSecs;
 
     private bool roundSelected;
+    public bool currRoundActive;
 
     private void Awake()
     {
@@ -31,6 +34,8 @@ public class RoundManager : MonoBehaviour
 
         roundSelected = false;
         currRoundProgress = 0;
+        currRoundActive = false;
+        currRound = null;
     }
     private void Update()
     {
@@ -42,6 +47,7 @@ public class RoundManager : MonoBehaviour
                 currRoundProgress = 0;
                 SelectRound();
                 roundSelected = true;
+                currRoundActive = true;
                 StartCoroutine(StartRound());
             }
             // then every frame we check if the round is over
@@ -49,6 +55,8 @@ public class RoundManager : MonoBehaviour
             {
                 StopCoroutine(StartRound());
                 roundSelected = false;
+                currRoundActive = false;
+                currRound = null;
                 GameManager.Instance.currGameState = GameManager.GameState.Shop;
             }
         }
@@ -74,18 +82,31 @@ public class RoundManager : MonoBehaviour
         }
         
         currRoundIndex = roundIndex;
+        currRound = roundList[roundIndex];
         loadRoundData();
     }
 
     // loads in info based on current round
     private void loadRoundData()
     {
-        currRoundDurationInSecs = roundList[currRoundIndex].roundTimeInSeconds;
+        currRoundDurationInSecs = currRound.roundTimeInSeconds;
     }
 
     // our game timer
     private IEnumerator StartRound()
     {
+        // destroy any left over goal objects
+        if (currRound.goalObjects.Count != 0 && currRound.goalObjects != null)
+        {
+            for (int i = 0; i < currRound.goalObjects.Count; i++)
+            {
+                Destroy(currRound.goalObjects[i]);
+            }
+            currRound.goalObjects.Clear();
+        }
+
+        // start the round
+        StartCoroutine(currRound.StartGoal());
         while (currRoundProgress < currRoundDurationInSecs)
         {
             currRoundProgress += Time.deltaTime;
