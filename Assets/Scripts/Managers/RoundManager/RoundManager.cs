@@ -17,6 +17,7 @@ public class RoundManager : MonoBehaviour
     private float currRoundDurationInSecs;
 
     private bool roundSelected;
+    public bool currRoundActive;
 
     private void Awake()
     {
@@ -31,6 +32,7 @@ public class RoundManager : MonoBehaviour
 
         roundSelected = false;
         currRoundProgress = 0;
+        currRoundActive = false;
     }
     private void Update()
     {
@@ -43,12 +45,14 @@ public class RoundManager : MonoBehaviour
                 SelectRound();
                 roundSelected = true;
                 StartCoroutine(StartRound());
+                currRoundActive = true;
             }
             // then every frame we check if the round is over
             if (currRoundProgress >= currRoundDurationInSecs)
             {
                 StopCoroutine(StartRound());
                 roundSelected = false;
+                currRoundActive = false;
                 GameManager.Instance.currGameState = GameManager.GameState.Shop;
             }
         }
@@ -86,6 +90,7 @@ public class RoundManager : MonoBehaviour
     // our game timer
     private IEnumerator StartRound()
     {
+        StartCoroutine(roundList[currRoundIndex].StartGoal());
         while (currRoundProgress < currRoundDurationInSecs)
         {
             currRoundProgress += Time.deltaTime;
