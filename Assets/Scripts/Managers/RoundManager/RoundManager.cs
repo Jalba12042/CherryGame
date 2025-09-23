@@ -11,19 +11,18 @@ public class RoundManager : MonoBehaviour
     public float currRoundDurationInSecs;
     public List<Round> roundList; // list of rounds we can cycle through
     public Round currRound;
+    public bool currRoundActive;
 
     [Tooltip("Flag to allow repeated rounds if we so choose")]
     [SerializeField] private bool allowRepeats; // flag to allow repeated rounds if we so choose
 
     [SerializeField] private string shopSceneName;
-
     [SerializeField] private int startTimerInSeconds;
 
     private int currRoundIndex;
     private int startTimer;
-
     private bool roundSelected;
-    public bool currRoundActive;
+    
 
     private void Awake()
     {

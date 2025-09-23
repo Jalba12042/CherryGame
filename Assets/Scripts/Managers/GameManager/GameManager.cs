@@ -62,8 +62,5 @@ public class GameManager : MonoBehaviour
     public void StartRoundButton()
     {
         RoundManager.Instance.switchRoundScene();
-        Debug.Log("reached");
-        //currGameState = GameState.Round;
-        Debug.Log("reached 2");
     }
 }
