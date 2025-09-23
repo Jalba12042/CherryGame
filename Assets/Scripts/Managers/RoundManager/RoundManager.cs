@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class RoundManager : MonoBehaviour
 {
@@ -9,15 +10,17 @@ public class RoundManager : MonoBehaviour
     public float currRoundProgress;
     public float currRoundDurationInSecs;
     public List<Round> roundList; // list of rounds we can cycle through
+    public Round currRound;
 
     [Tooltip("Flag to allow repeated rounds if we so choose")]
     [SerializeField] private bool allowRepeats; // flag to allow repeated rounds if we so choose
 
+    [SerializeField] private string shopSceneName;
+
+    [SerializeField] private int startTimerInSeconds;
+
     private int currRoundIndex;
-
-    private Round currRound;
-
-    
+    private int startTimer;
 
     private bool roundSelected;
     public bool currRoundActive;
@@ -27,26 +30,29 @@ public class RoundManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            roundSelected = false;
+            currRoundProgress = 0;
+            currRoundActive = false;
+            currRound = null;
         }
         else
         {
             Destroy(gameObject);
         }
-
-        roundSelected = false;
-        currRoundProgress = 0;
-        currRoundActive = false;
-        currRound = null;
     }
     private void Update()
     {
-        if (GameManager.Instance.currGameState == GameManager.GameState.Round)
+        if (currRound == null && SceneManager.GetActiveScene().name.Equals(shopSceneName))
         {
+            SelectRound();
+        }
+        if (currRound != null && SceneManager.GetActiveScene().name.Equals(currRound.sceneName))
+        {
+            GameManager.Instance.currGameState = GameManager.GameState.Round;
             // we start with selecting a round and starting the timer
             if (!roundSelected)
             {
                 currRoundProgress = 0;
-                SelectRound();
                 roundSelected = true;
                 currRoundActive = true;
                 StartCoroutine(StartRound());
@@ -59,6 +65,7 @@ public class RoundManager : MonoBehaviour
                 currRoundActive = false;
                 currRound = null;
                 GameManager.Instance.currGameState = GameManager.GameState.Shop;
+                SceneManager.LoadSceneAsync(shopSceneName);
             }
         }
     }
@@ -106,6 +113,15 @@ public class RoundManager : MonoBehaviour
             currRound.goalObjects.Clear();
         }
 
+        // initial timer for round start
+        startTimer = 0;
+        while (startTimer < startTimerInSeconds)
+        {
+            yield return new WaitForSeconds(1);
+            startTimer++;
+            Debug.Log(startTimer);
+        }
+
         // start the round
         StartCoroutine(currRound.StartGoal());
         while (currRoundProgress < currRoundDurationInSecs)
@@ -115,5 +131,12 @@ public class RoundManager : MonoBehaviour
         }
 
         currRoundProgress = currRoundDurationInSecs;
+    }
+    public void switchRoundScene()
+    {
+        if (!SceneManager.GetActiveScene().name.Equals(currRound.sceneName))
+        {
+            SceneManager.LoadSceneAsync(currRound.sceneName);
+        }
     }
 }
