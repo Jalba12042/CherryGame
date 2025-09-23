@@ -23,7 +23,8 @@ public class GameManager : MonoBehaviour
     private void Update()
     {
         // just for our testing: we have a timer and a restart button that changes depending on gamestate
-        if ((timerText != null && button != null))
+        // uncomment the following to get my test shit working
+        /*if ((timerText != null && button != null))
         {
             if (currGameState == GameState.Round)
             {
@@ -40,7 +41,7 @@ public class GameManager : MonoBehaviour
         {
             timerText = GameObject.FindWithTag("Timer").GetComponent<TMP_Text>();
             button = GameObject.FindWithTag("Button");
-        }
+        }*/
     }
     
     private void Awake()
