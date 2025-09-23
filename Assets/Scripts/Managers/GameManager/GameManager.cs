@@ -17,7 +17,7 @@ public class GameManager : MonoBehaviour
         // just for our testing: we have a timer and a restart button that changes depending on gamestate
         if (currGameState == GameState.Round)
         {
-            timerText.text = "Timer: " + RoundManager.Instance.currRoundProgress;
+            timerText.text = "Timer: " + (RoundManager.Instance.currRoundDurationInSecs - (int)RoundManager.Instance.currRoundProgress);
             button.SetActive(false);
         }
         else

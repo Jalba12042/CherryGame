@@ -7,6 +7,7 @@ public class RoundManager : MonoBehaviour
     public static RoundManager Instance;
 
     public float currRoundProgress;
+    public float currRoundDurationInSecs;
     public List<Round> roundList; // list of rounds we can cycle through
 
     [Tooltip("Flag to allow repeated rounds if we so choose")]
@@ -16,7 +17,7 @@ public class RoundManager : MonoBehaviour
 
     private Round currRound;
 
-    private float currRoundDurationInSecs;
+    
 
     private bool roundSelected;
     public bool currRoundActive;
