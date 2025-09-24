@@ -46,19 +46,12 @@ public class ControllerConnect : MonoBehaviour
         // Only consider slots on the active canvas
         Image[] activeSlots = slots.Where(s => s.gameObject.activeInHierarchy).ToArray();
 
-        // Check if all active slots have a controller assigned
-        bool allSlotsFilled = true;
-        for (int i = 0; i < activeSlots.Length; i++)
-        {
-            int slotIndex = System.Array.IndexOf(slots, activeSlots[i]) + 1; // 1-based index
-            if (!controllerPositions.Contains(slotIndex))
-            {
-                allSlotsFilled = false;
-                break;
-            }
-        }
+        // Count how many slots are currently assigned to controllers
+        int filledSlots = controllerPositions.Count(p => p > 0);
 
-        // Enable play button only when all slots are filled
+        // Enable Play only when the number of filled slots matches the required player count
+        bool allSlotsFilled = filledSlots == GameManager.Instance.playerCount;
+
         playButton.gameObject.SetActive(allSlotsFilled);
     }
 
