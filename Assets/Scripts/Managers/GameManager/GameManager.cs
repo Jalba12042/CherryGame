@@ -14,16 +14,19 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        // just for our testing: we have a timer and a restart button that changes depending on gamestate
         if (currGameState == GameState.Round)
         {
-            timerText.text = "Timer: " + RoundManager.Instance.currRoundProgress;
-            button.SetActive(false);
+            if (timerText != null)
+                timerText.text = "Timer: " + RoundManager.Instance.currRoundProgress;
+            if (button != null)
+                button.SetActive(false);
         }
         else
         {
-            timerText.text = "";
-            button.SetActive(true);
+            if (timerText != null)
+                timerText.text = "";
+            if (button != null)
+                button.SetActive(true);
         }
     }
     public enum GameState
