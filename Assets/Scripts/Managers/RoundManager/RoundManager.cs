@@ -18,7 +18,10 @@ public class RoundManager : MonoBehaviour
 
     [SerializeField] private string shopSceneName;
     [SerializeField] private int startTimerInSeconds;
+    [SerializeField] private GameObject playerPrefab;
 
+    private GameObject[] playerObjects;
+    private PlayerSpawn currPlayerSpawn;
     private int currRoundIndex;
     private int startTimer;
     private bool roundSelected;
@@ -33,6 +36,7 @@ public class RoundManager : MonoBehaviour
             currRoundProgress = 0;
             currRoundActive = false;
             currRound = null;
+            currPlayerSpawn = null;
         }
         else
         {
@@ -102,6 +106,8 @@ public class RoundManager : MonoBehaviour
     // our game timer
     private IEnumerator StartRound()
     {
+        currPlayerSpawn = FindFirstObjectByType<PlayerSpawn>();
+
         // destroy any left over goal objects
         if (currRound.goalObjects.Count != 0 && currRound.goalObjects != null)
         {
@@ -110,6 +116,13 @@ public class RoundManager : MonoBehaviour
                 Destroy(currRound.goalObjects[i]);
             }
             currRound.goalObjects.Clear();
+        }
+
+        playerObjects = new GameObject[GameManager.Instance.playerCount];
+        Debug.Log(GameManager.Instance.playerCount);
+        for (int i = 0; i < GameManager.Instance.playerCount; i++)
+        {
+            playerObjects[i] = Instantiate(playerPrefab, currPlayerSpawn.spawnPoints[i].position, Quaternion.identity);
         }
 
         // initial timer for round start
