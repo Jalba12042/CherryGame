@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -7,157 +7,159 @@ using UnityEngine.UI;
 
 public class ControllerConnect : MonoBehaviour
 {
-    [Header("Player Canvas")]
-    public GameObject playerCanvas; // assign the active player canvas (2P, 3P, 4P)
+    [Header("Slots (assign in Inspector in order: Blue, Green, Red, etc.)")]
+    public Image[] slots;
 
-    [Header("Slots and Waiting Squares (assign children of the active canvas)")]
-    public Image[] slots;           // only slots for this canvas
-    public Image[] waitingSquares;  // only waiting squares for this canvas
+    [Header("Waiting squares (same number as max controllers)")]
+    public Image[] waitingSquares;
 
     [Header("Sprites")]
-    public Sprite whiteController;  // waiting
-    public Sprite grayController;   // empty slot
-    public Sprite[] slotSprites;    // Blue, Red, etc.
+    public Sprite whiteController; // default controller waiting
+    public Sprite grayController;  // empty slot / waiting spot
+    public Sprite[] slotSprites;   // assign Blue, Green, Red, etc. in order
 
     [Header("UI")]
     public Button playButton;
 
-    private class ActiveController
-    {
-        public Gamepad gamepad;
-        public int position = 0; // 0 = waiting, 1+ = slot index
-        public bool horizontalLocked = false;
-        public bool verticalLocked = false;
-        public Image waitingSquare;
-    }
+    [Header("Canvas Reference")]
+    public Canvas playerCanvas;
 
-    private List<ActiveController> activeControllers = new List<ActiveController>();
+    private Gamepad[] controllers;
+    private int[] controllerPositions;
+    private bool[] stickLocked; // lock horizontal movement per controller
 
-    void OnEnable()
+    IEnumerator Start()
     {
+        // Wait one frame so canvases/menu logic finish toggling
+        yield return null;
+
+        // Disable this connection object if wrong canvas or wrong player count
+        if (playerCanvas == null || !playerCanvas.gameObject.activeInHierarchy ||
+            (GameManager.Instance != null && GameManager.Instance.playerCount != slots.Length))
+        {
+            gameObject.SetActive(false);
+            yield break;
+        }
+
+        // Set up controllers
         if (playButton != null)
             playButton.gameObject.SetActive(false);
+
+        controllers = Gamepad.all.ToArray();
+        controllerPositions = new int[controllers.Length];
+        stickLocked = new bool[controllers.Length];
 
         ResetUI();
     }
 
-    void Start()
-    {
-        // Only track controllers for active waiting squares
-        activeControllers.Clear();
-        int activeCount = Mathf.Min(waitingSquares.Length, Gamepad.all.Count);
-
-        for (int i = 0; i < waitingSquares.Length && i < activeCount; i++)
-        {
-            activeControllers.Add(new ActiveController
-            {
-                gamepad = Gamepad.all[i],
-                waitingSquare = waitingSquares[i]
-            });
-        }
-
-        Debug.Log($"Active controllers initialized: {activeControllers.Count}");
-    }
-
     void Update()
     {
-        // Refresh gamepad references in case of connection changes
-        for (int i = 0; i < activeControllers.Count && i < Gamepad.all.Count; i++)
+        if (!gameObject.activeInHierarchy) return;
+
+        for (int i = 0; i < controllers.Length && i < waitingSquares.Length; i++)
         {
-            activeControllers[i].gamepad = Gamepad.all[i];
+            if (controllers[i] != null)
+                HandleController(controllers[i], ref controllerPositions[i], waitingSquares[i], i);
         }
 
-        // Handle input for each active controller
-        foreach (var ctrl in activeControllers)
+        // Count how many slots are currently assigned
+        int filledSlots = controllerPositions.Count(p => p > 0);
+        int requiredSlots = slots.Length;
+
+        // Debug info
+        string debug = $"Filled Slots: {filledSlots}/{requiredSlots}";
+        for (int i = 0; i < controllerPositions.Length; i++)
         {
-            if (ctrl.gamepad != null)
-                HandleController(ctrl);
+            debug += $" | C{i}: Pos={controllerPositions[i]}";
         }
+        Debug.Log(debug);
 
-        // Count filled slots
-        int filledSlots = activeControllers.Count(c => c.position > 0);
-
-        // Debug: show controller positions
-        string status = "";
-        for (int i = 0; i < activeControllers.Count; i++)
-            status += $"C{i}: Pos={activeControllers[i].position} | ";
-
-        Debug.Log($"Filled Slots: {filledSlots}/{slots.Length} | {status}");
-
-        // Enable Play button only when all slots are filled
+        // Enable Play only when all slots filled
         if (playButton != null)
-            playButton.gameObject.SetActive(filledSlots == slots.Length);
+            playButton.gameObject.SetActive(filledSlots == requiredSlots);
     }
 
-    void HandleController(ActiveController ctrl)
+    void HandleController(Gamepad gamepad, ref int pos, Image waitingSquare, int controllerIndex)
     {
-        Vector2 move = ctrl.gamepad.leftStick.ReadValue();
+        Vector2 move = gamepad.leftStick.ReadValue();
 
         // Enter slot from waiting
-        if (ctrl.position == 0 && move.y > 0.3f && !ctrl.verticalLocked)
+        if (pos == 0 && move.y > 0.5f)
         {
-            for (int i = 0; i < slots.Length; i++)
-            {
-                if (!activeControllers.Any(c => c.position == i + 1))
-                {
-                    ctrl.position = i + 1;
-                    ctrl.waitingSquare.sprite = grayController;
-                    slots[i].sprite = slotSprites[i];
-                    Debug.Log($"Controller entered slot {ctrl.position}");
-                    break;
-                }
-            }
-            ctrl.verticalLocked = true;
+            if (move.x < -0.5f) TryEnterSlot(ref pos, 1, waitingSquare);
+            else if (move.x > 0.5f && slots.Length > 1) TryEnterSlot(ref pos, 2, waitingSquare);
+            else if (move.x == 0 && slots.Length > 2) TryEnterSlot(ref pos, 3, waitingSquare);
         }
 
         // Switch slots horizontally
-        if (ctrl.position > 0)
+        if (pos > 0)
         {
-            if (!ctrl.horizontalLocked)
+            if (!stickLocked[controllerIndex])
             {
-                int targetSlot = ctrl.position;
-                if (move.x < -0.5f) targetSlot = Mathf.Max(1, ctrl.position - 1);
-                if (move.x > 0.5f) targetSlot = Mathf.Min(slots.Length, ctrl.position + 1);
+                int targetSlot = pos;
 
-                if (targetSlot != ctrl.position &&
-                    !activeControllers.Any(c => c != ctrl && c.position == targetSlot))
+                if (move.x < -0.5f) targetSlot = Mathf.Max(1, pos - 1);
+                else if (move.x > 0.5f) targetSlot = Mathf.Min(slots.Length, pos + 1);
+
+                if (targetSlot != pos)
                 {
-                    slots[ctrl.position - 1].sprite = grayController;
-                    slots[targetSlot - 1].sprite = slotSprites[targetSlot - 1];
-                    ctrl.position = targetSlot;
-                    ctrl.waitingSquare.sprite = grayController;
-                    Debug.Log($"Controller switched to slot {ctrl.position}");
+                    TrySwitchSlot(ref pos, targetSlot, waitingSquare, controllerIndex);
+                    stickLocked[controllerIndex] = true; // lock until stick released
                 }
-                ctrl.horizontalLocked = true;
+            }
+
+            // Release lock when stick back to neutral
+            if (Mathf.Abs(move.x) < 0.2f)
+            {
+                stickLocked[controllerIndex] = false;
             }
         }
 
-        // Move back to waiting
-        if (ctrl.position > 0 && move.y < -0.3f && !ctrl.verticalLocked)
+        // Back to waiting
+        if (pos != 0 && move.y < -0.5f)
         {
-            slots[ctrl.position - 1].sprite = grayController;
-            ctrl.position = 0;
-            ctrl.waitingSquare.sprite = whiteController;
-            Debug.Log("Controller returned to waiting");
-            ctrl.verticalLocked = true;
+            ClearSlot(pos);
+            pos = 0;
+            waitingSquare.sprite = whiteController;
         }
+    }
 
-        // Release stick locks
-        if (Mathf.Abs(move.x) < 0.2f) ctrl.horizontalLocked = false;
-        if (Mathf.Abs(move.y) < 0.2f) ctrl.verticalLocked = false;
+    void TryEnterSlot(ref int pos, int slotIndex, Image waitingSquare)
+    {
+        if (controllerPositions.Contains(slotIndex)) return;
+
+        pos = slotIndex;
+        slots[slotIndex - 1].sprite = slotSprites[slotIndex - 1];
+        waitingSquare.sprite = grayController;
+    }
+
+    void TrySwitchSlot(ref int pos, int newSlot, Image waitingSquare, int controllerIndex)
+    {
+        if (controllerPositions.Where((p, idx) => idx != controllerIndex).Contains(newSlot)) return;
+
+        ClearSlot(pos);
+        pos = newSlot;
+        slots[newSlot - 1].sprite = slotSprites[newSlot - 1];
+        waitingSquare.sprite = grayController;
+    }
+
+    void ClearSlot(int slotIndex)
+    {
+        slots[slotIndex - 1].sprite = grayController;
     }
 
     public void OnPlayPressed()
     {
+        GameManager.Instance.playerCount = slots.Length;
         SceneManager.LoadScene("GameScene");
     }
 
     void ResetUI()
     {
-        foreach (var slot in slots)
-            slot.sprite = grayController;
+        for (int i = 0; i < slots.Length; i++)
+            slots[i].sprite = grayController;
 
-        foreach (var wait in waitingSquares)
-            wait.sprite = whiteController;
+        for (int i = 0; i < waitingSquares.Length; i++)
+            waitingSquares[i].sprite = whiteController;
     }
 }
