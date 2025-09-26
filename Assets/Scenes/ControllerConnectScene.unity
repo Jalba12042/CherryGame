@@ -286,7 +286,8 @@ MonoBehaviour:
   - {fileID: 21300000, guid: edfa5ad12547dd24397baa1594611012, type: 3}
   - {fileID: 21300000, guid: 570a2e5cfe065f34f8d13f5d37735d4f, type: 3}
   - {fileID: 21300000, guid: 0561d5bba524db64ea974e348cb24069, type: 3}
-  playButton: {fileID: 69301407}
+  playButton: {fileID: 289744896}
+  playerCanvas: {fileID: 178263720}
 --- !u!4 &120243734
 Transform:
   m_ObjectHideFlags: 0
@@ -950,7 +951,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &289744895
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2941,7 +2942,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &853782658
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3492,6 +3493,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1029167157}
   - component: {fileID: 1029167156}
+  - component: {fileID: 1029167158}
   m_Layer: 0
   m_Name: CanvasManager
   m_TagString: Untagged
@@ -3529,6 +3531,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1029167158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1029167155}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b64331a59435ae4eb3d75ac88fa6971, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  twoPlayerConnect: {fileID: 1043695021}
+  threePlayerConnect: {fileID: 1658336296}
+  fourPlayerConnect: {fileID: 120243732}
 --- !u!1 &1043695021
 GameObject:
   m_ObjectHideFlags: 0
@@ -3570,6 +3587,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 174d3c13ea7aad24694435d7a5377b0e, type: 3}
   - {fileID: 21300000, guid: 570a2e5cfe065f34f8d13f5d37735d4f, type: 3}
   playButton: {fileID: 69301407}
+  playerCanvas: {fileID: 427813140}
 --- !u!4 &1043695023
 Transform:
   m_ObjectHideFlags: 0
@@ -4425,7 +4443,8 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 174d3c13ea7aad24694435d7a5377b0e, type: 3}
   - {fileID: 21300000, guid: edfa5ad12547dd24397baa1594611012, type: 3}
   - {fileID: 21300000, guid: 570a2e5cfe065f34f8d13f5d37735d4f, type: 3}
-  playButton: {fileID: 69301407}
+  playButton: {fileID: 853782659}
+  playerCanvas: {fileID: 487573639}
 --- !u!4 &1658336298
 Transform:
   m_ObjectHideFlags: 0
