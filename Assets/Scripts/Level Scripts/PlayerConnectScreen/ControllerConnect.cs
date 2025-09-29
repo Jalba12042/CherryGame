@@ -194,7 +194,7 @@ public class ControllerConnect : MonoBehaviour
     public void OnPlayPressed()
     {
         GameManager.Instance.playerCount = slots.Length;
-        SceneManager.LoadScene("VictorTestScene");
+        SceneManager.LoadScene(GameManager.Instance.firstScene);
     }
 
     // Resets all slot and waiting visuals
