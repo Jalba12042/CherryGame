@@ -13,20 +13,20 @@ using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 
 public class LobbyUIManager : MonoBehaviour
-{
-    [Header("UI")]
+    {
     public Button createLobbyButton;
     public Button refreshLobbyButton;
     public Transform lobbyListParent;
     public GameObject lobbyButtonPrefab;
 
+    private Lobby currentLobby;
+    private bool isSignedIn = false;
+    private float heartbeatTimer;
+
     private void Awake()
     {
-        if (createLobbyButton != null)
-            createLobbyButton.onClick.AddListener(async () => await CreateLobby());
-
-        if (refreshLobbyButton != null)
-            refreshLobbyButton.onClick.AddListener(async () => await RefreshLobbyList());
+        createLobbyButton?.onClick.AddListener(async () => await CreateLobby());
+        refreshLobbyButton?.onClick.AddListener(async () => await RefreshLobbyList());
     }
 
     private async void Start()
@@ -35,17 +35,33 @@ public class LobbyUIManager : MonoBehaviour
 
         if (!AuthenticationService.Instance.IsSignedIn)
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
+        isSignedIn = true;
+        Debug.Log("Signed in: " + AuthenticationService.Instance.PlayerId);
+    }
+
+    private void Update()
+    {
+        if (currentLobby != null)
+        {
+            heartbeatTimer -= Time.deltaTime;
+            if (heartbeatTimer <= 0f)
+            {
+                heartbeatTimer = 15f;
+                _ = LobbyService.Instance.SendHeartbeatPingAsync(currentLobby.Id);
+            }
+        }
     }
 
     private async Task CreateLobby()
     {
+        if (!isSignedIn) return;
+
         try
         {
-            // 1) Create Relay allocation (host)
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(4);
             string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
 
-            // 2) Create Lobby and store join code in lobby data
             var options = new CreateLobbyOptions
             {
                 Data = new Dictionary<string, DataObject>
@@ -54,29 +70,19 @@ public class LobbyUIManager : MonoBehaviour
                 }
             };
 
-            await LobbyService.Instance.CreateLobbyAsync("MyLobby", 4, options);
+            currentLobby = await LobbyService.Instance.CreateLobbyAsync("MyLobby", 4, options);
 
-            // 3) Configure UnityTransport using explicit fields from allocation
             var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            if (transport == null)
-            {
-                Debug.LogError("UnityTransport not found on NetworkManager.");
-                return;
-            }
-
-            // NOTE: this is the direct SetRelayServerData call that matches Unity 6 style.
             transport.SetRelayServerData(
                 allocation.RelayServer.IpV4,
                 (ushort)allocation.RelayServer.Port,
                 allocation.AllocationIdBytes,
                 allocation.Key,
                 allocation.ConnectionData,
-                allocation.ConnectionData // host uses its connectionData for hostConnectionData as well
+                allocation.ConnectionData
             );
 
-            // 4) Start host
             NetworkManager.Singleton.StartHost();
-
             Debug.Log("Lobby created. Join code: " + joinCode);
         }
         catch (System.Exception ex)
@@ -87,7 +93,8 @@ public class LobbyUIManager : MonoBehaviour
 
     private async Task RefreshLobbyList()
     {
-        // Clear list UI
+        if (!isSignedIn) return;
+
         if (lobbyListParent != null)
         {
             foreach (Transform child in lobbyListParent)
@@ -96,25 +103,21 @@ public class LobbyUIManager : MonoBehaviour
 
         try
         {
-            // Simple query for public lobbies
-            var queryOptions = new QueryLobbiesOptions();
+            var queryOptions = new QueryLobbiesOptions { Count = 10 };
             QueryResponse queryResponse = await LobbyService.Instance.QueryLobbiesAsync(queryOptions);
 
             foreach (var lobby in queryResponse.Results)
             {
                 var go = Instantiate(lobbyButtonPrefab, lobbyListParent);
                 var txt = go.GetComponentInChildren<Text>();
-                if (txt != null) txt.text = lobby.Name + " (" + lobby.Players.Count + ")";
+                if (txt != null) txt.text = lobby.Name + " (" + lobby.Players.Count + "/" + lobby.MaxPlayers + ")";
 
-                // Get stored join code
-                string joinCode = "";
                 if (lobby.Data != null && lobby.Data.ContainsKey("joinCode"))
-                    joinCode = lobby.Data["joinCode"].Value;
-
-                var btn = go.GetComponent<Button>();
-                if (btn != null)
                 {
-                    btn.onClick.AddListener(async () => await JoinLobby(joinCode));
+                    string joinCode = lobby.Data["joinCode"].Value;
+                    var btn = go.GetComponent<Button>();
+                    if (btn != null)
+                        btn.onClick.AddListener(async () => await JoinLobby(joinCode));
                 }
             }
         }
@@ -126,25 +129,13 @@ public class LobbyUIManager : MonoBehaviour
 
     private async Task JoinLobby(string joinCode)
     {
-        if (string.IsNullOrEmpty(joinCode))
-        {
-            Debug.LogError("Join code is empty.");
-            return;
-        }
+        if (!isSignedIn || string.IsNullOrEmpty(joinCode)) return;
 
         try
         {
-            // 1) Join the relay allocation via join code
             JoinAllocation joinAlloc = await RelayService.Instance.JoinAllocationAsync(joinCode);
 
-            // 2) Configure transport for client using joinAlloc fields
             var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            if (transport == null)
-            {
-                Debug.LogError("UnityTransport not found on NetworkManager.");
-                return;
-            }
-
             transport.SetRelayServerData(
                 joinAlloc.RelayServer.IpV4,
                 (ushort)joinAlloc.RelayServer.Port,
@@ -154,10 +145,8 @@ public class LobbyUIManager : MonoBehaviour
                 joinAlloc.HostConnectionData
             );
 
-            // 3) Start client
             NetworkManager.Singleton.StartClient();
-
-            Debug.Log("Attempted to join lobby with code: " + joinCode);
+            Debug.Log("Joined lobby with code: " + joinCode);
         }
         catch (System.Exception ex)
         {
