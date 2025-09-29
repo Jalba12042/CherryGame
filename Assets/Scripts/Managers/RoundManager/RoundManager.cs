@@ -118,6 +118,7 @@ public class RoundManager : MonoBehaviour
             currRound.goalObjects.Clear();
         }
 
+        // spawn players
         playerObjects = new GameObject[GameManager.Instance.playerCount];
         Debug.Log(GameManager.Instance.playerCount);
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
