@@ -27,7 +27,7 @@ public class CherryRound : Round
             {
                 float randX = Random.Range(b.min.x, b.max.x);
                 float randZ = Random.Range(b.min.z, b.max.z);
-
+                //Debug.Log(randX + " " + spawnArea.transform.position.y + " " + randZ);
                 goalObjects.Add(Instantiate(cherryPrefab, new Vector3(randX, spawnArea.transform.position.y, randZ), Quaternion.identity));
             }
 

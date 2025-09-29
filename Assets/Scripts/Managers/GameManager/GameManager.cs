@@ -13,6 +13,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TMP_Text timerText;
     [SerializeField] private GameObject button;
 
+    [Header("Starting Scene")]
+    public string firstScene;
+
+
     public enum GameState
     {
         Shop,
@@ -24,7 +28,7 @@ public class GameManager : MonoBehaviour
     {
         // just for our testing: we have a timer and a restart button that changes depending on gamestate
         // uncomment the following to get my test shit working
-        /*if ((timerText != null && button != null))
+        if ((timerText != null && button != null))
         {
             if (currGameState == GameState.Round)
             {
@@ -36,12 +40,12 @@ public class GameManager : MonoBehaviour
                 timerText.text = "";
                 button.SetActive(true);
             }
-        }  
+        }
         else
         {
             timerText = GameObject.FindWithTag("Timer").GetComponent<TMP_Text>();
             button = GameObject.FindWithTag("Button");
-        }*/
+        }
     }
     
     private void Awake()
