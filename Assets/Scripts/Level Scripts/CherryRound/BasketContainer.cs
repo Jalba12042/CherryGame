@@ -16,6 +16,7 @@ public class BasketContainer : MonoBehaviour
         }
     }
 
+    // count cherries in baskets
     public int[] countCherries()
     {
         int[] scores = new int[GameManager.Instance.playerCount];

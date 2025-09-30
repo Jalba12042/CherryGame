@@ -63,9 +63,16 @@ public class RoundManager : MonoBehaviour
             // then every frame we check if the round is over
             if (currRoundProgress >= currRoundDurationInSecs)
             {
+                // set scores
                 currRoundScores = currRound.ScoreCount();
+
+                // stop round
                 StopCoroutine(StartRound());
+
+                // log winner
                 Debug.Log($"Winner is player {checkWinIndex() + 1}");
+
+                // set all values to defaults and change scene back to shop
                 roundSelected = false;
                 currRoundActive = false;
                 currRound = null;
@@ -154,6 +161,8 @@ public class RoundManager : MonoBehaviour
             SceneManager.LoadSceneAsync(currRound.sceneName);
         }
     }
+
+    // returns the winner index
     private int checkWinIndex()
     {
         int currWinnerScore = currRoundScores[0];
