@@ -10,6 +10,9 @@ public class GameManager : MonoBehaviour
     public int playerCount;
     public int[] controllerAssignments;
 
+    // Stores the total score between rounds for each player
+    public int[] playerTotalScores; 
+
     [SerializeField] private TMP_Text timerText;
     [SerializeField] private GameObject button;
 
@@ -55,6 +58,13 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject); // Keep this object when switching between scenes
+
+            // set initial player scores to 0
+            playerTotalScores = new int[playerCount];
+            for (int i = 0; i < playerCount; i++)
+            {
+                playerTotalScores[i] = 0;
+            }
         }
         else
         {
