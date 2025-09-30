@@ -12,6 +12,7 @@ public class RoundManager : MonoBehaviour
     public List<Round> roundList; // list of rounds we can cycle through
     public Round currRound;
     public bool currRoundActive;
+    public int[] currRoundScores;
 
     [Tooltip("Flag to allow repeated rounds if we so choose")]
     [SerializeField] private bool allowRepeats; // flag to allow repeated rounds if we so choose
@@ -25,8 +26,7 @@ public class RoundManager : MonoBehaviour
     private int currRoundIndex;
     private int startTimer;
     private bool roundSelected;
-    
-
+ 
     private void Awake()
     {
         if (Instance == null)
@@ -63,6 +63,7 @@ public class RoundManager : MonoBehaviour
             // then every frame we check if the round is over
             if (currRoundProgress >= currRoundDurationInSecs)
             {
+                currRoundScores = currRound.ScoreCount();
                 StopCoroutine(StartRound());
                 roundSelected = false;
                 currRoundActive = false;
