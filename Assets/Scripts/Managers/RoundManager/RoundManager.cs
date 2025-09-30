@@ -65,6 +65,7 @@ public class RoundManager : MonoBehaviour
             {
                 currRoundScores = currRound.ScoreCount();
                 StopCoroutine(StartRound());
+                Debug.Log($"Winner is player {checkWinIndex() + 1}");
                 roundSelected = false;
                 currRoundActive = false;
                 currRound = null;
@@ -152,5 +153,18 @@ public class RoundManager : MonoBehaviour
         {
             SceneManager.LoadSceneAsync(currRound.sceneName);
         }
+    }
+    private int checkWinIndex()
+    {
+        int currWinnerScore = currRoundScores[0];
+        int currWinnerIndex = 0;
+        for (int i = 0; i < currRoundScores.Length; i++)
+        {
+            if (currRoundScores[i] > currWinnerScore)
+            {
+                currWinnerIndex = i;
+            }
+        }
+        return currWinnerIndex;
     }
 }
