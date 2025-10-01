@@ -12,6 +12,7 @@ public class RoundManager : MonoBehaviour
     public List<Round> roundList; // list of rounds we can cycle through
     public Round currRound;
     public bool currRoundActive;
+    public int[] currRoundScores;
 
     [Tooltip("Flag to allow repeated rounds if we so choose")]
     [SerializeField] private bool allowRepeats; // flag to allow repeated rounds if we so choose
@@ -25,8 +26,7 @@ public class RoundManager : MonoBehaviour
     private int currRoundIndex;
     private int startTimer;
     private bool roundSelected;
-    
-
+ 
     private void Awake()
     {
         if (Instance == null)
@@ -63,7 +63,16 @@ public class RoundManager : MonoBehaviour
             // then every frame we check if the round is over
             if (currRoundProgress >= currRoundDurationInSecs)
             {
+                // set scores
+                currRoundScores = currRound.ScoreCount();
+
+                // stop round
                 StopCoroutine(StartRound());
+
+                // log winner
+                Debug.Log($"Winner is player {checkWinIndex() + 1}");
+
+                // set all values to defaults and change scene back to shop
                 roundSelected = false;
                 currRoundActive = false;
                 currRound = null;
@@ -151,5 +160,20 @@ public class RoundManager : MonoBehaviour
         {
             SceneManager.LoadSceneAsync(currRound.sceneName);
         }
+    }
+
+    // returns the winner index
+    private int checkWinIndex()
+    {
+        int currWinnerScore = currRoundScores[0];
+        int currWinnerIndex = 0;
+        for (int i = 0; i < currRoundScores.Length; i++)
+        {
+            if (currRoundScores[i] > currWinnerScore)
+            {
+                currWinnerIndex = i;
+            }
+        }
+        return currWinnerIndex;
     }
 }

@@ -10,9 +10,14 @@ public class CherryRound : Round
     [SerializeField] private int maxCherrySpawns;
 
     private GameObject spawnArea;
+    private BasketContainer bc;
+    private int[] roundScores;
 
     public override IEnumerator StartGoal()
     {
+        GameObject basketContainer = GameObject.FindWithTag("BasketContainer");
+        bc = basketContainer.GetComponent<BasketContainer>();
+
         // get the bounds of the area of where we want cherries to spawn
         spawnArea = GameObject.FindWithTag("SpawnArea");
         Collider spawnCollider = spawnArea.GetComponent<Collider>();
@@ -33,5 +38,10 @@ public class CherryRound : Round
 
             yield return new WaitForSeconds(spawnInterval);
         }
+    }
+
+    public override int[] ScoreCount()
+    {
+        return bc.countCherries();
     }
 }

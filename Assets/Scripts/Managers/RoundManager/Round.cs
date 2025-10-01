@@ -13,4 +13,9 @@ public class Round : ScriptableObject
     {
         yield return null;
     }
+
+    public virtual int[] ScoreCount()
+    {
+        return new int[0];
+    }
 }
