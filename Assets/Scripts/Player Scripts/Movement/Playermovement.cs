@@ -158,8 +158,8 @@ public class PlayerMovement : MonoBehaviour
         rbCherry.isKinematic = false;
 
         // Use last aim direction
-        Vector3 throwDir = GetAimDirection();
-        rbCherry.linearVelocity = throwDir * currentThrowForce;
+        rbCherry.linearVelocity = GetAimVelocity();
+        //rbCherry.linearVelocity = throwDir * currentThrowForce;
 
         heldCherry = null;
     }
@@ -170,31 +170,42 @@ public class PlayerMovement : MonoBehaviour
         if (lineRenderer == null) return;
 
         Vector3 startPos = handHoldPoint.position;
-        Vector3 startVel = GetAimDirection() * currentThrowForce;
+        Vector3 startVel = GetAimVelocity();
 
         lineRenderer.positionCount = arcResolution;
+
+        float minY = 0.2f; // minimum height for the line (slightly above ground)
 
         for (int i = 0; i < arcResolution; i++)
         {
             float t = i * timeStep;
             Vector3 pos = startPos + startVel * t + 0.5f * Physics.gravity * t * t;
+
+            // Clamp Y so it doesn't go under the ground
+            if (pos.y < minY)
+                pos.y = minY;
+
             lineRenderer.SetPosition(i, pos);
         }
     }
 
+
     // Helper: Get aim direction (right stick or forward if neutral)
-    private Vector3 GetAimDirection()
+    private Vector3 GetAimVelocity()
     {
         Vector2 lookInput = assignedGamepad.rightStick.ReadValue();
         Vector3 lookDir = new Vector3(lookInput.x, 0f, lookInput.y);
 
-        if (lookDir.sqrMagnitude > 0.1f)
-        {
-            return lookDir.normalized + Vector3.up * 0.5f;
-        }
-        else
-        {
-            return (transform.forward + Vector3.up * 0.5f).normalized;
-        }
+        if (lookDir.sqrMagnitude < 0.1f)
+            lookDir = transform.forward;
+
+        lookDir.Normalize();
+
+        // --- Separate horizontal and vertical speeds ---
+        float horizontalSpeed = 5f; // <<< smaller value shortens distance
+        float verticalSpeed = 7f;   // <<< controls height of the arc
+
+        Vector3 velocity = lookDir * horizontalSpeed + Vector3.up * verticalSpeed;
+        return velocity;
     }
 }
