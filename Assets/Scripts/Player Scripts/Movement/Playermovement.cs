@@ -25,6 +25,8 @@ public class PlayerMovement : MonoBehaviour
     private bool isCharging;
     private float currentThrowForce;
 
+    private GameObject nearbyCherry;
+
     void Start()
     {
         // Assign controller
@@ -51,15 +53,14 @@ public class PlayerMovement : MonoBehaviour
     {
         if (assignedGamepad == null || rb == null) return;
 
-        // Movement (Left Stick)
+        // --- Movement (Left Stick) ---
         Vector2 moveInput = assignedGamepad.leftStick.ReadValue();
         Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y);
         transform.Translate(move * moveSpeed * Time.deltaTime, Space.World);
 
-        // Rotation (Right Stick)
+        // --- Rotation (Right Stick) ---
         Vector2 lookInput = assignedGamepad.rightStick.ReadValue();
         Vector3 lookDir = new Vector3(lookInput.x, 0f, lookInput.y);
-
         if (lookDir.sqrMagnitude > 0.1f) // only rotate if stick is moved
         {
             Quaternion targetRotation = Quaternion.LookRotation(lookDir, Vector3.up);
@@ -70,14 +71,43 @@ public class PlayerMovement : MonoBehaviour
             );
         }
 
-        // Jump
+        // --- Jump (Button South) ---
         if (isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame)
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             isGrounded = false;
         }
 
-        // Throw input (LT = leftTrigger, 0–1)
+        // --- Pickup / Drop (RT = rightTrigger) ---
+        float rtValue = assignedGamepad.rightTrigger.ReadValue();
+        if (rtValue > 0.1f) // holding RT
+        {
+            if (heldCherry == null && nearbyCherry != null)
+            {
+                // Pick up the cherry
+                heldCherry = nearbyCherry;
+                Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
+                if (rbCherry != null)
+                    rbCherry.isKinematic = true;
+
+                heldCherry.transform.SetParent(handHoldPoint);
+                heldCherry.transform.localPosition = Vector3.zero;
+            }
+        }
+        else // released RT
+        {
+            if (heldCherry != null && !isCharging) // don't drop while throwing
+            {
+                Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
+                heldCherry.transform.SetParent(null);
+                if (rbCherry != null)
+                    rbCherry.isKinematic = false;
+
+                heldCherry = null;
+            }
+        }
+
+        // --- Throw (LT = leftTrigger) ---
         if (heldCherry != null)
         {
             float ltValue = assignedGamepad.leftTrigger.ReadValue();
@@ -93,33 +123,28 @@ public class PlayerMovement : MonoBehaviour
             {
                 ThrowCherry();
                 isCharging = false;
+
                 if (lineRenderer != null)
-                    lineRenderer.positionCount = 0; // clear arc
+                    lineRenderer.positionCount = 0; // clear trajectory
             }
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = true;
-        }
-    }
 
     // Pick up cherry
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Cherry") && heldCherry == null)
+        if (other.CompareTag("Cherry"))
         {
-            heldCherry = other.gameObject;
-            Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
-            if (rbCherry != null)
-            {
-                rbCherry.isKinematic = true; // Stops physics while held
-            }
-            heldCherry.transform.SetParent(handHoldPoint);
-            heldCherry.transform.localPosition = Vector3.zero;
+            nearbyCherry = other.gameObject;
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Cherry") && other.gameObject == nearbyCherry)
+        {
+            nearbyCherry = null;
         }
     }
 
