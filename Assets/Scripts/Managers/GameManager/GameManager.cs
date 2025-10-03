@@ -1,5 +1,6 @@
-using UnityEngine;
 using TMPro;
+using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
@@ -27,30 +28,44 @@ public class GameManager : MonoBehaviour
     }
     public GameState currGameState;
 
-    private void Update()
-    {
-        // just for our testing: we have a timer and a restart button that changes depending on gamestate
-        // uncomment the following to get my test shit working
-        if ((timerText != null && button != null))
-        {
-            if (currGameState == GameState.Round)
-            {
-                timerText.text = "Timer: " + (RoundManager.Instance.currRoundDurationInSecs - (int)RoundManager.Instance.currRoundProgress);
-                button.SetActive(false);
-            }
-            else
-            {
-                timerText.text = "";
-                button.SetActive(true);
-            }
-        }
-        else
-        {
-            timerText = GameObject.FindWithTag("Timer").GetComponent<TMP_Text>();
-            button = GameObject.FindWithTag("Button");
-        }
-    }
-    
+   private void Update()
+     {
+         // Only try to get scene-specific references if they're null
+         if (timerText == null)
+         {
+             GameObject timerObj = GameObject.FindWithTag("Timer");
+             if (timerObj != null) timerText = timerObj.GetComponent<TMP_Text>();
+         }
+
+         if (button == null)
+         {
+             button = GameObject.FindWithTag("Button");
+         }
+
+         // just for our testing: we have a timer and a restart button that changes depending on gamestate
+         // uncomment the following to get my test shit working
+         if ((timerText != null && button != null))
+         {
+             if (currGameState == GameState.Round)
+             {
+                 timerText.text = "Timer: " + (RoundManager.Instance.currRoundDurationInSecs - (int)RoundManager.Instance.currRoundProgress);
+                 button.SetActive(false);
+             }
+             else
+             {
+                 timerText.text = "";
+                 button.SetActive(true);
+             }
+         }
+         //else
+         //{
+         //    timerText = GameObject.FindWithTag("Timer").GetComponent<TMP_Text>();
+        //     button = GameObject.FindWithTag("Button");
+        // }
+     }
+
+
+
     private void Awake()
     {
         // If no instance exists yet, make this the instance
@@ -77,4 +92,6 @@ public class GameManager : MonoBehaviour
     {
         RoundManager.Instance.switchRoundScene();
     }
+
+
 }
