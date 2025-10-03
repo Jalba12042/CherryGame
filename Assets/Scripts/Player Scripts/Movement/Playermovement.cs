@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -11,11 +12,6 @@ public class PlayerMovement : MonoBehaviour
     [Header("Throw Settings")]
     public Transform handHoldPoint;        // Where cherry sits
     public GameObject cherryPrefab;        // Prefab for throwing
-    public float minThrowForce = 5f;
-    public float maxThrowForce = 15f;
-    public LineRenderer lineRenderer;      // Assign in inspector
-    public int arcResolution = 30;
-    public float timeStep = 0.1f;
 
     private Gamepad assignedGamepad;
     private Rigidbody rb;
@@ -23,9 +19,11 @@ public class PlayerMovement : MonoBehaviour
 
     private GameObject heldCherry;
     private bool isCharging;
-    private float currentThrowForce;
+
 
     private GameObject nearbyCherry;
+
+    public Projectile projectileScript;
 
     void Start()
     {
@@ -44,9 +42,6 @@ public class PlayerMovement : MonoBehaviour
         {
             Debug.LogError("PlayerMovement requires a Rigidbody component.");
         }
-
-        if (lineRenderer != null)
-            lineRenderer.positionCount = 0; // clear trajectory at start
     }
 
     void Update()
@@ -67,7 +62,7 @@ public class PlayerMovement : MonoBehaviour
             transform.rotation = Quaternion.Slerp(
                 transform.rotation,
                 targetRotation,
-                Time.deltaTime * 15f // rotation speed
+                Time.deltaTime * 5f // rotation speed
             );
         }
 
@@ -84,7 +79,6 @@ public class PlayerMovement : MonoBehaviour
         {
             if (heldCherry == null && nearbyCherry != null)
             {
-                // Pick up the cherry
                 heldCherry = nearbyCherry;
                 Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
                 if (rbCherry != null)
@@ -92,8 +86,12 @@ public class PlayerMovement : MonoBehaviour
 
                 heldCherry.transform.SetParent(handHoldPoint);
                 heldCherry.transform.localPosition = Vector3.zero;
+
+                if (projectileScript != null)
+                    projectileScript.PickUpCherry(heldCherry);
             }
         }
+
         else // released RT
         {
             if (heldCherry != null && !isCharging) // don't drop while throwing
@@ -107,29 +105,7 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // --- Throw (LT = leftTrigger) ---
-        if (heldCherry != null)
-        {
-            float ltValue = assignedGamepad.leftTrigger.ReadValue();
-
-            if (ltValue > 0.1f) // holding trigger
-            {
-                isCharging = true;
-                currentThrowForce = Mathf.Lerp(minThrowForce, maxThrowForce, ltValue);
-
-                ShowTrajectory();
-            }
-            else if (isCharging) // released trigger
-            {
-                ThrowCherry();
-                isCharging = false;
-
-                if (lineRenderer != null)
-                    lineRenderer.positionCount = 0; // clear trajectory
-            }
-        }
     }
-
 
     // Pick up cherry
     private void OnTriggerEnter(Collider other)
@@ -148,64 +124,11 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // Throw cherry
-    private void ThrowCherry()
+    private void OnCollisionEnter(Collision collision)
     {
-        if (heldCherry == null) return;
-
-        Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
-        heldCherry.transform.SetParent(null);
-        rbCherry.isKinematic = false;
-
-        // Use last aim direction
-        rbCherry.linearVelocity = GetAimVelocity();
-        //rbCherry.linearVelocity = throwDir * currentThrowForce;
-
-        heldCherry = null;
-    }
-
-    // Trajectory arc
-    private void ShowTrajectory()
-    {
-        if (lineRenderer == null) return;
-
-        Vector3 startPos = handHoldPoint.position;
-        Vector3 startVel = GetAimVelocity();
-
-        lineRenderer.positionCount = arcResolution;
-
-        float minY = 0.2f; // minimum height for the line (slightly above ground)
-
-        for (int i = 0; i < arcResolution; i++)
+        if (collision.gameObject.CompareTag("Ground"))
         {
-            float t = i * timeStep;
-            Vector3 pos = startPos + startVel * t + 0.5f * Physics.gravity * t * t;
-
-            // Clamp Y so it doesn't go under the ground
-            if (pos.y < minY)
-                pos.y = minY;
-
-            lineRenderer.SetPosition(i, pos);
+            isGrounded = true;
         }
-    }
-
-
-    // Helper: Get aim direction (right stick or forward if neutral)
-    private Vector3 GetAimVelocity()
-    {
-        Vector2 lookInput = assignedGamepad.rightStick.ReadValue();
-        Vector3 lookDir = new Vector3(lookInput.x, 0f, lookInput.y);
-
-        if (lookDir.sqrMagnitude < 0.1f)
-            lookDir = transform.forward;
-
-        lookDir.Normalize();
-
-        // --- Separate horizontal and vertical speeds ---
-        float horizontalSpeed = 5f; // <<< smaller value shortens distance
-        float verticalSpeed = 7f;   // <<< controls height of the arc
-
-        Vector3 velocity = lookDir * horizontalSpeed + Vector3.up * verticalSpeed;
-        return velocity;
     }
 }
