@@ -31,6 +31,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6560752320574917625}
   m_LocalEulerAnglesHint: {x: -105.241, y: 0, z: 0}
+--- !u!1 &4048516817865917231
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8248103145118290026}
+  m_Layer: 0
+  m_Name: GroundCheck
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8248103145118290026
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4048516817865917231}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
+  m_LocalPosition: {x: 0.0004, y: -0.0198, z: 0.00381}
+  m_LocalScale: {x: 0.01752264, y: 0.01752264, z: 0.01752264}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6560752320574917625}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5838060070542794837
 GameObject:
   m_ObjectHideFlags: 0
@@ -157,6 +188,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 83355a02f3470bf42bbca3ea0ab19385, type: 3}
       insertIndex: -1
       addedObject: {fileID: 609839701587083583}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 83355a02f3470bf42bbca3ea0ab19385, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8248103145118290026}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 83355a02f3470bf42bbca3ea0ab19385, type: 3}
       insertIndex: -1
@@ -196,6 +230,11 @@ MonoBehaviour:
   jumpForce: 5
   handHoldPoint: {fileID: 2569343757537006424}
   cherryPrefab: {fileID: 6563745981749125236, guid: 6689b5b271b0be941a3fde45bbd434f8, type: 3}
+  groundCheckPoint: {fileID: 8248103145118290026}
+  groundCheckRadius: 0.3
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 128
   projectileScript: {fileID: 6944696256041146281}
 --- !u!114 &6944696256041146281
 MonoBehaviour:
@@ -250,7 +289,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5784778979705639235}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: ed74d27041518e0499e21454f3595b6e, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0

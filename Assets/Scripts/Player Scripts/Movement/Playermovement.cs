@@ -13,9 +13,16 @@ public class PlayerMovement : MonoBehaviour
     public Transform handHoldPoint;        // Where cherry sits
     public GameObject cherryPrefab;        // Prefab for throwing
 
+    [Header("Ground Check")]
+    [SerializeField] private Transform groundCheckPoint;
+    [SerializeField] private float groundCheckDistance = 0.4f;
+    [SerializeField] private LayerMask groundLayer;
+
     private Gamepad assignedGamepad;
     private Rigidbody rb;
-    private bool isGrounded = true;
+    private bool isGrounded;
+    private bool jumpRequested = false;
+    private Vector2 moveInput;
 
     private GameObject heldCherry;
     private bool isCharging;
@@ -24,6 +31,8 @@ public class PlayerMovement : MonoBehaviour
     private GameObject nearbyCherry;
 
     public Projectile projectileScript;
+
+
 
     void Start()
     {
@@ -44,17 +53,40 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    private void FixedUpdate()
+    {
+        // --- Movement (Left Stick) ---
+        moveInput = assignedGamepad.leftStick.ReadValue();
+
+        isGrounded = Physics.Raycast(groundCheckPoint.position, Vector3.down, groundCheckDistance, groundLayer);
+
+        if (isGrounded && moveInput == Vector2.zero)
+        {
+            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+        }
+
+        Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
+        Vector3 targetVelocity = move * moveSpeed;
+        rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
+
+        // --- Jump (Button South) ---
+        if (jumpRequested)
+        {
+            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            jumpRequested = false;
+        }
+    }
     void Update()
     {
         if (assignedGamepad == null || rb == null) return;
 
-        // --- Movement (Left Stick) ---
-        Vector2 moveInput = assignedGamepad.leftStick.ReadValue();
-        Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y);
-        transform.Translate(move * moveSpeed * Time.deltaTime, Space.World);
+        if (isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame)
+        {
+            jumpRequested = true;
+        }
 
-        // --- Rotation (Right Stick) ---
-        Vector2 lookInput = assignedGamepad.rightStick.ReadValue();
+            // --- Rotation (Right Stick) ---
+            Vector2 lookInput = assignedGamepad.rightStick.ReadValue();
         Vector3 lookDir = new Vector3(lookInput.x, 0f, lookInput.y);
         if (lookDir.sqrMagnitude > 0.1f) // only rotate if stick is moved
         {
@@ -64,13 +96,6 @@ public class PlayerMovement : MonoBehaviour
                 targetRotation,
                 Time.deltaTime * 5f // rotation speed
             );
-        }
-
-        // --- Jump (Button South) ---
-        if (isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame)
-        {
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-            isGrounded = false;
         }
 
         // --- Pickup / Drop (RT = rightTrigger) ---
@@ -121,14 +146,6 @@ public class PlayerMovement : MonoBehaviour
         if (other.CompareTag("Cherry") && other.gameObject == nearbyCherry)
         {
             nearbyCherry = null;
-        }
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = true;
         }
     }
 }

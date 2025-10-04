@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "New Cherry Round", menuName = "Rounds/Round/Cherry", order = 1)]
@@ -23,6 +24,10 @@ public class CherryRound : Round
         Collider spawnCollider = spawnArea.GetComponent<Collider>();
         Bounds b = spawnCollider.bounds;
 
+        if (goalObjects == null)
+        {
+            goalObjects = new List<GameObject>();
+        }
         // while the round is going, spawn a random amount of cherry prefabs in random spots in the spawn area every n seconds
         while (RoundManager.Instance.currRoundActive)
         {
@@ -32,7 +37,6 @@ public class CherryRound : Round
             {
                 float randX = Random.Range(b.min.x, b.max.x);
                 float randZ = Random.Range(b.min.z, b.max.z);
-                //Debug.Log(randX + " " + spawnArea.transform.position.y + " " + randZ);
                 goalObjects.Add(Instantiate(cherryPrefab, new Vector3(randX, spawnArea.transform.position.y, randZ), Quaternion.identity));
             }
 
