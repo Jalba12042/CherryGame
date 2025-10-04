@@ -18,6 +18,7 @@ public class RoundManager : MonoBehaviour
     [SerializeField] private bool allowRepeats; // flag to allow repeated rounds if we so choose
 
     [SerializeField] private string shopSceneName;
+    [SerializeField] private string controllerSceneName;
     [SerializeField] private int startTimerInSeconds;
     [SerializeField] private GameObject playerPrefab;
 
@@ -45,7 +46,7 @@ public class RoundManager : MonoBehaviour
     }
     private void Update()
     {
-        if (currRound == null && SceneManager.GetActiveScene().name.Equals(shopSceneName))
+        if (currRound == null && (SceneManager.GetActiveScene().name.Equals(controllerSceneName) || SceneManager.GetActiveScene().name.Equals(shopSceneName)))
         {
             SelectRound();
         }
@@ -129,7 +130,6 @@ public class RoundManager : MonoBehaviour
 
         // spawn players
         playerObjects = new GameObject[GameManager.Instance.playerCount];
-        Debug.Log(GameManager.Instance.playerCount);
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             playerObjects[i] = Instantiate(playerPrefab, currPlayerSpawn.spawnPoints[i].position, Quaternion.identity);
