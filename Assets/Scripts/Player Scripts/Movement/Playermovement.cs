@@ -44,14 +44,25 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    void Update()
+    private void FixedUpdate()
     {
-        if (assignedGamepad == null || rb == null) return;
+        // --- Jump (Button South) ---
+        if (isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame)
+        {
+            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            isGrounded = false;
+        }
 
         // --- Movement (Left Stick) ---
         Vector2 moveInput = assignedGamepad.leftStick.ReadValue();
-        Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y);
-        transform.Translate(move * moveSpeed * Time.deltaTime, Space.World);
+        Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
+        Vector3 targetVelocity = move * moveSpeed;
+        rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
+        //transform.Translate(move * moveSpeed * Time.deltaTime, Space.World);
+    }
+    void Update()
+    {
+        if (assignedGamepad == null || rb == null) return;
 
         // --- Rotation (Right Stick) ---
         Vector2 lookInput = assignedGamepad.rightStick.ReadValue();
@@ -64,13 +75,6 @@ public class PlayerMovement : MonoBehaviour
                 targetRotation,
                 Time.deltaTime * 5f // rotation speed
             );
-        }
-
-        // --- Jump (Button South) ---
-        if (isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame)
-        {
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-            isGrounded = false;
         }
 
         // --- Pickup / Drop (RT = rightTrigger) ---
