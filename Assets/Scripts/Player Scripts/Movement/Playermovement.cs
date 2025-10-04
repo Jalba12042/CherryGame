@@ -13,9 +13,15 @@ public class PlayerMovement : MonoBehaviour
     public Transform handHoldPoint;        // Where cherry sits
     public GameObject cherryPrefab;        // Prefab for throwing
 
+    [Header("Ground Check")]
+    public Transform groundCheckPoint;
+    public float groundCheckRadius = 0.2f;
+    public LayerMask groundLayer;
+
     private Gamepad assignedGamepad;
     private Rigidbody rb;
-    private bool isGrounded = true;
+    private bool isGrounded;
+    private bool jumpRequested = false;
 
     private GameObject heldCherry;
     private bool isCharging;
@@ -46,11 +52,13 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
+        isGrounded = Physics.CheckSphere(groundCheckPoint.position, groundCheckRadius, groundLayer);
+
         // --- Jump (Button South) ---
-        if (isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame)
+        if (jumpRequested)
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-            isGrounded = false;
+            jumpRequested = false;
         }
 
         // --- Movement (Left Stick) ---
@@ -58,14 +66,19 @@ public class PlayerMovement : MonoBehaviour
         Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
         Vector3 targetVelocity = move * moveSpeed;
         rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
-        //transform.Translate(move * moveSpeed * Time.deltaTime, Space.World);
+
     }
     void Update()
     {
         if (assignedGamepad == null || rb == null) return;
 
-        // --- Rotation (Right Stick) ---
-        Vector2 lookInput = assignedGamepad.rightStick.ReadValue();
+        if (isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame)
+        {
+            jumpRequested = true;
+        }
+
+            // --- Rotation (Right Stick) ---
+            Vector2 lookInput = assignedGamepad.rightStick.ReadValue();
         Vector3 lookDir = new Vector3(lookInput.x, 0f, lookInput.y);
         if (lookDir.sqrMagnitude > 0.1f) // only rotate if stick is moved
         {
@@ -125,14 +138,6 @@ public class PlayerMovement : MonoBehaviour
         if (other.CompareTag("Cherry") && other.gameObject == nearbyCherry)
         {
             nearbyCherry = null;
-        }
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = true;
         }
     }
 }
