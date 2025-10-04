@@ -17,10 +17,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TMP_Text timerText;
     [SerializeField] private GameObject button;
 
-    [Header("Starting Scene")]
-    public string firstScene;
-
-
     public enum GameState
     {
         Shop,

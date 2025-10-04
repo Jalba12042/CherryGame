@@ -14,14 +14,15 @@ public class PlayerMovement : MonoBehaviour
     public GameObject cherryPrefab;        // Prefab for throwing
 
     [Header("Ground Check")]
-    public Transform groundCheckPoint;
-    public float groundCheckRadius = 0.2f;
-    public LayerMask groundLayer;
+    [SerializeField] private Transform groundCheckPoint;
+    [SerializeField] private float groundCheckDistance = 0.4f;
+    [SerializeField] private LayerMask groundLayer;
 
     private Gamepad assignedGamepad;
     private Rigidbody rb;
     private bool isGrounded;
     private bool jumpRequested = false;
+    private Vector2 moveInput;
 
     private GameObject heldCherry;
     private bool isCharging;
@@ -30,6 +31,8 @@ public class PlayerMovement : MonoBehaviour
     private GameObject nearbyCherry;
 
     public Projectile projectileScript;
+
+
 
     void Start()
     {
@@ -52,7 +55,19 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        isGrounded = Physics.CheckSphere(groundCheckPoint.position, groundCheckRadius, groundLayer);
+        // --- Movement (Left Stick) ---
+        moveInput = assignedGamepad.leftStick.ReadValue();
+
+        isGrounded = Physics.Raycast(groundCheckPoint.position, Vector3.down, groundCheckDistance, groundLayer);
+
+        if (isGrounded && moveInput == Vector2.zero)
+        {
+            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+        }
+
+        Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
+        Vector3 targetVelocity = move * moveSpeed;
+        rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
 
         // --- Jump (Button South) ---
         if (jumpRequested)
@@ -60,13 +75,6 @@ public class PlayerMovement : MonoBehaviour
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             jumpRequested = false;
         }
-
-        // --- Movement (Left Stick) ---
-        Vector2 moveInput = assignedGamepad.leftStick.ReadValue();
-        Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
-        Vector3 targetVelocity = move * moveSpeed;
-        rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
-
     }
     void Update()
     {
