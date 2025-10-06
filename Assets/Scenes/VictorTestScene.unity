@@ -1074,6 +1074,11 @@ MonoBehaviour:
   jumpForce: 5
   handHoldPoint: {fileID: 0}
   cherryPrefab: {fileID: 0}
+  groundCheckPoint: {fileID: 0}
+  groundCheckDistance: 0.4
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
   projectileScript: {fileID: 0}
 --- !u!1 &837660869
 GameObject:
@@ -2241,7 +2246,7 @@ GameObject:
   - component: {fileID: 1672507085}
   - component: {fileID: 1672507084}
   - component: {fileID: 1672507083}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: Plane
   m_TagString: Ground
   m_Icon: {fileID: 0}
@@ -2554,68 +2559,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1866130782}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &2143673326 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 340043488142234297, guid: d22fd60eafc79f44981bddea291a6828, type: 3}
-  m_PrefabInstance: {fileID: 1497575142863436030}
-  m_PrefabAsset: {fileID: 0}
---- !u!1001 &1497575142863436030
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 340043488142234297, guid: d22fd60eafc79f44981bddea291a6828, type: 3}
-      propertyPath: m_Name
-      value: LandingMark
-      objectReference: {fileID: 0}
-    - target: {fileID: 7051878326260193972, guid: d22fd60eafc79f44981bddea291a6828, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -1.259765
-      objectReference: {fileID: 0}
-    - target: {fileID: 7051878326260193972, guid: d22fd60eafc79f44981bddea291a6828, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.2756
-      objectReference: {fileID: 0}
-    - target: {fileID: 7051878326260193972, guid: d22fd60eafc79f44981bddea291a6828, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 1.6604807
-      objectReference: {fileID: 0}
-    - target: {fileID: 7051878326260193972, guid: d22fd60eafc79f44981bddea291a6828, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7051878326260193972, guid: d22fd60eafc79f44981bddea291a6828, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7051878326260193972, guid: d22fd60eafc79f44981bddea291a6828, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7051878326260193972, guid: d22fd60eafc79f44981bddea291a6828, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7051878326260193972, guid: d22fd60eafc79f44981bddea291a6828, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7051878326260193972, guid: d22fd60eafc79f44981bddea291a6828, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7051878326260193972, guid: d22fd60eafc79f44981bddea291a6828, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: d22fd60eafc79f44981bddea291a6828, type: 3}
 --- !u!1001 &8541521630359700023
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2628,6 +2571,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player1
       objectReference: {fileID: 0}
+    - target: {fileID: 5926358992552993136, guid: b2bd3afc6fd546b4781e673143c78050, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6a0fadab5d36bc94faf17eaadd125df9, type: 2}
     - target: {fileID: 6560752320574917625, guid: b2bd3afc6fd546b4781e673143c78050, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.39820957
@@ -2673,9 +2620,21 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 377751968}
     - target: {fileID: 6944696256041146281, guid: b2bd3afc6fd546b4781e673143c78050, type: 3}
+      propertyPath: linePoints
+      value: 38
+      objectReference: {fileID: 0}
+    - target: {fileID: 6944696256041146281, guid: b2bd3afc6fd546b4781e673143c78050, type: 3}
       propertyPath: landingMarker
       value: 
-      objectReference: {fileID: 2143673326}
+      objectReference: {fileID: 2245115627992007439, guid: 7450f1637d316bd4086849007aa8db7c, type: 3}
+    - target: {fileID: 6944696256041146281, guid: b2bd3afc6fd546b4781e673143c78050, type: 3}
+      propertyPath: groundLayer.m_Bits
+      value: 128
+      objectReference: {fileID: 0}
+    - target: {fileID: 6944696256041146281, guid: b2bd3afc6fd546b4781e673143c78050, type: 3}
+      propertyPath: landingMarkerPrefab
+      value: 
+      objectReference: {fileID: 2245115627992007439, guid: 7450f1637d316bd4086849007aa8db7c, type: 3}
     - target: {fileID: 7888458444580780378, guid: b2bd3afc6fd546b4781e673143c78050, type: 3}
       propertyPath: cherryPrefab
       value: 
@@ -2702,4 +2661,3 @@ SceneRoots:
   - {fileID: 376833461}
   - {fileID: 1403032047}
   - {fileID: 30172860}
-  - {fileID: 1497575142863436030}

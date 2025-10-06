@@ -231,7 +231,7 @@ MonoBehaviour:
   handHoldPoint: {fileID: 2569343757537006424}
   cherryPrefab: {fileID: 6563745981749125236, guid: 6689b5b271b0be941a3fde45bbd434f8, type: 3}
   groundCheckPoint: {fileID: 8248103145118290026}
-  groundCheckRadius: 0.3
+  groundCheckDistance: 0.4
   groundLayer:
     serializedVersion: 2
     m_Bits: 128
@@ -251,10 +251,13 @@ MonoBehaviour:
   launchPoint: {fileID: 2569343757537006424}
   cherry: {fileID: 6563745981749125236, guid: 6689b5b271b0be941a3fde45bbd434f8, type: 3}
   lineRenderer: {fileID: 5926358992552993136}
-  landingMarker: {fileID: 340043488142234297, guid: d22fd60eafc79f44981bddea291a6828, type: 3}
+  landingMarkerPrefab: {fileID: 2245115627992007439, guid: 7450f1637d316bd4086849007aa8db7c, type: 3}
   launchSpeed: 15
-  linePoints: 31
+  linePoints: 39
   timeStep: 0.1
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 128
 --- !u!54 &6987185759150550272
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -327,7 +330,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 6a0fadab5d36bc94faf17eaadd125df9, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

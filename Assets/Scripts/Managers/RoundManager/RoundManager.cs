@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Multiplayer.Center.NetcodeForGameObjectsExample.DistributedAuthority;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -19,6 +20,7 @@ public class RoundManager : MonoBehaviour
 
     [SerializeField] private string shopSceneName;
     [SerializeField] private string controllerSceneName;
+    [SerializeField] private string winSceneName;
     [SerializeField] private int startTimerInSeconds;
     [SerializeField] private GameObject playerPrefab;
 
@@ -70,8 +72,14 @@ public class RoundManager : MonoBehaviour
                 // stop round
                 StopCoroutine(StartRound());
 
+                int winnerIndex = checkWinIndex();
                 // log winner
                 Debug.Log($"Winner is player {checkWinIndex() + 1}");
+
+                // Hardcode the win scene name
+                string hardcodedWinScene = "WinScene"; // <- replace with your scene name
+                WinScript.winningPlayer = winnerIndex + 1; // set winning player
+                SceneManager.LoadSceneAsync(hardcodedWinScene);
 
                 // set all values to defaults and change scene back to shop
                 roundSelected = false;

@@ -7,7 +7,8 @@ public class Projectile : MonoBehaviour
     public Transform launchPoint;
     public GameObject cherry;
     public LineRenderer lineRenderer;
-    public GameObject landingMarker;
+    public GameObject landingMarkerPrefab;
+    private GameObject landingMarkerInstance;
 
     [Header("Throw Settings")]
     public float launchSpeed = 10f;      // max throw speed
@@ -21,6 +22,8 @@ public class Projectile : MonoBehaviour
     private Gamepad assignedGamepad;
     private GameObject heldCherry;
 
+    [SerializeField] private LayerMask groundLayer;
+
     void Start()
     {
         if (Gamepad.all.Count > 0)
@@ -29,8 +32,11 @@ public class Projectile : MonoBehaviour
         if (lineRenderer != null)
             lineRenderer.positionCount = 0;
 
-        if (landingMarker != null)
-            landingMarker.SetActive(false);
+        if (landingMarkerPrefab != null)
+        {
+            landingMarkerInstance = Instantiate(landingMarkerPrefab);
+            landingMarkerInstance.SetActive(false);
+        }
     }
 
     void Update()
@@ -46,8 +52,8 @@ public class Projectile : MonoBehaviour
             lineRenderer.enabled = true;
 
             // Enable landing marker when aiming
-            if (landingMarker != null)
-                landingMarker.SetActive(true);
+            if (landingMarkerInstance != null)
+                landingMarkerInstance.SetActive(true);
 
             throwPower = ltValue; // store current trigger value
 
@@ -63,8 +69,9 @@ public class Projectile : MonoBehaviour
             isHoldingCherry = false;
             heldCherry = null;
 
-            if (landingMarker != null)
-                landingMarker.SetActive(false);
+            // Enable landing marker when aiming
+            if (landingMarkerInstance != null)
+                landingMarkerInstance.SetActive(false);
 
             throwPower = 0f;
         }
@@ -91,11 +98,58 @@ public class Projectile : MonoBehaviour
             rb.isKinematic = true;
 
         // Don't enable landing marker here
-        if (landingMarker != null)
-            landingMarker.SetActive(false);
+        if (landingMarkerInstance != null)
+            landingMarkerInstance.SetActive(false);
+    }
+
+    void DrawTrajectory(float power)
+    {
+        if (heldCherry == null) return;
+
+        Vector3 origin = launchPoint.position;
+        Vector3 velocity = launchPoint.forward * (launchSpeed * power);
+
+        lineRenderer.positionCount = linePoints;
+        Vector3 previousPoint = origin;
+
+        for (int i = 0; i < linePoints; i++)
+        {
+            float t = i * timeStep;
+            Vector3 point = origin + velocity * t + 0.5f * Physics.gravity * t * t;
+            lineRenderer.SetPosition(i, point);
+
+            if (i > 0)
+            {
+                Vector3 direction = point - previousPoint;
+                float distance = direction.magnitude;
+
+                // Debug ray to see trajectory checks
+                Debug.DrawLine(previousPoint, point, Color.red, 0.1f);
+
+                if (Physics.Raycast(previousPoint, direction.normalized, out RaycastHit hit, distance, groundLayer))
+                {
+                    if (landingMarkerInstance != null)
+                    {
+                        landingMarkerInstance.transform.position = hit.point;
+                        landingMarkerInstance.SetActive(true);
+                    }
+
+                    lineRenderer.positionCount = i + 1;
+                    lineRenderer.SetPosition(i, hit.point);
+                    return;
+                }
+            }
+
+            previousPoint = point;
+        }
+
+        // If no hit found, hide marker
+        if (landingMarkerInstance != null)
+            landingMarkerInstance.SetActive(false);
     }
 
 
+    /*
     void DrawTrajectory(float power)
     {
         if (heldCherry == null) return;
@@ -125,7 +179,7 @@ public class Projectile : MonoBehaviour
 
         if (landingMarker != null)
             landingMarker.transform.position = landingPosition;
-    }
+    }*/
 
     void ThrowCherry()
     {
@@ -148,8 +202,8 @@ public class Projectile : MonoBehaviour
 
         heldCherry = null;
 
-        if (landingMarker != null)
-            landingMarker.SetActive(false);
+        if (landingMarkerInstance != null)
+            landingMarkerInstance.SetActive(false);
     }
 
 
