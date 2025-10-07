@@ -36,21 +36,15 @@ public class PlayerMovement : MonoBehaviour
 
     void Start()
     {
-        // Assign controller
         if (Gamepad.all.Count > playerIndex)
-        {
             assignedGamepad = Gamepad.all[playerIndex];
-        }
-        else
-        {
-            Debug.LogWarning($"No gamepad found for player {playerIndex}");
-        }
 
         rb = GetComponent<Rigidbody>();
-        if (rb == null)
-        {
-            Debug.LogError("PlayerMovement requires a Rigidbody component.");
-        }
+
+        // 👇 Make sure this Player’s Projectile script knows who owns it
+        projectileScript = GetComponent<Projectile>();
+        if (projectileScript != null)
+            projectileScript.SetOwner(this);
     }
 
     private void FixedUpdate()
@@ -147,5 +141,10 @@ public class PlayerMovement : MonoBehaviour
         {
             nearbyCherry = null;
         }
+    }
+
+    public Gamepad GetAssignedGamepad()
+    {
+        return assignedGamepad;
     }
 }
