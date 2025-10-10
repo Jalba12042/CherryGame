@@ -5,30 +5,26 @@ using UnityEngine.SceneManagement;
 
 public class MenuController : MonoBehaviour
 {
+    [Header("Menu Buttons")]
     public Button[] menuButtons; // Array of buttons in the menu
-    private int currentIndex = 0;     // Tracks which button is currently highlighted
+    public Image[] highlightImages; // Array of highlight images (same order as buttons)
 
-
-    private bool canMove = true;     // Prevents input from being read too many times while joystick is held
-    private float deadzone = 0.5f;   // Threshold for how far the joystick must be tilted before registering a move
-
+    private int currentIndex = 0;
+    private bool canMove = true;
+    private float deadzone = 0.5f;
 
     void Start()
     {
-        HighlightButton();   // At the start of the scene, highlight the first button
-
+        HighlightButton();
     }
 
     void Update()
     {
-        // If no controller is connected, stop here
         if (Gamepad.all.Count == 0) return;
 
         var gamepad = Gamepad.all[0];
-        Vector2 move = gamepad.leftStick.ReadValue(); // Read the left stick input
+        Vector2 move = gamepad.leftStick.ReadValue();
 
-
-        // Only allow movement if stick is past deadzone and canMove is true
         if (canMove)
         {
             if (move.y > deadzone)
@@ -45,31 +41,30 @@ public class MenuController : MonoBehaviour
             }
         }
 
-        // Reset canMove when stick goes back to neutral
         if (Mathf.Abs(move.y) < 0.2f)
-        {
             canMove = true;
-        }
 
-        // Confirm selection
         if (gamepad.buttonSouth.wasPressedThisFrame)
-        {
             SelectOption(currentIndex);
-        }
     }
 
-    // Highlights the currently selected button by changing its color
     void HighlightButton()
     {
         for (int i = 0; i < menuButtons.Length; i++)
         {
+            // Change color
             ColorBlock colors = menuButtons[i].colors;
             colors.normalColor = (i == currentIndex) ? Color.yellow : Color.white;
             menuButtons[i].colors = colors;
+
+            // Show/hide highlight image
+            if (highlightImages != null && i < highlightImages.Length && highlightImages[i] != null)
+            {
+                highlightImages[i].enabled = (i == currentIndex);
+            }
         }
     }
 
-    // Runs when player presses confirm (A button)
     void SelectOption(int index)
     {
         int players = index + 2;
