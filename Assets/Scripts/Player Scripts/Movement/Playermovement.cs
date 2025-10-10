@@ -32,7 +32,8 @@ public class PlayerMovement : MonoBehaviour
 
     public Projectile projectileScript;
 
-
+    private Vector2 smoothLookInput;
+    private Vector3 lastLookDir = Vector3.forward;
 
     void Start()
     {
@@ -79,18 +80,22 @@ public class PlayerMovement : MonoBehaviour
             jumpRequested = true;
         }
 
-            // --- Rotation (Right Stick) ---
-            Vector2 lookInput = assignedGamepad.rightStick.ReadValue();
-        Vector3 lookDir = new Vector3(lookInput.x, 0f, lookInput.y);
-        if (lookDir.sqrMagnitude > 0.1f) // only rotate if stick is moved
+
+        // --- Rotation (Right Stick) ---
+        Vector2 rawLook = assignedGamepad.rightStick.ReadValue();
+
+        // Smooth input for stability
+        smoothLookInput = Vector2.Lerp(smoothLookInput, rawLook, Time.deltaTime * 15f);
+
+        // Only update direction if stick magnitude is strong enough
+        if (smoothLookInput.sqrMagnitude > 0.2f)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(lookDir, Vector3.up);
-            transform.rotation = Quaternion.Slerp(
-                transform.rotation,
-                targetRotation,
-                Time.deltaTime * 5f // rotation speed
-            );
+            lastLookDir = new Vector3(smoothLookInput.x, 0f, smoothLookInput.y).normalized;
         }
+
+        Quaternion targetRotation = Quaternion.LookRotation(lastLookDir, Vector3.up);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 12f);
+
 
         // --- Pickup / Drop (RT = rightTrigger) ---
         float rtValue = assignedGamepad.rightTrigger.ReadValue();
