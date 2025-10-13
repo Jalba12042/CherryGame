@@ -24,6 +24,9 @@ public class Projectile : MonoBehaviour
 
     [SerializeField] private LayerMask groundLayer;
 
+    private PlayerMovement owner;
+
+
     void Start()
     {
         if (Gamepad.all.Count > 0)
@@ -41,9 +44,14 @@ public class Projectile : MonoBehaviour
 
     void Update()
     {
-        if (assignedGamepad == null) return;
+        // Make sure this projectile belongs to someone
+        if (owner == null) return;
 
-        float ltValue = assignedGamepad.leftTrigger.ReadValue();
+        // Get this player's specific gamepad
+        var gamepad = owner.GetAssignedGamepad();
+        if (gamepad == null) return;
+
+        float ltValue = gamepad.leftTrigger.ReadValue();
 
         // While holding a cherry and LT pressed
         if (isHoldingCherry && ltValue > 0.1f)
@@ -56,7 +64,6 @@ public class Projectile : MonoBehaviour
                 landingMarkerInstance.SetActive(true);
 
             throwPower = ltValue; // store current trigger value
-
             DrawTrajectory(throwPower);
         }
         // LT released
@@ -69,7 +76,6 @@ public class Projectile : MonoBehaviour
             isHoldingCherry = false;
             heldCherry = null;
 
-            // Enable landing marker when aiming
             if (landingMarkerInstance != null)
                 landingMarkerInstance.SetActive(false);
 
@@ -82,6 +88,7 @@ public class Projectile : MonoBehaviour
                 lineRenderer.enabled = false;
         }
     }
+
 
     // Call externally when player picks up a cherry
     public void PickUpCherry(GameObject cherryObject)
@@ -206,5 +213,9 @@ public class Projectile : MonoBehaviour
             landingMarkerInstance.SetActive(false);
     }
 
+    public void SetOwner(PlayerMovement player)
+    {
+        owner = player;
+    }
 
 }
