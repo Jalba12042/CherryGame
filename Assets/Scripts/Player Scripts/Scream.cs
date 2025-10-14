@@ -21,6 +21,7 @@ public class Scream : MonoBehaviour
     {
         if (gp.buttonEast.wasPressedThisFrame)
         {
+            aSource.Stop();
             int rand = Random.Range(0, screamSFX.Count);
             float randPitch = Random.Range(0f, 2f);
             aSource.pitch = randPitch;
