@@ -5,6 +5,8 @@ using UnityEngine.InputSystem;
 public class Scream : MonoBehaviour
 {
     [SerializeField] private List<AudioClip> screamSFX;
+    [SerializeField] private float minPitch;
+    [SerializeField] private float maxPitch;
     
     private PlayerMovement player;
     private AudioSource aSource;
@@ -21,9 +23,12 @@ public class Scream : MonoBehaviour
     {
         if (gp.buttonEast.wasPressedThisFrame)
         {
+            // stop any screams
             aSource.Stop();
+
+            // pick a random pitch for the scream
             int rand = Random.Range(0, screamSFX.Count);
-            float randPitch = Random.Range(0f, 2f);
+            float randPitch = Random.Range(minPitch, maxPitch);
             aSource.pitch = randPitch;
             aSource.PlayOneShot(screamSFX[rand]);
         }
