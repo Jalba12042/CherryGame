@@ -17,8 +17,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float groundCheckDistance = 0.4f; 
     [SerializeField] private LayerMask groundLayer; 
 
-
-    private Gamepad assignedGamepad; 
+    public Gamepad assignedGamepad; 
     private Rigidbody rb; 
     private bool isGrounded; 
     private bool jumpRequested = false; 
