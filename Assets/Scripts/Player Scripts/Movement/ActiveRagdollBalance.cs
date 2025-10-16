@@ -16,8 +16,10 @@ public class ActiveRagdollController : MonoBehaviour
     public float jumpForce = 80f;
 
     [Header("References")]
+    public Transform PlayerRoot; // new root object
+    public Transform PlayerRigged; // visuals
+    public Rigidbody hips; // physics body
     public Transform targetPose; // Your upright reference pose
-    public Rigidbody hips;       // Drag the pelvis Rigidbody here
 
     [Header("Arm Settings")]
     public CharacterJoint rightArmJoint;
@@ -45,6 +47,7 @@ public class ActiveRagdollController : MonoBehaviour
     private float pickupRadius = 6f;
 
     private Vector3 moveInput;
+    private Vector2 lookInput;
 
     void Start()
     {
@@ -80,11 +83,14 @@ public class ActiveRagdollController : MonoBehaviour
 
     void Update()
     {
-        // --- Movement input ---
         if (assignedGamepad != null)
         {
-            Vector2 stick = assignedGamepad.leftStick.ReadValue();
-            moveInput = new Vector3(stick.x, 0f, stick.y);
+            // Left stick = move
+            Vector2 moveStick = assignedGamepad.leftStick.ReadValue();
+            moveInput = new Vector3(moveStick.x, 0f, moveStick.y);
+
+            // Right stick = look
+            lookInput = assignedGamepad.rightStick.ReadValue();
 
             float rtValue = assignedGamepad.rightTrigger.ReadValue();
             if (rtValue > 0.1f)
@@ -94,7 +100,10 @@ public class ActiveRagdollController : MonoBehaviour
         }
         else
         {
+            // Keyboard fallback
             moveInput = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
+            lookInput = Vector2.zero;
+
             if (Input.GetKey(KeyCode.Space))
                 PickUpCherry();
             else
@@ -131,7 +140,7 @@ public class ActiveRagdollController : MonoBehaviour
             }
         }
 
-        // --- Arm animation update ---
+        // --- Arm animation ---
         if (rightArmJoint != null && holdingCherry)
         {
             Rigidbody armRb = rightArmJoint.GetComponent<Rigidbody>();
@@ -150,6 +159,7 @@ public class ActiveRagdollController : MonoBehaviour
             }
         }
     }
+
 
     private void Jump()
     {
@@ -226,14 +236,40 @@ public class ActiveRagdollController : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (hips == null || targetPose == null) return;
+        if (hips == null || PlayerRoot == null) return;
 
+        // --- Keep upright ---
         KeepUpright();
+
+        // --- Move character ---
         MoveCharacter();
 
-        // Keep targetPose at hips position
-        targetPose.position = hips.position;
+        // --- Smoothly sync visuals ---
+        float followSpeed = 10f;
+        PlayerRoot.position = Vector3.Lerp(PlayerRoot.position, hips.position, followSpeed * Time.fixedDeltaTime);
+        PlayerRoot.rotation = Quaternion.Slerp(PlayerRoot.rotation, hips.rotation, followSpeed * Time.fixedDeltaTime);
     }
+
+
+    /*void LateUpdate()
+    {
+        if (hips == null) return;
+
+        // Smoothly sync PlayerRigged position and rotation with hips
+        transform.position = Vector3.Lerp(
+            transform.position,
+            hips.position,
+            15f * Time.deltaTime
+        );
+
+        transform.rotation = Quaternion.Lerp(
+            transform.rotation,
+            hips.rotation,
+            15f * Time.deltaTime
+        );
+    }*/
+
+
 
     private void KeepUpright()
     {
@@ -270,20 +306,38 @@ public class ActiveRagdollController : MonoBehaviour
 
     private void MoveCharacter()
     {
-        if (moveInput.sqrMagnitude > 0.01f)
+        Vector3 moveDir = moveInput;
+        if (moveDir.sqrMagnitude > 0.01f)
         {
-            Vector3 moveDir = moveInput.normalized;
-            moveDir.y = 0;
+            moveDir.Normalize();
 
-            // Move hips
-            Vector3 horizontalVelocity = new Vector3(hips.linearVelocity.x, 0, hips.linearVelocity.z);
-            if (horizontalVelocity.magnitude < maxSpeed)
-                hips.AddForce(moveDir * moveForce, ForceMode.Acceleration);
+            // Current horizontal velocity
+            Vector3 horizontalVel = new Vector3(hips.linearVelocity.x, 0f, hips.linearVelocity.z);
 
-            // Rotate hips toward movement direction
-            Quaternion targetRotation = Quaternion.LookRotation(moveDir, Vector3.up);
-            hips.MoveRotation(Quaternion.Slerp(hips.rotation, targetRotation, turnSpeed * Time.fixedDeltaTime));
+            // Apply force only if below max speed
+            if (horizontalVel.magnitude < maxSpeed)
+                hips.AddForce(moveDir * moveForce, ForceMode.Force);
+
+            // Clamp horizontal speed
+            horizontalVel = new Vector3(hips.linearVelocity.x, 0f, hips.linearVelocity.z);
+            if (horizontalVel.magnitude > maxSpeed)
+            {
+                Vector3 clamped = horizontalVel.normalized * maxSpeed;
+                hips.linearVelocity = new Vector3(clamped.x, hips.linearVelocity.y, clamped.z);
+            }
+        }
+
+        // Rotation based on right stick
+        if (lookInput.sqrMagnitude > 0.1f)
+        {
+            Vector3 lookDir = new Vector3(lookInput.x, 0f, lookInput.y);
+            Quaternion targetRot = Quaternion.LookRotation(lookDir, Vector3.up);
+            hips.MoveRotation(Quaternion.Slerp(hips.rotation, targetRot, turnSpeed * Time.fixedDeltaTime));
         }
     }
+
+
+
+
 
 }
