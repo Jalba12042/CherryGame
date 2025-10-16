@@ -24,7 +24,9 @@ public class Projectile : MonoBehaviour
 
     [SerializeField] private LayerMask groundLayer;
 
-    private PlayerMovement owner;
+    private PlayerController owner;
+
+
 
 
     void Start()
@@ -90,24 +92,21 @@ public class Projectile : MonoBehaviour
     }
 
 
-    // Call externally when player picks up a cherry
     public void PickUpCherry(GameObject cherryObject)
     {
         heldCherry = cherryObject;
         isHoldingCherry = true;
 
-        // Parent to launch point
+        // Parent to launch point (optional for visual purposes)
         heldCherry.transform.SetParent(launchPoint);
         heldCherry.transform.localPosition = Vector3.zero;
 
-        Rigidbody rb = heldCherry.GetComponent<Rigidbody>();
-        if (rb != null)
-            rb.isKinematic = true;
-
-        // Don't enable landing marker here
         if (landingMarkerInstance != null)
             landingMarkerInstance.SetActive(false);
     }
+
+
+
 
     void DrawTrajectory(float power)
     {
@@ -156,38 +155,6 @@ public class Projectile : MonoBehaviour
     }
 
 
-    /*
-    void DrawTrajectory(float power)
-    {
-        if (heldCherry == null) return;
-
-        Vector3 origin = launchPoint.position;
-        Vector3 velocity = launchPoint.forward * (launchSpeed * power);
-
-        lineRenderer.positionCount = linePoints;
-        for (int i = 0; i < linePoints; i++)
-        {
-            float t = i * timeStep;
-            Vector3 point = origin + velocity * t + 0.5f * Physics.gravity * t * t;
-            lineRenderer.SetPosition(i, point);
-        }
-
-        // Calculate predicted landing point
-        float y0 = origin.y;
-        float vy = velocity.y;
-        float g = Physics.gravity.y;
-        float discriminant = vy * vy - 2 * g * y0;
-        float timeToLand = 0f;
-
-        if (discriminant >= 0f)
-            timeToLand = (-vy - Mathf.Sqrt(discriminant)) / g;
-
-        Vector3 landingPosition = origin + velocity * timeToLand + 0.5f * Physics.gravity * timeToLand * timeToLand;
-
-        if (landingMarker != null)
-            landingMarker.transform.position = landingPosition;
-    }*/
-
     void ThrowCherry()
     {
         if (heldCherry == null) return;
@@ -213,9 +180,10 @@ public class Projectile : MonoBehaviour
             landingMarkerInstance.SetActive(false);
     }
 
-    public void SetOwner(PlayerMovement player)
+    public void SetOwner(PlayerController player)
     {
         owner = player;
     }
+
 
 }

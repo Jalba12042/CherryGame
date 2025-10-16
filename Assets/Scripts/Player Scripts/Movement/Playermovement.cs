@@ -34,7 +34,7 @@ public class PlayerMovement : MonoBehaviour
         if (Gamepad.all.Count > playerIndex) assignedGamepad = Gamepad.all[playerIndex]; 
         rb = GetComponent<Rigidbody>(); 
         projectileScript = GetComponent<Projectile>(); 
-        if (projectileScript != null) projectileScript.SetOwner(this); 
+        //if (projectileScript != null) projectileScript.SetOwner(this); 
     } 
     private void FixedUpdate() 
     { 

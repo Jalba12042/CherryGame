@@ -1,34 +1,37 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerRotation : MonoBehaviour
 {
     private Rigidbody rb;
-    public float rotateSpeed;
+    public float rotateSpeed = 180f; // degrees per second
+    public int playerIndex = 0;
 
-    Vector3 rotationLeft;
-    Vector3 rotationRight;
+    private Gamepad assignedGamepad;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        if (Gamepad.all.Count > playerIndex)
+            assignedGamepad = Gamepad.all[playerIndex];
     }
 
-    // Update is called once per frame
     void FixedUpdate()
     {
-        rotationLeft.Set(0f, -rotateSpeed, 0f);
-        rotationRight.Set(0f, rotateSpeed, 0f);
+        if (assignedGamepad == null) return;
 
-        rotationLeft = -rotationLeft.normalized * -rotateSpeed;
-        rotationRight = rotationRight.normalized * rotateSpeed;
+        // Read right stick input
+        Vector2 lookInput = assignedGamepad.rightStick.ReadValue();
 
-        Quaternion deltaRotationLeft = Quaternion.Euler(rotationLeft * Time.fixedDeltaTime);
-        Quaternion deltaRotationRight = Quaternion.Euler (rotationRight * Time.fixedDeltaTime);
-
-        if(Input.GetKey(KeyCode.Q))
+        // Only rotate if input is significant
+        if (lookInput.sqrMagnitude > 0.1f)
         {
-            rb.MoveRotation(rb.rotation * deltaRotationLeft);
+            // Convert stick direction to a rotation direction
+            Vector3 lookDirection = new Vector3(lookInput.x, 0f, lookInput.y);
+
+            // Smoothly rotate toward that direction
+            Quaternion targetRotation = Quaternion.LookRotation(lookDirection, Vector3.up);
+            rb.MoveRotation(Quaternion.RotateTowards(rb.rotation, targetRotation, rotateSpeed * Time.fixedDeltaTime));
         }
     }
 }
