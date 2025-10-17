@@ -8,6 +8,9 @@ public class PlayerGrabbed : MonoBehaviour
     public void ReleaseGrabbedPlayer()
     {
         if (grabber != null)
+        {
+            Debug.Log($"Grabber index {grabber.playerIndex} released their grabbed player.");
             grabber.ReleaseCurrentGrabbedPlayer();
+        }
     }
 }

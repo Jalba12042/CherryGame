@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 public class PlayerPickup : MonoBehaviour
 {
@@ -7,12 +8,18 @@ public class PlayerPickup : MonoBehaviour
     public int playerIndex = 0;         // Your player index
     public Transform pickupTarget;      // Where the grabbed player should move to
     public float pickupRange = 2f;      // Range to detect other players
+    private bool isCurrentlyGrabbed = false;
+
 
     private Gamepad assignedGamepad;
     private GameObject grabbedPlayerHip;
     private Rigidbody grabbedRigidbody;
     private PlayerPickup playerPickupScript; // Reference to own pickup script
     private PlayerEscapeUI grabbedEscapeUI; // Reference to escape UI on grabbed player
+
+    [Header("Grab Cooldown")]
+    public float grabCooldownTime = 1f;   // seconds before player can grab again
+    private bool canGrab = true;          // whether the player is allowed to grab
 
 
 
@@ -24,7 +31,7 @@ public class PlayerPickup : MonoBehaviour
 
     }
 
-    private void Update()
+    void Update()
     {
         if (assignedGamepad == null) return;
 
@@ -32,8 +39,7 @@ public class PlayerPickup : MonoBehaviour
 
         if (rtValue > 0.1f)
         {
-            // Attempt to grab another player if nothing is grabbed
-            if (grabbedPlayerHip == null)
+            if (grabbedPlayerHip == null && canGrab)
             {
                 GameObject nearby = GetNearbyPlayer();
                 if (nearby != null)
@@ -42,37 +48,50 @@ public class PlayerPickup : MonoBehaviour
                     grabbedRigidbody = grabbedPlayerHip.GetComponent<Rigidbody>();
 
                     if (grabbedRigidbody != null)
-                        grabbedRigidbody.isKinematic = true; // freeze physics while carrying
+                        grabbedRigidbody.isKinematic = true;
 
-                    // --- DISABLE the grabbed player's PlayerPickup ---
+                    // --- Assign grabber to the grabbed player ---
+                    PlayerGrabbed grabbed = grabbedPlayerHip.GetComponent<PlayerGrabbed>();
+                    if (grabbed != null)
+                    {
+                        grabbed.grabber = this; // 'this' is the PlayerPickup doing the grabbing
+                    }
+
+                    // --- Disable grabbed player's PlayerPickup ---
                     PlayerPickup grabbedPickup = grabbedPlayerHip.GetComponentInChildren<PlayerPickup>();
                     if (grabbedPickup != null)
                         grabbedPickup.StartBeingGrabbed();
 
-                    // --- SHOW the grabbed player's escape UI ---
+                    // --- Show grabbed player's escape UI ---
                     PlayerEscapeUI escapeUI = grabbedPlayerHip.GetComponentInChildren<PlayerEscapeUI>();
-                    if (escapeUI != null)
-                        escapeUI.StartBeingGrabbed();
+                    PlayerController grabbedPC = grabbedPlayerHip.GetComponent<PlayerController>();
+                    if (escapeUI != null && grabbedPC != null)
+                    {
+                        escapeUI.StartBeingGrabbed(grabbedPC.playerIndex);
+                    }
                 }
             }
+
         }
         else
         {
-            // Release grabbed player
             if (grabbedPlayerHip != null)
             {
                 if (grabbedRigidbody != null)
                     grabbedRigidbody.isKinematic = false;
 
-                // --- RE-ENABLE the grabbed player's PlayerPickup ---
-                PlayerPickup grabbedPickup = grabbedPlayerHip.GetComponentInChildren<PlayerPickup>();
-                if (grabbedPickup != null)
-                    grabbedPickup.StopBeingGrabbed();
+                if (isCurrentlyGrabbed)
+                {
+                    PlayerPickup grabbedPickup = grabbedPlayerHip.GetComponentInChildren<PlayerPickup>();
+                    if (grabbedPickup != null)
+                        grabbedPickup.StopBeingGrabbed();
 
-                // --- HIDE the grabbed player's escape UI ---
-                PlayerEscapeUI escapeUI = grabbedPlayerHip.GetComponentInChildren<PlayerEscapeUI>();
-                if (escapeUI != null)
-                    escapeUI.StopBeingGrabbed();
+                    PlayerEscapeUI escapeUI = grabbedPlayerHip.GetComponentInChildren<PlayerEscapeUI>();
+                    if (escapeUI != null)
+                        escapeUI.StopBeingGrabbed();
+
+                    isCurrentlyGrabbed = false;
+                }
 
                 grabbedPlayerHip = null;
                 grabbedRigidbody = null;
@@ -130,26 +149,36 @@ public class PlayerPickup : MonoBehaviour
     {
         if (grabbedPlayerHip != null)
         {
-            // Basically do the same as RT release
             if (grabbedRigidbody != null)
                 grabbedRigidbody.isKinematic = false;
 
-            // Re-enable their pickup
+            // Re-enable their PlayerPickup
             PlayerPickup grabbedPickup = grabbedPlayerHip.GetComponentInChildren<PlayerPickup>();
             if (grabbedPickup != null)
                 grabbedPickup.StopBeingGrabbed();
 
             // Hide escape UI
-            if (grabbedEscapeUI != null)
-            {
-                grabbedEscapeUI.StopBeingGrabbed();
-                grabbedEscapeUI = null;
-            }
+            PlayerEscapeUI escapeUI = grabbedPlayerHip.GetComponentInChildren<PlayerEscapeUI>();
+            if (escapeUI != null)
+                escapeUI.StopBeingGrabbed();
+
+            // DEBUG: Show which player is released
+            PlayerController pc = grabbedPlayerHip.GetComponent<PlayerController>();
+            if (pc != null)
+                Debug.Log($"Player index {pc.playerIndex} released!");
 
             grabbedPlayerHip = null;
             grabbedRigidbody = null;
+
+            // Optionally, start a cooldown here so the grabber can't immediately grab again
+            StartCoroutine(GrabCooldown());
         }
     }
 
-
+    public IEnumerator GrabCooldown()
+    {
+        canGrab = false;
+        yield return new WaitForSeconds(grabCooldownTime);
+        canGrab = true;
+    }
 }

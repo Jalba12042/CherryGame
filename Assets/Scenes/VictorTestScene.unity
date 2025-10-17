@@ -1971,12 +1971,12 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
+  m_FillMethod: 0
+  m_FillAmount: 0
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -2261,6 +2261,7 @@ MonoBehaviour:
   playerIndex: 0
   pickupTarget: {fileID: 0}
   pickupRange: 2
+  grabCooldownTime: 2
 --- !u!1 &511561029
 GameObject:
   m_ObjectHideFlags: 0
@@ -2556,7 +2557,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &546703782
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2628,15 +2629,15 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 546703781}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 21fcd4a0969e66a49a51a6cb3fd7219f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   escapeCanvas: {fileID: 546703786}
   fillBar: {fileID: 864528391}
-  mashText: {fileID: 7411067}
-  aButtonIcon: {fileID: 2032239359}
+  mashText: {fileID: 0}
+  aButtonIcon: {fileID: 0}
   mashFillSpeed: 0.2
   escapeThreshold: 1
   playerIndex: 0
@@ -4371,12 +4372,12 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
+  m_FillMethod: 0
+  m_FillAmount: 0
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -4408,7 +4409,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &865476881
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4480,18 +4481,18 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 865476880}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 21fcd4a0969e66a49a51a6cb3fd7219f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   escapeCanvas: {fileID: 865476885}
   fillBar: {fileID: 422689525}
-  mashText: {fileID: 664813315}
-  aButtonIcon: {fileID: 1616531283}
+  mashText: {fileID: 0}
+  aButtonIcon: {fileID: 0}
   mashFillSpeed: 0.2
   escapeThreshold: 1
-  playerIndex: 1
+  playerIndex: 0
 --- !u!223 &865476885
 Canvas:
   m_ObjectHideFlags: 0
@@ -10162,6 +10163,7 @@ GameObject:
   - component: {fileID: 1980874496}
   - component: {fileID: 1980874498}
   - component: {fileID: 1980874497}
+  - component: {fileID: 1980874499}
   m_Layer: 10
   m_Name: PickupRange
   m_TagString: Untagged
@@ -10199,6 +10201,7 @@ MonoBehaviour:
   playerIndex: 0
   pickupTarget: {fileID: 9065369}
   pickupRange: 2
+  grabCooldownTime: 2
 --- !u!65 &1980874498
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -10220,6 +10223,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.026071379, y: 0.0364296, z: 0.017384859}
   m_Center: {x: 0.00007584552, y: 0.0074739424, z: -0.0009134759}
+--- !u!114 &1980874499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1980874495}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21fcd4a0969e66a49a51a6cb3fd7219f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  escapeCanvas: {fileID: 546703786}
+  fillBar: {fileID: 864528391}
+  mashText: {fileID: 7411067}
+  aButtonIcon: {fileID: 2032239359}
+  mashFillSpeed: 0.2
+  escapeThreshold: 1
+  playerIndex: 0
 --- !u!1 &2032239357
 GameObject:
   m_ObjectHideFlags: 0
@@ -10369,6 +10391,7 @@ GameObject:
   - component: {fileID: 2073456885}
   - component: {fileID: 2073456886}
   - component: {fileID: 2073456887}
+  - component: {fileID: 2073456888}
   m_Layer: 10
   m_Name: PickupRange
   m_TagString: Untagged
@@ -10427,6 +10450,26 @@ MonoBehaviour:
   playerIndex: 1
   pickupTarget: {fileID: 899385128}
   pickupRange: 2
+  grabCooldownTime: 2
+--- !u!114 &2073456888
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2073456884}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21fcd4a0969e66a49a51a6cb3fd7219f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  escapeCanvas: {fileID: 865476885}
+  fillBar: {fileID: 422689525}
+  mashText: {fileID: 664813315}
+  aButtonIcon: {fileID: 1616531283}
+  mashFillSpeed: 0.2
+  escapeThreshold: 1
+  playerIndex: 1
 --- !u!1 &2119535113
 GameObject:
   m_ObjectHideFlags: 0
