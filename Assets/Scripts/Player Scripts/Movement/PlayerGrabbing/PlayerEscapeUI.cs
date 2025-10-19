@@ -30,6 +30,9 @@ public class PlayerEscapeUI : MonoBehaviour
         fillAmount = 0f;
         if (fillBar != null) fillBar.fillAmount = 0f;
 
+        // Set our playerIndex so logging and fallback re-enables are accurate
+        playerIndex = grabbedPlayerIndex;
+
         // Assign the gamepad of the player being grabbed
         if (Gamepad.all.Count > grabbedPlayerIndex)
             assignedGamepad = Gamepad.all[grabbedPlayerIndex];
@@ -37,9 +40,8 @@ public class PlayerEscapeUI : MonoBehaviour
         if (escapeCanvas != null)
             escapeCanvas.gameObject.SetActive(true);
 
-        Debug.Log($"PlayerEscapeUI StartBeingGrabbed called for index {grabbedPlayerIndex}");
+        Debug.Log($"[EscapeUI] StartBeingGrabbed called — grabbed player index: {grabbedPlayerIndex}");
     }
-
 
     // Called by grabber to hide/reset the UI
     public void StopBeingGrabbed()
@@ -47,10 +49,14 @@ public class PlayerEscapeUI : MonoBehaviour
         isBeingGrabbed = false;
         fillAmount = 0f;
 
-        if (fillBar != null) fillBar.fillAmount = 0f;
+        if (fillBar != null)
+            fillBar.fillAmount = 0f;
 
         if (escapeCanvas != null)
-            escapeCanvas.gameObject.SetActive(false);
+            Debug.Log($"[EscapeUI] HideUI check — player index {playerIndex} has escaped (UI will now hide).");
+        escapeCanvas.gameObject.SetActive(false);
+
+        Debug.Log($"[EscapeUI] StopBeingGrabbed called — player index {playerIndex} has escaped / UI hidden");
     }
 
     void Update()
@@ -82,6 +88,8 @@ public class PlayerEscapeUI : MonoBehaviour
 
     private void Escape()
     {
+        Debug.Log($"[EscapeUI] Escape() triggered for player index {playerIndex}");
+
         // Reset/hide UI
         StopBeingGrabbed();
 
@@ -95,19 +103,35 @@ public class PlayerEscapeUI : MonoBehaviour
             // Release this player
             grabbedBy.grabber.ReleaseCurrentGrabbedPlayer();
 
+            // Try to re-enable our own PlayerPickup component (safeguard)
+            PlayerPickup myPickup = GetComponent<PlayerPickup>();
+            if (myPickup != null)
+            {
+                myPickup.enabled = true;
+                Debug.Log($"[EscapeUI] Re-enabled PlayerPickup on player index {playerIndex} (component on same GameObject).");
+            }
+            else
+            {
+                // If PlayerPickup is on a child, try to find it
+                PlayerPickup childPickup = GetComponentInChildren<PlayerPickup>();
+                if (childPickup != null)
+                {
+                    childPickup.enabled = true;
+                    Debug.Log($"[EscapeUI] Re-enabled PlayerPickup on player index {playerIndex} (found in children).");
+                }
+                else
+                {
+                    Debug.LogWarning($"[EscapeUI] Could NOT find PlayerPickup to re-enable for player index {playerIndex}.");
+                }
+            }
+
             Debug.Log($"Player {grabbedBy.grabber.playerIndex} released their grabbed player!");
         }
+        else
+        {
+            Debug.LogWarning($"[EscapeUI] Escape(): no PlayerGrabbed or no grabber found on player index {playerIndex}.");
+        }
     }
-
-
-
-    private System.Collections.IEnumerator ReenablePickupAfterCooldown(PlayerPickup pickup, float cooldown)
-    {
-        yield return new WaitForSeconds(cooldown);
-        if (pickup != null)
-            pickup.enabled = true;
-    }
-
 
 
 

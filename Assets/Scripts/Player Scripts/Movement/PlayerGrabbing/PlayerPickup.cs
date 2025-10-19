@@ -135,15 +135,19 @@ public class PlayerPickup : MonoBehaviour
 
     public void StartBeingGrabbed()
     {
+        Debug.Log($"[PlayerPickup] StartBeingGrabbed called on playerIndex {playerIndex} — disabling pickup script.");
         if (playerPickupScript != null)
             playerPickupScript.enabled = false;
     }
 
     public void StopBeingGrabbed()
     {
+        Debug.Log($"[PlayerPickup] StopBeingGrabbed called on playerIndex {playerIndex} — enabling pickup script.");
         if (playerPickupScript != null)
             playerPickupScript.enabled = true;
     }
+
+
 
     public void ReleaseCurrentGrabbedPlayer()
     {
@@ -155,12 +159,22 @@ public class PlayerPickup : MonoBehaviour
             // Re-enable their PlayerPickup
             PlayerPickup grabbedPickup = grabbedPlayerHip.GetComponentInChildren<PlayerPickup>();
             if (grabbedPickup != null)
+            {
                 grabbedPickup.StopBeingGrabbed();
+                Debug.Log($"[PlayerPickup] Re-enabled PlayerPickup on grabbed player (index: {grabbedPlayerHip.GetComponent<PlayerController>()?.playerIndex}).");
+            }
+            else
+            {
+                Debug.LogWarning("[PlayerPickup] ReleaseCurrentGrabbedPlayer: couldn't find PlayerPickup on grabbed player.");
+            }
 
             // Hide escape UI
             PlayerEscapeUI escapeUI = grabbedPlayerHip.GetComponentInChildren<PlayerEscapeUI>();
             if (escapeUI != null)
+            {
                 escapeUI.StopBeingGrabbed();
+                Debug.Log("[PlayerPickup] Called StopBeingGrabbed on grabbed player's EscapeUI.");
+            }
 
             // DEBUG: Show which player is released
             PlayerController pc = grabbedPlayerHip.GetComponent<PlayerController>();
