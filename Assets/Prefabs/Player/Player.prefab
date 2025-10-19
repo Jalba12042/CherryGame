@@ -490,7 +490,6 @@ GameObject:
   - component: {fileID: 1745919478950772766}
   - component: {fileID: 4735200818505531550}
   - component: {fileID: 3015602091549916170}
-  - component: {fileID: 972907247397042530}
   - component: {fileID: 5020614214884547348}
   m_Layer: 0
   m_Name: Hip_J
@@ -652,28 +651,6 @@ MonoBehaviour:
   pickupTarget: {fileID: 8584895070333628531}
   pickupRange: 2
   grabCooldownTime: 5
---- !u!114 &972907247397042530
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2232579992844483042}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 93a43d1fcca577148960cb305fa4d076, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  launchPoint: {fileID: 5970282736841540098}
-  cherry: {fileID: 0}
-  lineRenderer: {fileID: 3965516670658108998}
-  landingMarkerPrefab: {fileID: 2245115627992007439, guid: 7450f1637d316bd4086849007aa8db7c, type: 3}
-  launchSpeed: 10
-  linePoints: 50
-  timeStep: 0.1
-  groundLayer:
-    serializedVersion: 2
-    m_Bits: 128
 --- !u!65 &5020614214884547348
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3232,6 +3209,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2935119873919367829}
+  - component: {fileID: 227524455969229504}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -3256,6 +3234,37 @@ Transform:
   - {fileID: 6610268191298632866}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &227524455969229504
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8573790094660042040}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97bf32cfb687c864cb9a83a570bd5aeb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  screamSFX:
+  - {fileID: 8300000, guid: 173cacb253efb5e4bb30b2f66b379bc2, type: 3}
+  - {fileID: 8300000, guid: a0a61bf852c6c8143807b46154a52d14, type: 3}
+  - {fileID: 8300000, guid: 2f090fae77ee76c4693afa9e6ad9b494, type: 3}
+  - {fileID: 8300000, guid: 2d917212d0daa804995fd930a3dd7199, type: 3}
+  - {fileID: 8300000, guid: ac21c67678a8f9f4eb92cf4dbdbacbec, type: 3}
+  - {fileID: 8300000, guid: aee90140812c5894bb1340a2f0e8ba81, type: 3}
+  - {fileID: 8300000, guid: 1c1909040b8116549a893eb2ff40943b, type: 3}
+  - {fileID: 8300000, guid: 27c83409ff158c8458eba1015e53a5a9, type: 3}
+  - {fileID: 8300000, guid: a1ecee58e296f4b40bac871e31fe1a00, type: 3}
+  - {fileID: 8300000, guid: aac597d22936ad64bb8cac683e9cd3d7, type: 3}
+  - {fileID: 8300000, guid: 644fe15c5ba7c6e4a879fa718d0848df, type: 3}
+  - {fileID: 8300000, guid: 2f7c60d46ad64a642b937d925ccf5163, type: 3}
+  - {fileID: 8300000, guid: 598dda1070d3f4f449166a43525766e3, type: 3}
+  - {fileID: 8300000, guid: cb26efe310773284b939d72bac7c0dac, type: 3}
+  - {fileID: 8300000, guid: 2eea8d9035a9a984c97f2b333d4f8346, type: 3}
+  - {fileID: 8300000, guid: 604f215b68c3c584eb3ac0cf3f916155, type: 3}
+  minPitch: 1
+  maxPitch: 2
 --- !u!1 &8606770236066207291
 GameObject:
   m_ObjectHideFlags: 0
