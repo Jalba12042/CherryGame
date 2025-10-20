@@ -12,7 +12,7 @@ public class Powerup : MonoBehaviour
     {
         if (collision.gameObject.tag == "Player")
         {
-            pc = collision.gameObject.GetComponent<PlayerController>();
+            pc = collision.gameObject.GetComponentInParent<PlayerController>();
             powerUpEffect();
             Destroy(gameObject);
         }

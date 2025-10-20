@@ -20,8 +20,8 @@ public class PlayerController : MonoBehaviour
 
     void Awake()
     {
-        if (Gamepad.all.Count > playerIndex)
-            assignedGamepad = Gamepad.all[playerIndex];
+        /*if (Gamepad.all.Count > playerIndex)
+            assignedGamepad = Gamepad.all[playerIndex];*/
 
         rb = GetComponent<Rigidbody>();
     }
@@ -85,6 +85,13 @@ public class PlayerController : MonoBehaviour
         playerIndex = index;
         if (Gamepad.all.Count > playerIndex)
         {
+            // adjust playerIndex on each script
+            GetComponentInChildren<PlayerRotation>().playerIndex = playerIndex;
+            GetComponentInChildren<PlayerPickup>().playerIndex = playerIndex;
+            GetComponentInChildren<PlayerEscapeUI>().playerIndex = playerIndex;
+            GetComponentInChildren<PlayerCherryPickup>().playerIndex = playerIndex;
+
+            // assign gamepad
             assignedGamepad = Gamepad.all[playerIndex];
             Debug.Log($"Player {playerIndex + 1} initialized with gamepad: {assignedGamepad.displayName}");
         }
