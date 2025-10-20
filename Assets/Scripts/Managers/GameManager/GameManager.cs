@@ -15,12 +15,6 @@ public class GameManager : MonoBehaviour
     // Stores the total score between rounds for each player
     public int[] playerTotalScores;
 
-    // List of all powerups
-    
-
-    // List of all powerups in rotation
-
-
     [SerializeField] private TMP_Text timerText;
 
     // Controller navigation

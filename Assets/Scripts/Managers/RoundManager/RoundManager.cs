@@ -8,14 +8,18 @@ public class RoundManager : MonoBehaviour
 {
     public static RoundManager Instance;
 
+    [Header("Current Round Information")]
     public float currRoundProgress;
     public float currRoundDurationInSecs;
-    public List<Round> roundList; // list of rounds we can cycle through
     public Round currRound;
     public bool currRoundActive;
     public int[] currRoundScores;
+    public List<Round> roundList; // list of rounds we can cycle through
 
-    [Tooltip("Flag to allow repeated rounds if we so choose")]
+    [Header("PowerUp List")]
+    public List<GameObject> powerUpsInRotation; // List of all powerups in rotation
+
+    [Header("Flag to allow repeated rounds if we so choose")]
     [SerializeField] private bool allowRepeats; // flag to allow repeated rounds if we so choose
 
     [SerializeField] private string shopSceneName;
