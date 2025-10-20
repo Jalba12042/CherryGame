@@ -8,13 +8,13 @@ public class Scream : MonoBehaviour
     [SerializeField] private float minPitch;
     [SerializeField] private float maxPitch;
     
-    private PlayerMovement player;
+    private PlayerController player;
     private AudioSource aSource;
     private Gamepad gp;
 
     private void Start()
     {
-        player = GetComponent<PlayerMovement>();
+        player = GetComponentInChildren<PlayerController>();
         aSource = GetComponent<AudioSource>();
         gp = player.assignedGamepad;
     }

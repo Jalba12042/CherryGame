@@ -4,6 +4,6 @@ public class JumpTestPowerup : Powerup
 {
     protected override void powerUpEffect()
     {
-        pm.jumpForce += 2f;
+        pc.jumpForce += 2f;
     }
 }

@@ -14,18 +14,18 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private LayerMask groundLayer;
 
     private Rigidbody rb;
-    private Gamepad assignedGamepad;
+    public Gamepad assignedGamepad;
     private bool isGrounded;
     private bool jumpRequested = false;
 
-    void Start()
+    void Awake()
     {
         if (Gamepad.all.Count > playerIndex)
             assignedGamepad = Gamepad.all[playerIndex];
 
         rb = GetComponent<Rigidbody>();
     }
-
+    
     void Update()
     {
         if (assignedGamepad == null) return;
@@ -78,6 +78,20 @@ public class PlayerController : MonoBehaviour
     public Gamepad GetAssignedGamepad()
     {
         return assignedGamepad;
+    }
+
+    public void InitializePlayer(int index)
+    {
+        playerIndex = index;
+        if (Gamepad.all.Count > playerIndex)
+        {
+            assignedGamepad = Gamepad.all[playerIndex];
+            Debug.Log($"Player {playerIndex + 1} initialized with gamepad: {assignedGamepad.displayName}");
+        }
+        else
+        {
+            Debug.LogWarning($"Player {playerIndex + 1} could not find a gamepad!");
+        }
     }
 
 }

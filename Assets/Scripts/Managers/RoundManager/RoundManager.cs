@@ -141,7 +141,10 @@ public class RoundManager : MonoBehaviour
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             playerObjects[i] = Instantiate(playerPrefab, currPlayerSpawn.spawnPoints[i].position, Quaternion.identity);
-            playerObjects[i].GetComponent<PlayerController>().playerIndex = i;
+            PlayerController player = playerObjects[i].GetComponentInChildren<PlayerController>();
+
+            if (player != null)
+                player.InitializePlayer(i);
         }
 
         // initial timer for round start
