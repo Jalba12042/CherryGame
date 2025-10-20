@@ -22,9 +22,11 @@ public class RoundManager : MonoBehaviour
     [Header("Flag to allow repeated rounds if we so choose")]
     [SerializeField] private bool allowRepeats; // flag to allow repeated rounds if we so choose
 
+    [Header("Scene Names")]
     [SerializeField] private string shopSceneName;
     [SerializeField] private string controllerSceneName;
     [SerializeField] private string winSceneName;
+
     [SerializeField] private int startTimerInSeconds;
     [SerializeField] private GameObject playerPrefab;
 
