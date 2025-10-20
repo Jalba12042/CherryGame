@@ -37,40 +37,50 @@ public class ShopManager : MonoBehaviour
         timer = shopTimerDurationInSecs;
         RoundManager.Instance.switchRoundScene();
     }
-     
+
     private void setupButtons()
     {
-        int[] chosenIndexes = new int[4]; // used to mark which indexes have already been chosen in our registry
-        for (int i = 0; i < buttonTexts.Length; i++)
+        // list of available items we haven't had yet
+        List<ItemData> availableItems = new List<ItemData>();
+        foreach (ItemData item in powerUpRegistry)
         {
-            ItemData randItem;
-            int randIndex;
-            while (true)
+            if (item.added != true)
             {
-                // pick a random item in the registry
-                randIndex = Random.Range(0, powerUpRegistry.Count);
-                randItem = powerUpRegistry[randIndex];
-
-                // if the item hasn't been used yet
-                if (randItem.added != true)
-                {
-                    // then we check if the random item isn't apart of the current options
-                    bool check = false;
-                    for (int j = i; j >= 0; j--)
-                    {
-                        if (randIndex == chosenIndexes[j])
-                            check = true;
-                    }
-                    if (!check)
-                    {
-                        chosenIndexes[i] = randIndex;
-                        break;
-                    }
-                }
+                availableItems.Add(item);
             }
-            
+        }
+
+        int numButtonsToSetup = Mathf.Min(buttonTexts.Length, availableItems.Count);
+
+        // hashset to remove the possibility of selecting the same item twice
+        HashSet<int> chosenIndexes = new HashSet<int>();
+
+        for (int i = 0; i < numButtonsToSetup; i++)
+        {
+            int randIndex;
+            ItemData randItem;
+
+            // picking a random index until we find one we haven't used
+            do
+            {
+                randIndex = Random.Range(0, availableItems.Count);
+                randItem = availableItems[randIndex];
+            }
+            while (chosenIndexes.Contains(randIndex));
+
+            // add the unique index to the set
+            chosenIndexes.Add(randIndex);
+
+            // assign the item data to the button
             buttonTexts[i].text = randItem.itemName;
             buttonDescs[i].text = randItem.desc;
+        }
+
+        // change text if we run out of unique items
+        for (int i = numButtonsToSetup; i < buttonTexts.Length; i++)
+        {
+            buttonTexts[i].text = "SOLD OUT";
+            buttonDescs[i].text = "";
         }
     }
 }
