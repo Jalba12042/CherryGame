@@ -6,7 +6,6 @@ using UnityEngine;
 public class CherryRound : Round
 {
     [SerializeField] private GameObject cherryPrefab;
-    [SerializeField] private GameObject[] powerupPrefabs; // temp power up prefabs
     [SerializeField] private float spawnInterval;
     [SerializeField] private int minCherrySpawns;
     [SerializeField] private int maxCherrySpawns;
@@ -54,7 +53,8 @@ public class CherryRound : Round
                 float randX = Random.Range(puB.min.x, puB.max.x);
                 float randZ = Random.Range(puB.min.z, puB.max.z);
 
-                Instantiate(powerupPrefabs[Random.Range(0, powerupPrefabs.Length)], new Vector3(randX, powerupSpawnArea.transform.position.y, randZ), Quaternion.identity);
+                if (RoundManager.Instance.powerUpsInRotation != null)
+                    Instantiate(RoundManager.Instance.powerUpsInRotation[Random.Range(0, RoundManager.Instance.powerUpsInRotation.Count)], new Vector3(randX, powerupSpawnArea.transform.position.y, randZ), Quaternion.identity);
             }
             yield return new WaitForSeconds(spawnInterval);
         }
