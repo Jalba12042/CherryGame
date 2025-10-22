@@ -46,14 +46,14 @@ public class SprinklerInteraction : MonoBehaviour
         }
 
         // Slow movement if player has PlayerMovement script
-        PlayerMovement player = other.GetComponent<PlayerMovement>();
+        WASDtester player = other.GetComponent<WASDtester>();
         if (player != null && !player.IsSlowed)
         {
             StartCoroutine(ApplySlow(player));
         }
     }
 
-    private IEnumerator ApplySlow(PlayerMovement player)
+    private IEnumerator ApplySlow(WASDtester player)
     {
         player.IsSlowed = true;
         float originalSpeed = player.moveSpeed;
