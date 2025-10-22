@@ -33,14 +33,14 @@ public class SprinklerInteraction : MonoBehaviour
         }
 
         // Apply slow effect if player has PlayerMovement component
-        PlayerMovement player = other.GetComponent<PlayerMovement>();
+        Playermovement player = other.GetComponent<Playermovement>();
         if (player != null && !player.IsSlowed)
         {
             player.StartCoroutine(ApplySlow(player));
         }
     }
 
-    private IEnumerator ApplySlow(PlayerMovement player)
+    private IEnumerator ApplySlow(Playermovement player)
     {
         player.IsSlowed = true;
         float originalSpeed = player.moveSpeed;

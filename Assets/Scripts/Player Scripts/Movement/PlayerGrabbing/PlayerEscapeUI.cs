@@ -101,7 +101,7 @@ public class PlayerEscapeUI : MonoBehaviour
             grabbedBy.grabber.StartCoroutine(grabbedBy.grabber.GrabCooldown());
 
             // Release this player
-            grabbedBy.grabber.ReleaseCurrentGrabbedPlayer();
+            grabbedBy.grabber.HandlePlayerRelease();
 
             // Try to re-enable our own PlayerPickup component (safeguard)
             PlayerPickup myPickup = GetComponent<PlayerPickup>();

@@ -2,7 +2,7 @@
 using UnityEngine.InputSystem;
 using System.Collections;
 
-public class PlayerMovement : MonoBehaviour
+public class Playermovement : MonoBehaviour
 {
     [Header("Player Settings")]
     public int playerIndex = 0; // Set this when the player is spawned
@@ -18,14 +18,27 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float groundCheckDistance = 0.4f;
     [SerializeField] private LayerMask groundLayer;
 
+    [Header("Pickup Settings")]
+    public Transform pickupTarget;      // Where the grabbed player should move to
+    public float pickupRange = 2f;      // Range to detect other players
+    public float grabCooldownTime = 1f; // seconds before player can grab again
+
+
     public Gamepad assignedGamepad;
     private Rigidbody rb;
     private bool isGrounded;
     private bool jumpRequested = false;
     private Vector2 moveInput;
+
     private GameObject heldCherry;
     private bool isCharging;
     private GameObject nearbyCherry;
+
+    private bool canGrab = true;
+    private GameObject grabbedPlayerHip;
+    private Rigidbody grabbedRigidbody;
+    private bool isCurrentlyGrabbed = false;
+
     public Projectile projectileScript;
     private Vector2 smoothLookInput;
     private Vector3 lastLookDir = Vector3.forward;
@@ -77,6 +90,41 @@ public class PlayerMovement : MonoBehaviour
         if (assignedGamepad == null || rb == null)
             return;
 
+        // --- Jump Input ---
+        if (isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame)
+        {
+            jumpRequested = true;
+        }
+
+        // --- Rotation (Right Stick) ---
+        Vector2 rawLook = assignedGamepad.rightStick.ReadValue();
+        smoothLookInput = Vector2.Lerp(smoothLookInput, rawLook, Time.deltaTime * 15f);
+        if (smoothLookInput.sqrMagnitude > 0.2f)
+        {
+            lastLookDir = new Vector3(smoothLookInput.x, 0f, smoothLookInput.y).normalized;
+        }
+        Quaternion targetRotation = Quaternion.LookRotation(lastLookDir, Vector3.up);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 12f);
+
+        // --- Pickup / Drop Cherry (RT) ---
+        float rtValue = assignedGamepad.rightTrigger.ReadValue();
+        if (rtValue > 0.1f)
+        {
+            HandleCherryPickup();
+            HandlePlayerGrab();
+        }
+        else
+        {
+            HandleCherryDrop();
+            HandlePlayerRelease();
+        }
+    }
+
+    /*void Update()
+    {
+        if (assignedGamepad == null || rb == null)
+            return;
+
         if (isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame)
         {
             jumpRequested = true;
@@ -116,7 +164,121 @@ public class PlayerMovement : MonoBehaviour
                 heldCherry = null;
             }
         }
+    }*/
+
+    // --- Handle Player Pickup Logic ---
+    private void HandlePlayerGrab()
+    {
+        if (grabbedPlayerHip == null && canGrab)
+        {
+            GameObject nearby = GetNearbyPlayer();
+            if (nearby != null)
+            {
+                grabbedPlayerHip = nearby;
+                grabbedRigidbody = grabbedPlayerHip.GetComponent<Rigidbody>();
+
+                if (grabbedRigidbody != null)
+                    grabbedRigidbody.isKinematic = true;
+
+                // Assign grabber
+                PlayerGrabbed grabbed = grabbedPlayerHip.GetComponent<PlayerGrabbed>();
+                if (grabbed != null)
+                    grabbed.grabber = this.GetComponent<Playermovement>();
+
+                // Disable their pickup/movement temporarily
+                Playermovement grabbedMove = grabbedPlayerHip.GetComponent<Playermovement>();
+                if (grabbedMove != null)
+                    grabbedMove.enabled = false;
+
+                // Show escape UI
+                PlayerEscapeUI escapeUI = grabbedPlayerHip.GetComponentInChildren<PlayerEscapeUI>();
+                PlayerController grabbedPC = grabbedPlayerHip.GetComponent<PlayerController>();
+                if (escapeUI != null && grabbedPC != null)
+                    escapeUI.StartBeingGrabbed(grabbedPC.playerIndex);
+
+                isCurrentlyGrabbed = true;
+            }
+        }
+
+        // Move grabbed player to pickup position
+        if (grabbedPlayerHip != null && pickupTarget != null)
+        {
+            grabbedPlayerHip.transform.position = pickupTarget.position;
+            grabbedPlayerHip.transform.rotation = pickupTarget.rotation;
+        }
     }
+
+    public void HandlePlayerRelease()
+    {
+        if (grabbedPlayerHip != null)
+        {
+            if (grabbedRigidbody != null)
+                grabbedRigidbody.isKinematic = false;
+
+            if (isCurrentlyGrabbed)
+            {
+                Playermovement grabbedMove = grabbedPlayerHip.GetComponent<Playermovement>();
+                if (grabbedMove != null)
+                    grabbedMove.enabled = true;
+
+                PlayerEscapeUI escapeUI = grabbedPlayerHip.GetComponentInChildren<PlayerEscapeUI>();
+                if (escapeUI != null)
+                    escapeUI.StopBeingGrabbed();
+
+                isCurrentlyGrabbed = false;
+            }
+
+            grabbedPlayerHip = null;
+            grabbedRigidbody = null;
+
+            StartCoroutine(GrabCooldown());
+        }
+    }
+
+    private GameObject GetNearbyPlayer()
+    {
+        Collider[] hits = Physics.OverlapSphere(transform.position, pickupRange);
+        foreach (var hit in hits)
+        {
+            PlayerController pc = hit.GetComponent<PlayerController>();
+            if (pc == null || pc.playerIndex == playerIndex) continue;
+            return hit.gameObject;
+        }
+        return null;
+    }
+
+    public IEnumerator GrabCooldown()
+    {
+        canGrab = false;
+        yield return new WaitForSeconds(grabCooldownTime);
+        canGrab = true;
+    }
+
+    // --- Handle Cherry Logic ---
+    private void HandleCherryPickup()
+    {
+        if (heldCherry == null && nearbyCherry != null)
+        {
+            heldCherry = nearbyCherry;
+            Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
+            if (rbCherry != null) rbCherry.isKinematic = true;
+            heldCherry.transform.SetParent(handHoldPoint);
+            heldCherry.transform.localPosition = Vector3.zero;
+            if (projectileScript != null) projectileScript.PickUpCherry(heldCherry);
+        }
+    }
+
+    private void HandleCherryDrop()
+    {
+        if (heldCherry != null && !isCharging)
+        {
+            Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
+            heldCherry.transform.SetParent(null);
+            if (rbCherry != null) rbCherry.isKinematic = false;
+            heldCherry = null;
+        }
+    }
+
 
     // Pick up cherry
     private void OnTriggerEnter(Collider other)
