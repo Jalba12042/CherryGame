@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
@@ -16,6 +16,8 @@ public class ShopManager : MonoBehaviour
     [SerializeField] private TMP_Text timerText;
     private float timer;
     public Button[] shopButtons;
+    private int[] playerVotes; // -1 = no vote
+
 
     [Header("Highlight Images (per player per button)")]
     public Image[,] playerHighlights = new Image[4, 4]; // [playerIndex, buttonIndex]
@@ -32,11 +34,16 @@ public class ShopManager : MonoBehaviour
 
         int playerCount = Mathf.Min(GameManager.Instance.playerCount, Gamepad.all.Count);
         buttonVotes = new int[shopButtons.Length];
-
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < playerCount; i++)
         {
             currentIndexes[i] = 0;
             canMove[i] = true;
+        }
+
+        playerVotes = new int[4];
+        for (int i = 0; i < 4; i++)
+        {
+            playerVotes[i] = -1; // start with no votes
         }
 
         SetupHighlights();
@@ -62,29 +69,63 @@ public class ShopManager : MonoBehaviour
 
             if (canMove[i])
             {
+                // UP
                 if (move.y > 0.5f)
                 {
-                    currentIndexes[i] = Mathf.Max(0, currentIndexes[i] - 1);
+                    if (currentIndexes[i] - 2 >= 0)
+                        currentIndexes[i] -= 2; // Move up one row
                     canMove[i] = false;
                     HighlightButtons();
                 }
+                // DOWN
                 else if (move.y < -0.5f)
                 {
-                    currentIndexes[i] = Mathf.Min(shopButtons.Length - 1, currentIndexes[i] + 1);
+                    if (currentIndexes[i] + 2 < shopButtons.Length)
+                        currentIndexes[i] += 2; // Move down one row
+                    canMove[i] = false;
+                    HighlightButtons();
+                }
+                // LEFT
+                else if (move.x < -0.5f)
+                {
+                    if (currentIndexes[i] % 2 != 0)
+                        currentIndexes[i] -= 1; // Move left
+                    canMove[i] = false;
+                    HighlightButtons();
+                }
+                // RIGHT
+                else if (move.x > 0.5f)
+                {
+                    if (currentIndexes[i] % 2 == 0 && currentIndexes[i] + 1 < shopButtons.Length)
+                        currentIndexes[i] += 1; // Move right
                     canMove[i] = false;
                     HighlightButtons();
                 }
             }
 
-            if (Mathf.Abs(move.y) < 0.2f)
+            // Reset movement gating (prevents rapid flicking)
+            if (Mathf.Abs(move.y) < 0.2f && Mathf.Abs(move.x) < 0.2f)
                 canMove[i] = true;
+
 
             if (gamepad.buttonSouth.wasPressedThisFrame)
             {
                 int chosenButton = currentIndexes[i];
+
+                // Remove old vote if there was one
+                int oldVote = playerVotes[i];
+                if (oldVote != -1)
+                {
+                    buttonVotes[oldVote]--;
+                }
+
+                // Add new vote
                 buttonVotes[chosenButton]++;
+                playerVotes[i] = chosenButton;
+
                 Debug.Log($"Player {i + 1} (Color {playerColors[i]}) voted for button {chosenButton + 1}. Total votes: {buttonVotes[chosenButton]}");
             }
+
         }
     }
 
@@ -92,17 +133,27 @@ public class ShopManager : MonoBehaviour
     {
         int playerCount = Mathf.Min(GameManager.Instance.playerCount, Gamepad.all.Count);
 
+        // 🔹 First, disable ALL highlights for every player and every button
         for (int p = 0; p < playerCount; p++)
         {
             for (int b = 0; b < shopButtons.Length; b++)
             {
                 if (playerHighlights[p, b] != null)
-                {
-                    playerHighlights[p, b].enabled = (b == currentIndexes[p]);
-                }
+                    playerHighlights[p, b].enabled = false;
             }
         }
+
+        // 🔹 Then, enable ONLY the ones the players are currently on
+        for (int p = 0; p < playerCount; p++)
+        {
+            int current = Mathf.Clamp(currentIndexes[p], 0, shopButtons.Length - 1);
+            if (playerHighlights[p, current] != null)
+                playerHighlights[p, current].enabled = true;
+
+        }
     }
+
+
 
     // Shop Timer
     private IEnumerator StartShopTimer()
@@ -171,28 +222,36 @@ public class ShopManager : MonoBehaviour
 
     private void SetupHighlights()
     {
-        // Auto-create small highlight images under each button for each player
-        int playerCount = Mathf.Min(GameManager.Instance.playerCount, 4);
+        int playerCount = Mathf.Min(GameManager.Instance.playerCount, Gamepad.all.Count);
 
         for (int p = 0; p < playerCount; p++)
         {
             for (int b = 0; b < shopButtons.Length; b++)
             {
+                // Create highlight overlay as a child of the button
                 GameObject highlightObj = new GameObject($"Player{p + 1}_Highlight_Button{b + 1}");
                 highlightObj.transform.SetParent(shopButtons[b].transform, false);
 
                 Image img = highlightObj.AddComponent<Image>();
-                img.color = playerColors[p];
-                img.enabled = false;
+                img.color = playerColors[p]; // blue, red, green, yellow
+                img.raycastTarget = false;   // doesn’t block clicks
 
-                // position/scale highlight (slightly smaller than button)
                 RectTransform rt = highlightObj.GetComponent<RectTransform>();
-                rt.anchorMin = new Vector2(0.05f, 0.05f);
-                rt.anchorMax = new Vector2(0.95f, 0.95f);
-                rt.offsetMin = rt.offsetMax = Vector2.zero;
+                rt.anchorMin = new Vector2(0, 0);
+                rt.anchorMax = new Vector2(1, 1);
+                rt.offsetMin = Vector2.zero;
+                rt.offsetMax = Vector2.zero;
 
+                // Make it slightly transparent, like a glow
+                Color c = img.color;
+                c.a = 0.25f; // Adjust transparency here (0 = invisible, 1 = solid)
+                img.color = c;
+
+                img.enabled = false; // start off
                 playerHighlights[p, b] = img;
             }
         }
     }
+
+
 }
