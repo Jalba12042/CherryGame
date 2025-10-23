@@ -15,8 +15,10 @@ public class ShopManager : MonoBehaviour
     [SerializeField] private TMP_Text[] buttonDescs;
     [SerializeField] private TMP_Text timerText;
     private float timer;
+
+
     public Button[] shopButtons;
-    private int[] playerVotes; // -1 = no vote
+    private int[] playerVotes;
 
 
     [Header("Highlight Images (per player per button)")]
@@ -133,7 +135,7 @@ public class ShopManager : MonoBehaviour
     {
         int playerCount = Mathf.Min(GameManager.Instance.playerCount, Gamepad.all.Count);
 
-        // 🔹 First, disable ALL highlights for every player and every button
+        // First, disable ALL highlights for every player and every button
         for (int p = 0; p < playerCount; p++)
         {
             for (int b = 0; b < shopButtons.Length; b++)
@@ -143,7 +145,7 @@ public class ShopManager : MonoBehaviour
             }
         }
 
-        // 🔹 Then, enable ONLY the ones the players are currently on
+        // Then, enable ONLY the ones the players are currently on
         for (int p = 0; p < playerCount; p++)
         {
             int current = Mathf.Clamp(currentIndexes[p], 0, shopButtons.Length - 1);
@@ -234,7 +236,7 @@ public class ShopManager : MonoBehaviour
 
                 Image img = highlightObj.AddComponent<Image>();
                 img.color = playerColors[p]; // blue, red, green, yellow
-                img.raycastTarget = false;   // doesn’t block clicks
+                img.raycastTarget = false; 
 
                 RectTransform rt = highlightObj.GetComponent<RectTransform>();
                 rt.anchorMin = new Vector2(0, 0);
@@ -242,9 +244,9 @@ public class ShopManager : MonoBehaviour
                 rt.offsetMin = Vector2.zero;
                 rt.offsetMax = Vector2.zero;
 
-                // Make it slightly transparent, like a glow
+                // Make it slightly transparent
                 Color c = img.color;
-                c.a = 0.25f; // Adjust transparency here (0 = invisible, 1 = solid)
+                c.a = 0.25f; // Adjust transparency here
                 img.color = c;
 
                 img.enabled = false; // start off
