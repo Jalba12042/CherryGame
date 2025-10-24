@@ -18,6 +18,7 @@ public class ShopManager : MonoBehaviour
 
 
     public Button[] shopButtons;
+    private int amtOfButtons;
     private int[] playerVotes;
 
 
@@ -27,6 +28,8 @@ public class ShopManager : MonoBehaviour
     private int[] currentIndexes = new int[4];
     private bool[] canMove = new bool[4];
     private int[] buttonVotes;
+    private List<ItemData> powerUps;
+    private ItemData addedPowerUp;
 
     private Color[] playerColors = { Color.blue, Color.red, Color.green, Color.yellow };
 
@@ -35,7 +38,7 @@ public class ShopManager : MonoBehaviour
         setupButtons();
 
         int playerCount = Mathf.Min(GameManager.Instance.playerCount, Gamepad.all.Count);
-        buttonVotes = new int[shopButtons.Length];
+        buttonVotes = new int[amtOfButtons];
         for (int i = 0; i < playerCount; i++)
         {
             currentIndexes[i] = 0;
@@ -116,16 +119,18 @@ public class ShopManager : MonoBehaviour
 
                 // Remove old vote if there was one
                 int oldVote = playerVotes[i];
-                if (oldVote != -1)
+                if (oldVote != -1 && chosenButton < amtOfButtons)
                 {
                     buttonVotes[oldVote]--;
                 }
 
                 // Add new vote
-                buttonVotes[chosenButton]++;
-                playerVotes[i] = chosenButton;
-
-                Debug.Log($"Player {i + 1} (Color {playerColors[i]}) voted for button {chosenButton + 1}. Total votes: {buttonVotes[chosenButton]}");
+                if (chosenButton < amtOfButtons)
+                {
+                    buttonVotes[chosenButton]++;
+                    playerVotes[i] = chosenButton;
+                    Debug.Log($"Player {i + 1} (Color {playerColors[i]}) voted for button {chosenButton + 1}. Total votes: {buttonVotes[chosenButton]}");
+                }                
             }
 
         }
@@ -168,16 +173,57 @@ public class ShopManager : MonoBehaviour
         }
         timer = shopTimerDurationInSecs;
 
+        int currentHighestVal = -1;
+        List<int> winners = new List<int>();
+
         for (int i = 0; i < buttonVotes.Length; i++)
         {
             Debug.Log($"Button {i + 1} got {buttonVotes[i]} votes");
+
+            // check for a winner(s)
+            if (buttonVotes[i] > currentHighestVal)
+            {
+                winners.Clear();
+                winners.Add(i);
+                currentHighestVal = buttonVotes[i];
+            }
+            else if (buttonVotes[i] == currentHighestVal)
+            {
+                winners.Add(i);
+                currentHighestVal = buttonVotes[i];
+            }
         }
 
+        int winnerIndex = winners[0];
+
+        // if there's a tie
+        if (winners.Count > 1)
+        {
+            int randIndex = Random.Range(0, winners.Count);
+            winnerIndex = winners[randIndex];
+        }
+
+        addedPowerUp = powerUps[winnerIndex];
+        addedPowerUp.added = true;
+
+        for (int i = 0; i < powerUpRegistry.Count; i++)
+        {
+            if (powerUpRegistry[i] == addedPowerUp)
+            {
+                powerUpRegistry[i].added = true;
+                break;
+            }
+        }
+
+        RoundManager.Instance.powerUpsInRotation.Add(addedPowerUp.powerup);
         RoundManager.Instance.switchRoundScene();
     }
 
     private void setupButtons()
     {
+        powerUps = new List<ItemData>();
+        amtOfButtons = shopButtons.Length;
+
         // list of available items we haven't had yet
         List<ItemData> availableItems = new List<ItemData>();
         foreach (ItemData item in powerUpRegistry)
@@ -212,6 +258,8 @@ public class ShopManager : MonoBehaviour
             // assign the item data to the button
             buttonTexts[i].text = randItem.itemName;
             buttonDescs[i].text = randItem.desc;
+
+            powerUps.Add(randItem);
         }
 
         // change text if we run out of unique items
@@ -219,6 +267,7 @@ public class ShopManager : MonoBehaviour
         {
             buttonTexts[i].text = "SOLD OUT";
             buttonDescs[i].text = "";
+            amtOfButtons--;
         }
     }
 
