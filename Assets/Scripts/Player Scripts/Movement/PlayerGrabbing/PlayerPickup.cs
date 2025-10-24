@@ -54,7 +54,7 @@ public class PlayerPickup : MonoBehaviour
                     PlayerGrabbed grabbed = grabbedPlayerHip.GetComponent<PlayerGrabbed>();
                     if (grabbed != null)
                     {
-                        grabbed.grabber = this; // 'this' is the PlayerPickup doing the grabbing
+                        //grabbed.grabber = this; // 'this' is the PlayerPickup doing the grabbing
                     }
 
                     // --- Disable grabbed player's PlayerPickup ---

@@ -88,7 +88,7 @@ public class PlayerController : MonoBehaviour
             // adjust playerIndex on each script
             GetComponentInChildren<PlayerRotation>().playerIndex = playerIndex;
             GetComponentInChildren<PlayerPickup>().playerIndex = playerIndex;
-            GetComponentInChildren<PlayerEscapeUI>().playerIndex = playerIndex;
+            //GetComponentInChildren<PlayerEscapeUI>().playerIndex = playerIndex;
             GetComponentInChildren<PlayerCherryPickup>().playerIndex = playerIndex;
 
             // assign gamepad

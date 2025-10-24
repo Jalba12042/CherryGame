@@ -146,6 +146,7 @@ public class ControllerConnect : MonoBehaviour
     }
 
     // Assign controller to a slot if it's not taken
+    // Assign controller to a slot if it's not taken
     void TryEnterSlot(ref int pos, int slotIndex, Image waitingSquare, int controllerIndex)
     {
         bool slotTaken = false;
@@ -162,6 +163,14 @@ public class ControllerConnect : MonoBehaviour
         pos = slotIndex;
         slots[slotIndex - 1].sprite = slotSprites[slotIndex - 1];
         waitingSquare.sprite = grayController;
+
+        // --- Controller rumble ---
+        Gamepad gamepad = controllers[controllerIndex];
+        if (gamepad != null)
+        {
+            gamepad.SetMotorSpeeds(0.5f, 0.5f); // lowFreq, highFreq
+            StartCoroutine(StopRumble(gamepad, 0.2f));
+        }
     }
 
     // Switch controller to a different slot
@@ -182,7 +191,24 @@ public class ControllerConnect : MonoBehaviour
         pos = newSlot;
         slots[newSlot - 1].sprite = slotSprites[newSlot - 1];
         waitingSquare.sprite = grayController;
+
+        // --- Controller rumble ---
+        Gamepad gamepad = controllers[controllerIndex];
+        if (gamepad != null)
+        {
+            gamepad.SetMotorSpeeds(0.5f, 0.5f); // lowFreq, highFreq
+            StartCoroutine(StopRumble(gamepad, 0.2f));
+        }
     }
+
+    // Coroutine to stop rumble after a short duration
+    private IEnumerator StopRumble(Gamepad gamepad, float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        if (gamepad != null)
+            gamepad.SetMotorSpeeds(0f, 0f);
+    }
+
 
     // Reset slot to empty
     void ClearSlot(int slotIndex)
