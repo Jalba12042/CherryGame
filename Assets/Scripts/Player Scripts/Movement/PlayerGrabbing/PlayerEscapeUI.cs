@@ -30,6 +30,12 @@ public class PlayerEscapeUI : MonoBehaviour
 
     void Start()
     {
+        EscapeUIInfo escapeUI = GameObject.FindWithTag("EscapeUI").GetComponent<EscapeUIInfo>();
+        P1 = escapeUI.P1;
+        P2 = escapeUI.P2;
+        P3 = escapeUI.P3;
+        P4 = escapeUI.P4;
+
         // Ensure all panels start disabled
         if (P1 != null) P1.SetActive(false);
         if (P2 != null) P2.SetActive(false);
