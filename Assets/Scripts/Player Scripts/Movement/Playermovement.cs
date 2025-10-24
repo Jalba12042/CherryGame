@@ -59,6 +59,9 @@ public class Playermovement : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         projectileScript = GetComponent<Projectile>();
 
+        if (projectileScript != null)
+            projectileScript.SetOwner(this);
+
         originalMoveSpeed = moveSpeed;
     }
 
@@ -67,6 +70,9 @@ public class Playermovement : MonoBehaviour
         // --- Movement (Left Stick) ---
         moveInput = assignedGamepad != null ? assignedGamepad.leftStick.ReadValue() : Vector2.zero;
         isGrounded = Physics.Raycast(groundCheckPoint.position, Vector3.down, groundCheckDistance, groundLayer);
+
+        //Debug.DrawRay(groundCheckPoint.position, Vector3.down * groundCheckDistance, isGrounded ? Color.green : Color.red);
+
 
         if (isGrounded && moveInput == Vector2.zero)
         {
@@ -78,11 +84,13 @@ public class Playermovement : MonoBehaviour
         rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
 
         // --- Jump (Button South) ---
-        if (jumpRequested)
+        if (jumpRequested && isGrounded)
         {
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z); // reset vertical
+            rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
             jumpRequested = false;
         }
+
     }
 
     void Update()
@@ -93,18 +101,20 @@ public class Playermovement : MonoBehaviour
         // --- Jump Input ---
         if (isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame)
         {
+            //Debug.Log($"Player {playerIndex} jumped!");
             jumpRequested = true;
         }
-
         // --- Rotation (Right Stick) ---
         Vector2 rawLook = assignedGamepad.rightStick.ReadValue();
-        smoothLookInput = Vector2.Lerp(smoothLookInput, rawLook, Time.deltaTime * 15f);
-        if (smoothLookInput.sqrMagnitude > 0.2f)
+
+        if (rawLook.sqrMagnitude > 0.1f)
         {
-            lastLookDir = new Vector3(smoothLookInput.x, 0f, smoothLookInput.y).normalized;
+            lastLookDir = new Vector3(rawLook.x, 0f, rawLook.y).normalized;
         }
+
         Quaternion targetRotation = Quaternion.LookRotation(lastLookDir, Vector3.up);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 12f);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
+
 
         // --- Pickup / Drop Cherry (RT) ---
         float rtValue = assignedGamepad.rightTrigger.ReadValue();
@@ -210,6 +220,10 @@ public class Playermovement : MonoBehaviour
     // --- Handle Cherry Logic ---
     private void HandleCherryPickup()
     {
+        // Don't pickup while aiming or throwing
+        if (projectileScript != null && projectileScript.IsAiming())
+            return;
+
         if (heldCherry == null && nearbyCherry != null)
         {
             heldCherry = nearbyCherry;
@@ -221,6 +235,7 @@ public class Playermovement : MonoBehaviour
         }
     }
 
+
     private void HandleCherryDrop()
     {
         if (heldCherry != null && !isCharging)
@@ -228,9 +243,18 @@ public class Playermovement : MonoBehaviour
             Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
             heldCherry.transform.SetParent(null);
             if (rbCherry != null) rbCherry.isKinematic = false;
+
+            // Tell Projectile to cancel aiming/throwing
+            if (projectileScript != null)
+            {
+                projectileScript.CancelAim();
+            }
+
             heldCherry = null;
         }
     }
+
+
 
 
     // Pick up cherry

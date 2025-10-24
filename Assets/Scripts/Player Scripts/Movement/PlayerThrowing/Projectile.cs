@@ -24,10 +24,22 @@ public class Projectile : MonoBehaviour
 
     [SerializeField] private LayerMask groundLayer;
 
-    private PlayerController owner;
+    private Playermovement owner;
 
 
+    [Header("Arc Tuning")]
+    [Tooltip("How much upward velocity to add for the arc shape (bigger = taller).")]
+    public float arcHeight = 1.5f;
 
+    [Tooltip("Scales how far the trajectory goes (smaller = shorter distance).")]
+    [Range(0.05f, 2f)]
+    public float distanceMultiplier = 0.33f;
+
+    [Tooltip("Optional extra clamp on forward speed to prevent flying off the map.")]
+    public float maxForwardSpeed = 15f;
+
+
+    public bool IsAiming() => isAiming;
 
     void Start()
     {
@@ -46,14 +58,22 @@ public class Projectile : MonoBehaviour
 
     void Update()
     {
-        // Make sure this projectile belongs to someone
         if (owner == null) return;
 
-        // Get this player's specific gamepad
         var gamepad = owner.GetAssignedGamepad();
         if (gamepad == null) return;
 
         float ltValue = gamepad.leftTrigger.ReadValue();
+
+        // Stop aiming if you no longer hold a cherry
+        if (!isHoldingCherry)
+        {
+            isAiming = false;
+            if (lineRenderer != null) lineRenderer.enabled = false;
+            if (landingMarkerInstance != null) landingMarkerInstance.SetActive(false);
+            throwPower = 0f;
+            return; // early exit
+        }
 
         // While holding a cherry and LT pressed
         if (isHoldingCherry && ltValue > 0.1f)
@@ -61,14 +81,12 @@ public class Projectile : MonoBehaviour
             isAiming = true;
             lineRenderer.enabled = true;
 
-            // Enable landing marker when aiming
             if (landingMarkerInstance != null)
                 landingMarkerInstance.SetActive(true);
 
-            throwPower = ltValue; // store current trigger value
+            throwPower = ltValue;
             DrawTrajectory(throwPower);
         }
-        // LT released
         else if (isAiming && ltValue <= 0.1f)
         {
             ThrowCherry();
@@ -85,11 +103,11 @@ public class Projectile : MonoBehaviour
         }
         else
         {
-            // Not aiming
             if (lineRenderer != null)
                 lineRenderer.enabled = false;
         }
     }
+
 
 
     public void PickUpCherry(GameObject cherryObject)
@@ -113,8 +131,24 @@ public class Projectile : MonoBehaviour
         if (heldCherry == null) return;
 
         Vector3 origin = launchPoint.position;
-        Vector3 velocity = launchPoint.forward * (launchSpeed * power);
 
+        // === Arc Tuning ===
+        float baseSpeed = launchSpeed * power;
+
+        // vertical speed for height
+        float upSpeed = baseSpeed * arcHeight;
+
+        // forward speed for distance (divided by arcHeight so high arcs go shorter)
+        float forwardSpeed = baseSpeed * distanceMultiplier / (1f + arcHeight);
+
+        // safety clamp so it never flies off the map
+        if (maxForwardSpeed > 0f)
+            forwardSpeed = Mathf.Min(forwardSpeed, maxForwardSpeed);
+
+        // combine into full velocity
+        Vector3 velocity = launchPoint.forward * forwardSpeed + Vector3.up * upSpeed;
+
+        // === Draw the line ===
         lineRenderer.positionCount = linePoints;
         Vector3 previousPoint = origin;
 
@@ -129,9 +163,10 @@ public class Projectile : MonoBehaviour
                 Vector3 direction = point - previousPoint;
                 float distance = direction.magnitude;
 
-                // Debug ray to see trajectory checks
+                // visualize the trajectory
                 Debug.DrawLine(previousPoint, point, Color.red, 0.1f);
 
+                // ground hit detection
                 if (Physics.Raycast(previousPoint, direction.normalized, out RaycastHit hit, distance, groundLayer))
                 {
                     if (landingMarkerInstance != null)
@@ -149,10 +184,11 @@ public class Projectile : MonoBehaviour
             previousPoint = point;
         }
 
-        // If no hit found, hide marker
+        // hide marker if no hit
         if (landingMarkerInstance != null)
             landingMarkerInstance.SetActive(false);
     }
+
 
 
     void ThrowCherry()
@@ -165,13 +201,22 @@ public class Projectile : MonoBehaviour
         if (rb != null)
         {
             rb.isKinematic = false;
-
-            // Fix 1: continuous collision detection
             rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
 
-            // Old style throw: forward + upward for a nice arc
-            Vector3 throwDirection = launchPoint.forward + Vector3.up * 0.5f; // tweak 0.5f to control arc
-            rb.linearVelocity = throwDirection.normalized * launchSpeed;
+            // === Use same logic as DrawTrajectory() ===
+            float power = throwPower > 0 ? throwPower : 1f; // fallback in case
+            float baseSpeed = launchSpeed * power;
+
+            float upSpeed = baseSpeed * arcHeight;
+            float forwardSpeed = baseSpeed * distanceMultiplier / (1f + arcHeight);
+
+            // Clamp forward speed so it doesn't fly off the map
+            if (maxForwardSpeed > 0f)
+                forwardSpeed = Mathf.Min(forwardSpeed, maxForwardSpeed);
+
+            Vector3 velocity = launchPoint.forward * forwardSpeed + Vector3.up * upSpeed;
+
+            rb.linearVelocity = velocity;
         }
 
         heldCherry = null;
@@ -180,10 +225,27 @@ public class Projectile : MonoBehaviour
             landingMarkerInstance.SetActive(false);
     }
 
-    public void SetOwner(PlayerController player)
+
+    public void SetOwner(Playermovement player)
     {
         owner = player;
     }
+
+    public void CancelAim()
+    {
+        isAiming = false;
+        isHoldingCherry = false;
+        heldCherry = null;
+
+        if (lineRenderer != null)
+            lineRenderer.enabled = false;
+
+        if (landingMarkerInstance != null)
+            landingMarkerInstance.SetActive(false);
+
+        throwPower = 0f;
+    }
+
 
 
 }
