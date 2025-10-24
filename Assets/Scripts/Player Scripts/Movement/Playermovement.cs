@@ -300,4 +300,22 @@ public class Playermovement : MonoBehaviour
         moveSpeed = originalMoveSpeed;
         IsSlowed = false;
     }
+
+    /*public void InitializePlayer(int index)
+    {
+        playerIndex = index;
+        if (Gamepad.all.Count > playerIndex)
+        {
+            // adjust playerIndex on each script
+            GetComponentInChildren<PlayerEscapeUI>().playerIndex = playerIndex;
+
+            // assign gamepad
+            assignedGamepad = Gamepad.all[playerIndex];
+            Debug.Log($"Player {playerIndex + 1} initialized with gamepad: {assignedGamepad.displayName}");
+        }
+        else
+        {
+            Debug.LogWarning($"Player {playerIndex + 1} could not find a gamepad!");
+        }
+    }*/
 }
