@@ -18,6 +18,7 @@ public class ShopManager : MonoBehaviour
 
 
     public Button[] shopButtons;
+    private int amtOfButtons;
     private int[] playerVotes;
 
 
@@ -35,7 +36,7 @@ public class ShopManager : MonoBehaviour
         setupButtons();
 
         int playerCount = Mathf.Min(GameManager.Instance.playerCount, Gamepad.all.Count);
-        buttonVotes = new int[shopButtons.Length];
+        buttonVotes = new int[amtOfButtons];
         for (int i = 0; i < playerCount; i++)
         {
             currentIndexes[i] = 0;
@@ -116,16 +117,18 @@ public class ShopManager : MonoBehaviour
 
                 // Remove old vote if there was one
                 int oldVote = playerVotes[i];
-                if (oldVote != -1)
+                if (oldVote != -1 && chosenButton < amtOfButtons)
                 {
                     buttonVotes[oldVote]--;
                 }
 
                 // Add new vote
-                buttonVotes[chosenButton]++;
-                playerVotes[i] = chosenButton;
-
-                Debug.Log($"Player {i + 1} (Color {playerColors[i]}) voted for button {chosenButton + 1}. Total votes: {buttonVotes[chosenButton]}");
+                if (chosenButton < amtOfButtons)
+                {
+                    buttonVotes[chosenButton]++;
+                    playerVotes[i] = chosenButton;
+                    Debug.Log($"Player {i + 1} (Color {playerColors[i]}) voted for button {chosenButton + 1}. Total votes: {buttonVotes[chosenButton]}");
+                }                
             }
 
         }
@@ -172,12 +175,12 @@ public class ShopManager : MonoBehaviour
         {
             Debug.Log($"Button {i + 1} got {buttonVotes[i]} votes");
         }
-
-        RoundManager.Instance.switchRoundScene();
+        //RoundManager.Instance.switchRoundScene();
     }
 
     private void setupButtons()
     {
+        amtOfButtons = shopButtons.Length;
         // list of available items we haven't had yet
         List<ItemData> availableItems = new List<ItemData>();
         foreach (ItemData item in powerUpRegistry)
@@ -219,6 +222,7 @@ public class ShopManager : MonoBehaviour
         {
             buttonTexts[i].text = "SOLD OUT";
             buttonDescs[i].text = "";
+            amtOfButtons--;
         }
     }
 
