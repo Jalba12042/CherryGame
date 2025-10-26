@@ -35,7 +35,10 @@ public class RoundManager : MonoBehaviour
     private int currRoundIndex;
     private int startTimer;
     private bool roundSelected;
- 
+
+    public RenderTexture[] playerFaceRenderTextures;
+
+
     private void Awake()
     {
         if (Instance == null)
@@ -151,6 +154,12 @@ public class RoundManager : MonoBehaviour
             player.GetComponent<PlayerEscapeUI>().playerIndex = i;
 
             player.playerIndex = i;
+
+            //Attaches each player their own face cam
+            Camera faceCam = player.GetComponentInChildren<Camera>();
+            if (faceCam != null && i < playerFaceRenderTextures.Length)
+                faceCam.targetTexture = playerFaceRenderTextures[i];
+
         }
 
         // initial timer for round start
