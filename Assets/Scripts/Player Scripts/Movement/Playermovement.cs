@@ -38,6 +38,9 @@ public class Playermovement : MonoBehaviour
     private GameObject grabbedPlayer;
     private Rigidbody grabbedRigidbody;
     private bool isCurrentlyGrabbed = false;
+    private Collider myCollider;
+    private Collider grabbedCollider;
+
 
     public Projectile projectileScript;
     private Vector2 smoothLookInput;
@@ -63,6 +66,9 @@ public class Playermovement : MonoBehaviour
             projectileScript.SetOwner(this);
 
         originalMoveSpeed = moveSpeed;
+
+        myCollider = GetComponent<Collider>();
+
     }
 
     private void FixedUpdate()
@@ -144,6 +150,10 @@ public class Playermovement : MonoBehaviour
                 if (grabbedRigidbody != null)
                     grabbedRigidbody.isKinematic = true;
 
+                grabbedCollider = grabbedPlayer.GetComponent<Collider>();
+                if (grabbedCollider != null && myCollider != null)
+                    Physics.IgnoreCollision(myCollider, grabbedCollider, true);
+
                 // Assign grabber reference
                 PlayerGrabbed grabbed = grabbedPlayer.GetComponent<PlayerGrabbed>();
                 if (grabbed != null)
@@ -176,6 +186,10 @@ public class Playermovement : MonoBehaviour
         {
             if (grabbedRigidbody != null)
                 grabbedRigidbody.isKinematic = false;
+
+            if (grabbedCollider != null && myCollider != null)
+                Physics.IgnoreCollision(myCollider, grabbedCollider, false);
+            grabbedCollider = null;
 
             if (isCurrentlyGrabbed)
             {
