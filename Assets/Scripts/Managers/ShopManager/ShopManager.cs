@@ -204,16 +204,16 @@ public class ShopManager : MonoBehaviour
         }
 
         addedPowerUp = powerUps[winnerIndex];
-        addedPowerUp.added = true;
+/*        //addedPowerUp.added = true;
 
         for (int i = 0; i < powerUpRegistry.Count; i++)
         {
             if (powerUpRegistry[i] == addedPowerUp)
             {
-                powerUpRegistry[i].added = true;
+                //powerUpRegistry[i].added = true;
                 break;
             }
-        }
+        }*/
 
         RoundManager.Instance.powerUpsInRotation.Add(addedPowerUp.powerup);
         RoundManager.Instance.switchRoundScene();
