@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Powerup : MonoBehaviour
 {
-    protected PlayerController pc;
+    protected Playermovement pc;
     protected virtual void powerUpEffect()
     {
         Debug.Log("powerup");
@@ -12,7 +12,7 @@ public class Powerup : MonoBehaviour
     {
         if (collision.gameObject.tag == "Player")
         {
-            pc = collision.gameObject.GetComponentInParent<PlayerController>();
+            pc = collision.gameObject.GetComponent<Playermovement>();
             powerUpEffect();
             Destroy(gameObject);
         }

@@ -228,7 +228,7 @@ public class ShopManager : MonoBehaviour
         List<ItemData> availableItems = new List<ItemData>();
         foreach (ItemData item in powerUpRegistry)
         {
-            if (item.added != true)
+            if (!RoundManager.Instance.powerUpsInRotation.Contains(item.powerup))
             {
                 availableItems.Add(item);
             }
