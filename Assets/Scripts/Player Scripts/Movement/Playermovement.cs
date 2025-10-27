@@ -18,6 +18,11 @@ public class Playermovement : MonoBehaviour
     [SerializeField] private float groundCheckDistance = 0.4f;
     [SerializeField] private LayerMask groundLayer;
 
+    [Header("Jump Tuning")]
+    public float fallMultiplier = 2.5f;
+    public float lowJumpMultiplier = 2f;
+
+
     [Header("Pickup Settings")]
     public Transform pickupTarget;      // Where the grabbed player should move to
     public float pickupRange = 2f;      // Range to detect other players
@@ -96,6 +101,22 @@ public class Playermovement : MonoBehaviour
             rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
             jumpRequested = false;
         }
+
+        // --- Improved Jump Gravity ---
+        if (!isGrounded)
+        {
+            // Falling down: apply extra gravity for faster fall
+            if (rb.linearVelocity.y < 0)
+            {
+                rb.AddForce(Vector3.up * Physics.gravity.y * (fallMultiplier - 1) * rb.mass);
+            }
+            // Rising but jump button released: apply smaller gravity boost
+            else if (rb.linearVelocity.y > 0 && !assignedGamepad.buttonSouth.isPressed)
+            {
+                rb.AddForce(Vector3.up * Physics.gravity.y * (lowJumpMultiplier - 1) * rb.mass);
+            }
+        }
+
 
     }
 
