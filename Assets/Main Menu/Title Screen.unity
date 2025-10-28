@@ -390,7 +390,7 @@ GameObject:
   m_Component:
   - component: {fileID: 534351007}
   - component: {fileID: 534351006}
-  - component: {fileID: 534351005}
+  - component: {fileID: 534351008}
   m_Layer: 0
   m_Name: MusicManager
   m_TagString: Untagged
@@ -398,18 +398,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &534351005
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 534351004}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d025aed1d7320c849bf0c7dea42406bb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!82 &534351006
 AudioSource:
   m_ObjectHideFlags: 0
@@ -420,10 +408,10 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: da2129f9075759040ac2629f555600a9, type: 3}
-  m_Resource: {fileID: 8300000, guid: da2129f9075759040ac2629f555600a9, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 89cf3c4e922f3e844855072f03f19742, type: 3}
+  m_Resource: {fileID: 8300000, guid: 89cf3c4e922f3e844855072f03f19742, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.211
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -522,6 +510,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &534351008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 534351004}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d025aed1d7320c849bf0c7dea42406bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &540432956
 GameObject:
   m_ObjectHideFlags: 0
@@ -575,7 +575,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   normalImage: {fileID: 21300000, guid: 642a713898b4357478f75957c8d8de92, type: 3}
   highlightImage: {fileID: 21300000, guid: 31a61f0639ec3dc45883a403621dcc67, type: 3}
-  sceneName: Local Screen
+  sceneName: 
 --- !u!114 &540432959
 MonoBehaviour:
   m_ObjectHideFlags: 0
