@@ -1,10 +1,12 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class Powerup : MonoBehaviour
 {
     protected Playermovement pc;
     protected GameObject playerModel;
+    private bool playerInRange = false;
 
     [SerializeField] protected float duration;
     [SerializeField] protected string puName;
@@ -27,7 +29,7 @@ public class Powerup : MonoBehaviour
         powerUpEnd();
     }
 
-    private void OnCollisionEnter(Collision collision)
+    /*private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.tag == "Player")
         {
@@ -35,7 +37,28 @@ public class Powerup : MonoBehaviour
             pc = collision.gameObject.GetComponent<Playermovement>();
             StartCoroutine(startTimer());
         }    
+    }*/
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            playerInRange = true;
+            playerModel = other.gameObject;
+            pc = playerModel.GetComponent<Playermovement>();
+        }
     }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            playerInRange = false;
+            playerModel = null;
+            pc = null;
+        }
+    }
+
 
     protected virtual void powerUpEffect()
     {
@@ -45,5 +68,16 @@ public class Powerup : MonoBehaviour
     protected virtual void powerUpEnd()
     {
         Debug.Log($"powerup end: {puName}");
+    }
+
+    private void Update()
+    {
+        if (playerInRange && Gamepad.current != null)
+        {
+            if (Gamepad.current.rightTrigger.wasPressedThisFrame)
+            {
+                StartCoroutine(startTimer());
+            }
+        }
     }
 }
