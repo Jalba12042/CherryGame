@@ -46,7 +46,7 @@ public class CherryRound : Round
                 float randZ = Random.Range(b.min.z, b.max.z);
                 goalObjects.Add(Instantiate(cherryPrefab, new Vector3(randX, spawnArea.transform.position.y, randZ), Quaternion.identity));
             }
-            
+
             // temp power up spawn logic
             for (int i = 0; i < randPUSpawns; i++)
             {
@@ -54,7 +54,12 @@ public class CherryRound : Round
                 float randZ = Random.Range(puB.min.z, puB.max.z);
 
                 if (RoundManager.Instance.powerUpsInRotation != null)
-                    Instantiate(RoundManager.Instance.powerUpsInRotation[Random.Range(0, RoundManager.Instance.powerUpsInRotation.Count)], new Vector3(randX, powerupSpawnArea.transform.position.y, randZ), Quaternion.identity);
+                {
+                    if (RoundManager.Instance.powerUpsInRotation.Count != 0)
+                    {
+                        Instantiate(RoundManager.Instance.powerUpsInRotation[Random.Range(0, RoundManager.Instance.powerUpsInRotation.Count)], new Vector3(randX, powerupSpawnArea.transform.position.y, randZ), Quaternion.identity);
+                    }
+                }
             }
             yield return new WaitForSeconds(spawnInterval);
         }
