@@ -34,6 +34,7 @@ public class GrowPowerup : Powerup
         StartCoroutine(Grow());
     }
 
+    // smoothly grow and change pitch
     private IEnumerator Grow()
     {
         Vector3 targetSize = originalSize * scaleMultiplier;
@@ -49,8 +50,10 @@ public class GrowPowerup : Powerup
         }
 
         playerModel.transform.localScale = targetSize;
+        pc.isBig = true;
     }
 
+    // smoothly shrink and change pitch
     private IEnumerator Shrink()
     {
         Vector3 startSize = playerModel.transform.localScale;
@@ -66,9 +69,11 @@ public class GrowPowerup : Powerup
         }
 
         playerModel.transform.localScale = originalSize;
+        pc.isBig = false;
         Destroy(gameObject);
     }
 
+    // set values to original
     protected override void powerUpEnd()
     {
         base.powerUpEnd();
