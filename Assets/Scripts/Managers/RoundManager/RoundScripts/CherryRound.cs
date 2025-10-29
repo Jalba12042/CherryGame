@@ -9,11 +9,11 @@ public class CherryRound : Round
     [SerializeField] private float spawnInterval;
     [SerializeField] private int minCherrySpawns;
     [SerializeField] private int maxCherrySpawns;
+    [SerializeField, Range(0, 100)] private int powerupSpawnRate;
 
     private GameObject spawnArea;
     private GameObject powerupSpawnArea; // temp power up spawn area
     private BasketContainer bc;
-    private int[] roundScores;
 
     public override IEnumerator StartGoal()
     {
@@ -47,8 +47,9 @@ public class CherryRound : Round
                 goalObjects.Add(Instantiate(cherryPrefab, new Vector3(randX, spawnArea.transform.position.y, randZ), Quaternion.identity));
             }
 
-            // temp power up spawn logic
-            for (int i = 0; i < randPUSpawns; i++)
+            // powerup spawn logic
+            int randPUSpawn = Random.Range(0, 100);
+            if (randPUSpawn <= powerupSpawnRate)
             {
                 float randX = Random.Range(puB.min.x, puB.max.x);
                 float randZ = Random.Range(puB.min.z, puB.max.z);
@@ -61,6 +62,20 @@ public class CherryRound : Round
                     }
                 }
             }
+            // temp power up spawn logic
+            /*for (int i = 0; i < randPUSpawns; i++)
+            {
+                float randX = Random.Range(puB.min.x, puB.max.x);
+                float randZ = Random.Range(puB.min.z, puB.max.z);
+
+                if (RoundManager.Instance.powerUpsInRotation != null)
+                {
+                    if (RoundManager.Instance.powerUpsInRotation.Count != 0)
+                    {
+                        Instantiate(RoundManager.Instance.powerUpsInRotation[Random.Range(0, RoundManager.Instance.powerUpsInRotation.Count)], new Vector3(randX, powerupSpawnArea.transform.position.y, randZ), Quaternion.identity);
+                    }
+                }
+            }*/
             yield return new WaitForSeconds(spawnInterval);
         }
     }
