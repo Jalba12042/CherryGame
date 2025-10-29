@@ -2,8 +2,18 @@ using UnityEngine;
 
 public class JumpTestPowerup : Powerup
 {
+    [SerializeField] private float jumpMultiplier;
+    private float originalJumpForce;
     protected override void powerUpEffect()
     {
-        pc.jumpForce += 2f;
+        base.powerUpEffect();
+        originalJumpForce = pc.jumpForce;
+        pc.jumpForce *= jumpMultiplier;
+    }
+
+    protected override void powerUpEnd()
+    {
+        base.powerUpEnd();
+        pc.jumpForce = originalJumpForce;
     }
 }

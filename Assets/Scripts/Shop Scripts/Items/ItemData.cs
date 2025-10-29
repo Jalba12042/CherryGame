@@ -6,5 +6,5 @@ public class ItemData : ScriptableObject
     public string itemName;
     public string desc;
     public GameObject powerup;
-    public bool added;
+    //public bool added;
 }

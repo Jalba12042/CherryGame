@@ -1,9 +1,9 @@
 using UnityEngine;
 
-public class TestPowerup : Powerup
+public class SpeedPowerup : Powerup
 {
     protected override void powerUpEffect()
     {
-        pc.moveSpeed += 2;
+        pc.moveSpeed *= 2;
     }
 }
