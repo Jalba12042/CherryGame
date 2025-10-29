@@ -4,7 +4,6 @@ using UnityEngine;
 public class Powerup : MonoBehaviour
 {
     protected Playermovement pc;
-    protected bool active = false; // is the powerup currently affecting the player?
 
     [SerializeField] protected float duration;
     [SerializeField] protected string puName;
@@ -17,7 +16,6 @@ public class Powerup : MonoBehaviour
 
         // start powerup effects
         powerUpEffect();
-        active = true;
 
         // make it look invisible - Victor: make the object drop out of the player's hand here as well
         GetComponent<Collider>().enabled = false;
@@ -25,7 +23,7 @@ public class Powerup : MonoBehaviour
 
         yield return new WaitForSeconds(duration);
 
-        active = false;
+        powerUpEnd();
         Destroy(gameObject);
     }
 
@@ -41,5 +39,10 @@ public class Powerup : MonoBehaviour
     protected virtual void powerUpEffect()
     {
         Debug.Log($"powerup: {puName}");
+    }
+
+    protected virtual void powerUpEnd()
+    {
+        Debug.Log($"powerup end: {puName}");
     }
 }
