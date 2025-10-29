@@ -90,12 +90,14 @@ public class RoundManager : MonoBehaviour
                 WinScript.winningPlayer = winnerIndex + 1; // set winning player
                 SceneManager.LoadSceneAsync(hardcodedWinScene);
 
+                //GameManager.Instance.currGameState = GameManager.GameState.Win;
+
                 // set all values to defaults and change scene back to shop
                 roundSelected = false;
                 currRoundActive = false;
                 currRound = null;
-                GameManager.Instance.currGameState = GameManager.GameState.Shop;
-                SceneManager.LoadSceneAsync(shopSceneName);
+                GameManager.Instance.currGameState = GameManager.GameState.Win;
+                //SceneManager.LoadSceneAsync(shopSceneName);
             }
         }
     }
