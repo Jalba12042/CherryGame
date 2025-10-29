@@ -23,17 +23,27 @@ public class ImageButtonSwitch : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (buttonImage != null && highlightImage != null)
-            buttonImage.sprite = highlightImage;
+        Highlight(true);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (buttonImage != null && normalImage != null)
-            buttonImage.sprite = normalImage;
+        Highlight(false);
     }
 
     public void OnPointerClick(PointerEventData eventData)
+    {
+        Activate();
+    }
+
+    // --- Added for controller support ---
+    public void Highlight(bool active)
+    {
+        if (buttonImage != null)
+            buttonImage.sprite = active ? highlightImage : normalImage;
+    }
+
+    public void Activate()
     {
         SceneManager.LoadScene(sceneName);
     }
