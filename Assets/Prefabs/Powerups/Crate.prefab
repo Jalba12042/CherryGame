@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1351232537212575401
+--- !u!1 &154651273370504908
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,49 +8,49 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3968951532328816743}
-  - component: {fileID: 8192954229368833279}
-  - component: {fileID: 3887930130672106923}
-  - component: {fileID: 2749267881860809493}
-  - component: {fileID: 1355120570377666541}
-  - component: {fileID: 4427149029616133318}
+  - component: {fileID: 1294886856781026222}
+  - component: {fileID: 8879266691737564742}
+  - component: {fileID: 5852171639234720434}
+  - component: {fileID: 4164366142901458440}
+  - component: {fileID: -8224049113905154387}
+  - component: {fileID: -8121629954883791288}
   m_Layer: 0
-  m_Name: SpeedPowerup
+  m_Name: Crate
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3968951532328816743
+--- !u!4 &1294886856781026222
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1351232537212575401}
+  m_GameObject: {fileID: 154651273370504908}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 10.3, y: 15.9, z: 25.2}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 4.37, z: 25.9}
+  m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &8192954229368833279
+--- !u!33 &8879266691737564742
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1351232537212575401}
+  m_GameObject: {fileID: 154651273370504908}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &3887930130672106923
+--- !u!23 &5852171639234720434
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1351232537212575401}
+  m_GameObject: {fileID: 154651273370504908}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -67,7 +67,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 469ceff9cc26305478c91bf33c06de0d, type: 2}
+  - {fileID: 2100000, guid: e3ea3f938d766d74a93a21550c5ad60e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -89,13 +89,13 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &2749267881860809493
+--- !u!65 &4164366142901458440
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1351232537212575401}
+  m_GameObject: {fileID: 154651273370504908}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -110,13 +110,13 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!54 &1355120570377666541
+--- !u!54 &-8224049113905154387
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1351232537212575401}
+  m_GameObject: {fileID: 154651273370504908}
   serializedVersion: 4
   m_Mass: 1
   m_Drag: 0
@@ -137,18 +137,15 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &4427149029616133318
+--- !u!114 &-8121629954883791288
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1351232537212575401}
+  m_GameObject: {fileID: 154651273370504908}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 44251a6c9aa6f0848b76084e62fc47ef, type: 3}
+  m_Script: {fileID: 11500000, guid: 21de6b50bc0251147b066decfc054bf1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  duration: 10
-  puName: Speed Boost
-  speedMultiplier: 1.25
