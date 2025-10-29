@@ -96,7 +96,7 @@ public class RoundManager : MonoBehaviour
                 roundSelected = false;
                 currRoundActive = false;
                 currRound = null;
-                GameManager.Instance.currGameState = GameManager.GameState.Shop;
+                GameManager.Instance.currGameState = GameManager.GameState.Win;
                 //SceneManager.LoadSceneAsync(shopSceneName);
             }
         }
