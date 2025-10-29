@@ -31,8 +31,8 @@ public class Playermovement : MonoBehaviour
 
     public Gamepad assignedGamepad;
     private Rigidbody rb;
-    private bool isGrounded;
-    private bool jumpRequested = false;
+    private bool isGrounded; 
+    private bool jumpRequested = false; 
     private Vector2 moveInput;
 
     private GameObject heldCherry;
@@ -51,6 +51,12 @@ public class Playermovement : MonoBehaviour
     private Vector2 smoothLookInput;
     private Vector3 lastLookDir = Vector3.forward;
 
+    // Big powerup screen shake
+    public bool isBig = false;
+    private bool wasGroundedLastFrame = false;
+    [Header("Screen Shake")]
+    [SerializeField] private ScreenShake screenShake;
+
     // --- Sprinkler Interaction Fields ---
     [Header("Sprinkler Interaction")]
     [Tooltip("How strongly the sprinkler pushes the player back.")]
@@ -61,6 +67,7 @@ public class Playermovement : MonoBehaviour
 
     void Start()
     {
+        screenShake = FindFirstObjectByType<ScreenShake>();
         if (Gamepad.all.Count > playerIndex)
             assignedGamepad = Gamepad.all[playerIndex];
 
@@ -82,6 +89,15 @@ public class Playermovement : MonoBehaviour
         moveInput = assignedGamepad != null ? assignedGamepad.leftStick.ReadValue() : Vector2.zero;
         isGrounded = Physics.Raycast(groundCheckPoint.position, Vector3.down, groundCheckDistance, groundLayer);
 
+        if (!wasGroundedLastFrame && isGrounded && isBig)
+        {
+            if (screenShake != null)
+            {
+                screenShake.Shake();
+            }
+        }
+
+        wasGroundedLastFrame = isGrounded;
         //Debug.DrawRay(groundCheckPoint.position, Vector3.down * groundCheckDistance, isGrounded ? Color.green : Color.red);
 
 

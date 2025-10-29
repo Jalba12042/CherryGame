@@ -1,57 +1,49 @@
+using System.Collections;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class Powerup : MonoBehaviour
 {
     protected Playermovement pc;
-    private bool playerInRange = false;
-    private GameObject playerObj;
-    protected virtual void powerUpEffect()
-    {
-        Debug.Log("powerup");
-    }
+    protected GameObject playerModel;
 
-    private void OnTriggerEnter(Collider other)
+    [SerializeField] protected float duration;
+    [SerializeField] protected string puName;
+    protected virtual IEnumerator startTimer()
     {
-        if (other.CompareTag("Player"))
+        if (pc == null)
         {
-            playerInRange = true;
-            playerObj = other.gameObject;
-            pc = playerObj.GetComponent<Playermovement>();
+            yield break;
         }
+
+        // start powerup effects
+        powerUpEffect();
+
+        // make it look invisible - Victor: make the object drop out of the player's hand here as well
+        GetComponent<Collider>().enabled = false;
+        GetComponent<MeshRenderer>().enabled = false;
+
+        yield return new WaitForSeconds(duration);
+
+        powerUpEnd();
     }
 
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            playerInRange = false;
-            playerObj = null;
-            pc = null;
-        }
-    }
-
-    private void Update()
-    {
-        if (playerInRange && Gamepad.current != null)
-        {
-            // RT is the right trigger, which goes from 0.0 to 1.0 when pressed
-            if (Gamepad.current.rightTrigger.wasPressedThisFrame)
-            {
-                powerUpEffect();
-                Destroy(gameObject);
-            }
-        }
-    }
-
-    /*private void OnCollisionEnter(Collision collision)
+    private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.tag == "Player")
         {
+            playerModel = collision.gameObject;
             pc = collision.gameObject.GetComponent<Playermovement>();
-            powerUpEffect();
-            Destroy(gameObject);
-        }
-            
-    }*/
+            StartCoroutine(startTimer());
+        }    
+    }
+
+    protected virtual void powerUpEffect()
+    {
+        Debug.Log($"powerup: {puName}");
+    }
+
+    protected virtual void powerUpEnd()
+    {
+        Debug.Log($"powerup end: {puName}");
+    }
 }

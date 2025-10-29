@@ -5,11 +5,11 @@ using UnityEngine.InputSystem;
 public class Scream : MonoBehaviour
 {
     [SerializeField] private List<AudioClip> screamSFX;
-    [SerializeField] private float minPitch;
-    [SerializeField] private float maxPitch;
+    public float minPitch;
+    public float maxPitch;
     
     private Playermovement player;
-    private AudioSource aSource;
+    public AudioSource aSource;
     private Gamepad gp;
 
     private void Start()
