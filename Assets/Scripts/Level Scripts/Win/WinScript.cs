@@ -13,6 +13,8 @@ public class WinScript : MonoBehaviour
     private bool canMove = true;
     private float deadzone = 0.5f;
 
+    [SerializeField] private string shopSceneName;
+
     // NEW: store the winning player
     public static int winningPlayer = 1;
 
@@ -73,6 +75,6 @@ public class WinScript : MonoBehaviour
     public void GoToShop()
     {
         // This assumes your shop scene is literally called "Shop"
-        SceneManager.LoadScene("MaxTestScene2");
+        SceneManager.LoadScene(shopSceneName);
     }
 }
