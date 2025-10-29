@@ -15,5 +15,6 @@ public class SpeedPowerup : Powerup
     {
         base.powerUpEnd();
         pc.moveSpeed = originalSpeed;
+        Destroy(gameObject);
     }
 }

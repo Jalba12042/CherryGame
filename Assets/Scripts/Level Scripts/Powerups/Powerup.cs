@@ -4,10 +4,11 @@ using UnityEngine;
 public class Powerup : MonoBehaviour
 {
     protected Playermovement pc;
+    protected GameObject playerModel;
 
     [SerializeField] protected float duration;
     [SerializeField] protected string puName;
-    protected IEnumerator startTimer()
+    protected virtual IEnumerator startTimer()
     {
         if (pc == null)
         {
@@ -24,13 +25,13 @@ public class Powerup : MonoBehaviour
         yield return new WaitForSeconds(duration);
 
         powerUpEnd();
-        Destroy(gameObject);
     }
 
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.tag == "Player")
         {
+            playerModel = collision.gameObject;
             pc = collision.gameObject.GetComponent<Playermovement>();
             StartCoroutine(startTimer());
         }    

@@ -15,5 +15,6 @@ public class JumpTestPowerup : Powerup
     {
         base.powerUpEnd();
         pc.jumpForce = originalJumpForce;
+        Destroy(gameObject);
     }
 }
