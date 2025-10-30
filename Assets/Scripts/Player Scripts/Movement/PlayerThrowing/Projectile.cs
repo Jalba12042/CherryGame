@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class Projectile : MonoBehaviour
@@ -19,6 +19,7 @@ public class Projectile : MonoBehaviour
     private bool isHoldingCherry = false;
     private bool isAiming = false;
     private float throwPower = 0f;       // stores the LT value at release
+    private float currentPower = 0f;  // tracks LT power while aiming
     private Gamepad assignedGamepad;
     private GameObject heldCherry;
 
@@ -75,7 +76,6 @@ public class Projectile : MonoBehaviour
             return; // early exit
         }
 
-        // While holding a cherry and LT pressed
         if (isHoldingCherry && ltValue > 0.1f)
         {
             isAiming = true;
@@ -84,12 +84,46 @@ public class Projectile : MonoBehaviour
             if (landingMarkerInstance != null)
                 landingMarkerInstance.SetActive(true);
 
-            throwPower = ltValue;
-            DrawTrajectory(throwPower);
+            // continuously store LT power (never instantly reset)
+            currentPower = Mathf.Lerp(currentPower, ltValue, Time.deltaTime * 8f);
+            DrawTrajectory(currentPower);
         }
         else if (isAiming && ltValue <= 0.1f)
         {
+            float finalPower = Mathf.Max(currentPower, 0.25f); // ensure some minimum throw
+            ThrowCherry(finalPower);
+
+            isAiming = false;
+            lineRenderer.enabled = false;
+            isHoldingCherry = false;
+            heldCherry = null;
+
+            if (landingMarkerInstance != null)
+                landingMarkerInstance.SetActive(false);
+
+            // fully reset after throw
+            currentPower = 0f;
+        }
+
+        /*else if (isAiming && ltValue <= 0.1f)
+        {
             ThrowCherry();
+
+            isAiming = false;
+            lineRenderer.enabled = false;
+            isHoldingCherry = false;
+            heldCherry = null;
+
+            if (landingMarkerInstance != null)
+                landingMarkerInstance.SetActive(false);
+
+            throwPower = 0f;
+        }*/
+        else if (isAiming && ltValue <= 0.1f)
+        {
+            // ✅ Use the last non-zero throw power (don't let it drop to 0 before throwing)
+            float finalPower = Mathf.Max(throwPower, 0.25f); // ensures minimum power
+            ThrowCherry(finalPower);
 
             isAiming = false;
             lineRenderer.enabled = false;
@@ -189,9 +223,40 @@ public class Projectile : MonoBehaviour
             landingMarkerInstance.SetActive(false);
     }
 
+    void ThrowCherry(float finalPower)
+    {
+        if (heldCherry == null) return;
+
+        Rigidbody rb = heldCherry.GetComponent<Rigidbody>();
+        heldCherry.transform.SetParent(null);
+
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+
+            // ✅ Use the passed-in finalPower
+            float baseSpeed = launchSpeed * finalPower;
+
+            float upSpeed = baseSpeed * arcHeight;
+            float forwardSpeed = baseSpeed * distanceMultiplier / (1f + arcHeight);
+
+            if (maxForwardSpeed > 0f)
+                forwardSpeed = Mathf.Min(forwardSpeed, maxForwardSpeed);
+
+            Vector3 velocity = launchPoint.forward * forwardSpeed + Vector3.up * upSpeed;
+            rb.linearVelocity = velocity;
+        }
+
+        heldCherry = null;
+
+        if (landingMarkerInstance != null)
+            landingMarkerInstance.SetActive(false);
+    }
 
 
-    void ThrowCherry()
+
+    /*void ThrowCherry()
     {
         if (heldCherry == null) return;
 
@@ -223,7 +288,7 @@ public class Projectile : MonoBehaviour
 
         if (landingMarkerInstance != null)
             landingMarkerInstance.SetActive(false);
-    }
+    }*/
 
 
     public void SetOwner(Playermovement player)

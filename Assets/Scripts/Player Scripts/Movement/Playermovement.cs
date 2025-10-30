@@ -106,9 +106,22 @@ public class Playermovement : MonoBehaviour
             rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
         }
 
-        Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
-        Vector3 targetVelocity = move * moveSpeed;
-        rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
+        //Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
+        //Vector3 targetVelocity = move * moveSpeed;
+        //rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
+
+        Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y);
+        if (move.magnitude > 0.1f)
+        {
+            Vector3 moveDir = transform.TransformDirection(move.normalized);
+            Vector3 targetVelocity = moveDir * moveSpeed;
+            rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
+        }
+        else
+        {
+            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+        }
+
 
         // --- Jump (Button South) ---
         if (jumpRequested && isGrounded)
@@ -147,16 +160,34 @@ public class Playermovement : MonoBehaviour
             //Debug.Log($"Player {playerIndex} jumped!");
             jumpRequested = true;
         }
-        // --- Rotation (Right Stick) ---
+        // --- Rotation (Right Stick with Smoothed Deadzone) ---
         Vector2 rawLook = assignedGamepad.rightStick.ReadValue();
+        float magnitude = rawLook.magnitude;
 
-        if (rawLook.sqrMagnitude > 0.1f)
+        if (magnitude > 0.05f) // ignore micro noise
         {
-            lastLookDir = new Vector3(rawLook.x, 0f, rawLook.y).normalized;
+            // Convert stick direction into camera-relative world direction
+            Transform cam = Camera.main.transform;
+            Vector3 camForward = Vector3.Scale(cam.forward, new Vector3(1, 0, 1)).normalized;
+            Vector3 camRight = Vector3.Scale(cam.right, new Vector3(1, 0, 1)).normalized;
+
+            Vector3 lookDir = (camRight * rawLook.x + camForward * rawLook.y).normalized;
+
+            // Smooth magnitude response instead of hard cutoff
+            float inputDeadzone = 0.2f;
+            float smoothedMagnitude = Mathf.InverseLerp(inputDeadzone, 1f, magnitude);
+
+            // Smoothly rotate toward look direction
+            Quaternion targetRotation = Quaternion.LookRotation(lookDir, Vector3.up);
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation,
+                targetRotation,
+                Time.deltaTime * 15f * smoothedMagnitude
+            );
+
+            lastLookDir = lookDir;
         }
 
-        Quaternion targetRotation = Quaternion.LookRotation(lastLookDir, Vector3.up);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
 
 
         // --- Pickup / Drop Cherry (RT) ---

@@ -5210,10 +5210,14 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 0
+  fallMultiplier: 2.5
+  lowJumpMultiplier: 2
   pickupTarget: {fileID: 0}
   pickupRange: 2
   grabCooldownTime: 1
   projectileScript: {fileID: 0}
+  isBig: 0
+  screenShake: {fileID: 0}
   pushbackResistance: 1
   IsSlowed: 0
 --- !u!1 &823059975
@@ -13351,6 +13355,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 604f215b68c3c584eb3ac0cf3f916155, type: 3}
   minPitch: 1
   maxPitch: 2
+  aSource: {fileID: 0}
 --- !u!114 &2048221960
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13405,10 +13410,14 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 128
+  fallMultiplier: 2.5
+  lowJumpMultiplier: 2
   pickupTarget: {fileID: 235951}
   pickupRange: 2
   grabCooldownTime: 3
   projectileScript: {fileID: 2048221958}
+  isBig: 0
+  screenShake: {fileID: 0}
   pushbackResistance: 1
   IsSlowed: 0
 --- !u!4 &2048221963 stripped
