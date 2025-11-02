@@ -235,6 +235,7 @@ GameObject:
   - component: {fileID: 102409734}
   - component: {fileID: 102409736}
   - component: {fileID: 102409735}
+  - component: {fileID: 102409737}
   m_Layer: 5
   m_Name: Back Button
   m_TagString: Untagged
@@ -281,7 +282,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: b883f7d1b290e3e45a4b7c2e9e9d50c7, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 9b10a18270d2be84ba057793cd6652b0, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -299,6 +300,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 102409733}
   m_CullTransparentMesh: 1
+--- !u!114 &102409737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102409733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5eacac23ca04fe499d1fc10120869d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  normalImage: {fileID: 21300000, guid: 9b10a18270d2be84ba057793cd6652b0, type: 3}
+  highlightImage: {fileID: 21300000, guid: b883f7d1b290e3e45a4b7c2e9e9d50c7, type: 3}
+  sceneName: Title Screen
 --- !u!1 &155724645
 GameObject:
   m_ObjectHideFlags: 0
@@ -637,8 +653,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   buttons:
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 102409737}
 --- !u!1 &1402856051
 GameObject:
   m_ObjectHideFlags: 0
