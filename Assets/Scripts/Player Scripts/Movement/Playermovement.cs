@@ -91,9 +91,13 @@ public class Playermovement : MonoBehaviour
 
         if (!wasGroundedLastFrame && isGrounded && isBig)
         {
-            if (screenShake != null)
+            if (screenShake != null && RoundManager.Instance.currRound.goalObjects != null && RoundManager.Instance.playerObjects != null)
             {
                 screenShake.Shake();
+                for (int i = 0; i < RoundManager.Instance.currRound.goalObjects.Count; i++)
+                {
+                    
+                }
             }
         }
 
