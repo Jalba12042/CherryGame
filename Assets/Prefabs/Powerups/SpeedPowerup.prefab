@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 1355120570377666541}
   - component: {fileID: 4427149029616133318}
   - component: {fileID: -9181304939641570591}
+  - component: {fileID: -6592788814930522561}
   m_Layer: 0
   m_Name: SpeedPowerup
   m_TagString: Untagged
@@ -174,3 +175,21 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &-6592788814930522561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1351232537212575401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 400424a60f824984bbe82ddd26112298, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isGrounded: 0
+  groundCheckDistance: 1
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  groundCheckOffset: {x: 0, y: 0.1, z: 0}

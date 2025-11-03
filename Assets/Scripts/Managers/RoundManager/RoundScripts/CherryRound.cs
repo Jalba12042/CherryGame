@@ -39,7 +39,6 @@ public class CherryRound : Round
         while (RoundManager.Instance.currRoundActive)
         {
             int randCherrySpawns = Random.Range(minCherrySpawns, maxCherrySpawns + 1);
-            int randPUSpawns = Random.Range(0, 2); // temp power up random amount
 
             for (int i = 0; i < randCherrySpawns; i++)
             {

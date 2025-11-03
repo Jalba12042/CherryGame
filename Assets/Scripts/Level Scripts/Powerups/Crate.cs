@@ -14,7 +14,7 @@ public class Crate : MonoBehaviour
                 GetComponent<MeshRenderer>().enabled = false;
                 GetComponent<Collider>().enabled = false;
 
-                Instantiate(RoundManager.Instance.powerUpsInRotation[Random.Range(0, RoundManager.Instance.powerUpsInRotation.Count)], transform.position, Quaternion.identity);
+                RoundManager.Instance.powerupsInPlay.Add(Instantiate(RoundManager.Instance.powerUpsInRotation[Random.Range(0, RoundManager.Instance.powerUpsInRotation.Count)], transform.position, Quaternion.identity));
                 Destroy(gameObject);
             }
         }

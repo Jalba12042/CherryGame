@@ -6,6 +6,7 @@ using UnityEngine;
 public class Round : ScriptableObject
 {
     public List<GameObject> goalObjects;
+    //public List<GameObject> powerupsInPlay;
     public float roundTimeInSeconds;
     public string sceneName;
 
