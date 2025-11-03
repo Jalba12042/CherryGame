@@ -43,6 +43,7 @@ public class GrowPowerup : Powerup
         float randPitch = Random.Range(grownMinPitch, grownMaxPitch);
         while (elapsed < growthTime)
         {
+            Debug.Log(playerModel);
             playerModel.transform.localScale = Vector3.Lerp(originalSize, targetSize, elapsed / growthTime);
             screamScript.aSource.pitch = Mathf.Lerp(screamScript.aSource.pitch, randPitch, elapsed / pitchTime);
             elapsed += Time.deltaTime;
