@@ -33,11 +33,13 @@ public class ShopManager : MonoBehaviour
 
     private Color[] playerColors = { Color.blue, Color.red, Color.green, Color.yellow };
 
+    private int playerCount;
+
     private void Start()
     {
         setupButtons();
 
-        int playerCount = Mathf.Min(GameManager.Instance.playerCount, Gamepad.all.Count);
+        playerCount = Mathf.Min(GameManager.Instance.playerCount, Gamepad.all.Count);
         buttonVotes = new int[amtOfButtons];
         for (int i = 0; i < playerCount; i++)
         {
@@ -60,6 +62,7 @@ public class ShopManager : MonoBehaviour
     private void Update()
     {
         timerText.text = $"{shopTimerDurationInSecs - (int)timer}";
+        timerText.color = timer >= shopTimerDurationInSecs - 3f ? Color.red : Color.white;
         HandleControllerInput();
     }
 
@@ -169,6 +172,21 @@ public class ShopManager : MonoBehaviour
         while (timer < shopTimerDurationInSecs)
         {
             timer += Time.deltaTime;
+
+            // change timer to 3 after everyone has voted
+            int votesCounted = 0;
+            for (int i = 0; i < playerCount; i++)
+            {
+                if (playerVotes[i] != -1)
+                {
+                    votesCounted++;
+                }
+            }
+
+            if (votesCounted == playerCount)
+            {
+                timer = Mathf.Max(timer, shopTimerDurationInSecs - 3f);
+            }
             yield return null;
         }
         timer = shopTimerDurationInSecs;
