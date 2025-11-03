@@ -31,6 +31,7 @@ public class RoundManager : MonoBehaviour
     [SerializeField] private GameObject playerPrefab;
 
     public GameObject[] playerObjects;
+    public List<GameObject> powerupsInPlay;
     private PlayerSpawn currPlayerSpawn;
     private int currRoundIndex;
     private int startTimer;
