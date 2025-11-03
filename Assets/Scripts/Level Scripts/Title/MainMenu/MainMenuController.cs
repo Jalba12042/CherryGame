@@ -18,7 +18,7 @@ public class MainMenuController : MonoBehaviour
         // Optional: auto-find if you don’t want to drag
         if (buttons == null || buttons.Length == 0)
         {
-            buttons = FindObjectsOfType<MenuSelectable>(true)
+            buttons = FindObjectsByType<MenuSelectable>(FindObjectsSortMode.None)
                       .OrderBy(b => b.transform.GetSiblingIndex())
                       .ToArray();
         }
@@ -28,12 +28,14 @@ public class MainMenuController : MonoBehaviour
 
     void Update()
     {
-        if (Gamepad.current == null || buttons == null || buttons.Length == 0) return;
+        if (Gamepad.all.Count == 0 || buttons == null || buttons.Length == 0) return;
 
-        Vector2 move = Gamepad.current.leftStick.ReadValue();
+        var gamepad = Gamepad.all[0];
+
+        Vector2 move = gamepad.leftStick.ReadValue();
         float xInput = move.x;
-        if (Gamepad.current.dpad.left.wasPressedThisFrame) xInput = -1;
-        if (Gamepad.current.dpad.right.wasPressedThisFrame) xInput = 1;
+        if (gamepad.dpad.left.wasPressedThisFrame) xInput = -1;
+        if (gamepad.dpad.right.wasPressedThisFrame) xInput = 1;
 
         if (canMove)
         {
@@ -52,7 +54,7 @@ public class MainMenuController : MonoBehaviour
         }
         if (Mathf.Abs(xInput) < 0.2f) canMove = true;
 
-        if (Gamepad.current.buttonSouth.wasPressedThisFrame)
+        if (gamepad.buttonSouth.wasPressedThisFrame)
             buttons[currentIndex].Activate();
     }
 
