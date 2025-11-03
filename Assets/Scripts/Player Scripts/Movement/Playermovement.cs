@@ -52,7 +52,9 @@ public class Playermovement : MonoBehaviour
     private Vector3 lastLookDir = Vector3.forward;
 
     // Big powerup screen shake
+    [Header("While Big")]
     public bool isBig = false;
+    [SerializeField] private float itemJumpForce = 7f;
     private bool wasGroundedLastFrame = false;
     [Header("Screen Shake")]
     [SerializeField] private ScreenShake screenShake;
@@ -91,9 +93,19 @@ public class Playermovement : MonoBehaviour
 
         if (!wasGroundedLastFrame && isGrounded && isBig)
         {
-            if (screenShake != null)
+            if (screenShake != null && RoundManager.Instance.currRound.goalObjects != null && RoundManager.Instance.playerObjects != null)
             {
                 screenShake.Shake();
+                for (int i = 0; i < RoundManager.Instance.currRound.goalObjects.Count; i++)
+                {
+                    ItemGroundCheck groundCheck = RoundManager.Instance.currRound.goalObjects[i].GetComponent<ItemGroundCheck>();
+                    Rigidbody rb = RoundManager.Instance.currRound.goalObjects[i].GetComponent<Rigidbody>();
+
+                    if (groundCheck != null && rb != null)
+                    {
+                        rb.AddForce(Vector3.up * itemJumpForce, ForceMode.Impulse);
+                    }
+                }
             }
         }
 

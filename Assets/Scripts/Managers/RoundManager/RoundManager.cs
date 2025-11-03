@@ -30,7 +30,7 @@ public class RoundManager : MonoBehaviour
     [SerializeField] private int startTimerInSeconds;
     [SerializeField] private GameObject playerPrefab;
 
-    private GameObject[] playerObjects;
+    public GameObject[] playerObjects;
     private PlayerSpawn currPlayerSpawn;
     private int currRoundIndex;
     private int startTimer;

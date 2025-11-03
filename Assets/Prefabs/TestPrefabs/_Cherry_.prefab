@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1386363411886219662}
   - component: {fileID: 6589458723363777082}
   - component: {fileID: 4538027211801283702}
+  - component: {fileID: 8439131383837926323}
   m_Layer: 6
   m_Name: _Cherry_
   m_TagString: Cherry
@@ -136,3 +137,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &8439131383837926323
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6563745981749125236}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 400424a60f824984bbe82ddd26112298, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isGrounded: 0
+  groundCheckDistance: 1
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  groundCheckOffset: {x: 0, y: 0.1, z: 0}
