@@ -29,7 +29,7 @@ public class Powerup : MonoBehaviour
         powerUpEnd();
     }
 
-    private void OnCollisionEnter(Collision collision)
+    /*private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.tag == "Player")
         {
@@ -38,9 +38,9 @@ public class Powerup : MonoBehaviour
             RoundManager.Instance.powerupsInPlay.Remove(gameObject);
             StartCoroutine(startTimer());
         }
-    }
+    }*/
 
-   /* private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
@@ -58,7 +58,7 @@ public class Powerup : MonoBehaviour
             playerModel = null;
             pc = null;
         }
-    }*/
+    }
 
 
     protected virtual void powerUpEffect()
