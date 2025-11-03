@@ -76,12 +76,10 @@ public class Powerup : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log(playerInRange && Gamepad.current != null);
         if (playerInRange && Gamepad.current != null)
         {
             if (Gamepad.current.rightTrigger.wasPressedThisFrame)
             {
-                Debug.Log("activated");
                 StartCoroutine(startTimer());
             }
         }
