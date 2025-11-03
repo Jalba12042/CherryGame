@@ -36,8 +36,8 @@ public class Playermovement : MonoBehaviour
 
     public Gamepad assignedGamepad;
     private Rigidbody rb;
-    private bool isGrounded; 
-    private bool jumpRequested = false; 
+    private bool isGrounded;
+    private bool jumpRequested = false;
     private Vector2 moveInput;
 
     private GameObject heldCherry;
@@ -98,9 +98,14 @@ public class Playermovement : MonoBehaviour
 
         if (!wasGroundedLastFrame && isGrounded && isBig)
         {
-            if (screenShake != null && RoundManager.Instance.currRound.goalObjects != null && RoundManager.Instance.playerObjects != null)
+            if (screenShake != null)
             {
+                // shake screen
                 screenShake.Shake();
+            }
+            if (RoundManager.Instance.currRound.goalObjects != null)
+            {
+                // send goal objects flying
                 for (int i = 0; i < RoundManager.Instance.currRound.goalObjects.Count; i++)
                 {
                     ItemGroundCheck groundCheck = RoundManager.Instance.currRound.goalObjects[i].GetComponent<ItemGroundCheck>();
@@ -109,6 +114,44 @@ public class Playermovement : MonoBehaviour
                     if (groundCheck != null && rb != null)
                     {
                         rb.AddForce(Vector3.up * itemJumpForce, ForceMode.Impulse);
+                    }
+                }
+            }
+            if (RoundManager.Instance.playerObjects != null)
+            {
+                // send other players flying
+                for (int i = 0; i < RoundManager.Instance.playerObjects.Length; i++)
+                {
+                    if (i != playerIndex)
+                    {
+                        Playermovement pm = RoundManager.Instance.playerObjects[i].GetComponent<Playermovement>();
+
+                        if (pm != null)
+                        {
+                            Rigidbody rb = RoundManager.Instance.playerObjects[i].GetComponent<Rigidbody>();
+
+                            if (rb != null && pm.isGrounded)
+                            {
+                                rb.AddForce(Vector3.up * itemJumpForce, ForceMode.Impulse);
+                            }
+                        }
+                    }
+                }
+            }
+            if (RoundManager.Instance.powerupsInPlay != null)
+            {
+                if (RoundManager.Instance.powerupsInPlay.Count != 0)
+                {
+                    // send powerups flying
+                    for (int i = 0; i < RoundManager.Instance.powerupsInPlay.Count; i++)
+                    {
+                        ItemGroundCheck groundCheck = RoundManager.Instance.powerupsInPlay[i].GetComponent<ItemGroundCheck>();
+                        Rigidbody rb = RoundManager.Instance.powerupsInPlay[i].GetComponent<Rigidbody>();
+
+                        if (groundCheck != null && rb != null)
+                        {
+                            rb.AddForce(Vector3.up * itemJumpForce, ForceMode.Impulse);
+                        }
                     }
                 }
             }
