@@ -166,11 +166,14 @@ public class Playermovement : MonoBehaviour
             rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
         }
 
-        //Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
-        //Vector3 targetVelocity = move * moveSpeed;
-        //rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
+        Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
+        Vector3 targetVelocity = move * moveSpeed;
+        rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
 
-        Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y);
+    
+
+
+        /*Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y);
         if (move.magnitude > 0.1f)
         {
             Vector3 moveDir = transform.TransformDirection(move.normalized);
@@ -180,7 +183,7 @@ public class Playermovement : MonoBehaviour
         else
         {
             rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
-        }
+        }*/
 
 
         // --- Jump (Button South) ---
