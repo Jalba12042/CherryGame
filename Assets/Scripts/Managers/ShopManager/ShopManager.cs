@@ -62,6 +62,7 @@ public class ShopManager : MonoBehaviour
     private void Update()
     {
         timerText.text = $"{shopTimerDurationInSecs - (int)timer}";
+        timerText.color = timer >= shopTimerDurationInSecs - 3f ? Color.red : Color.white;
         HandleControllerInput();
     }
 
@@ -171,18 +172,20 @@ public class ShopManager : MonoBehaviour
         while (timer < shopTimerDurationInSecs)
         {
             timer += Time.deltaTime;
-            int totalVotes = 0;
-            for (int i = 0; i < playerVotes.Length; i++)
+
+            // change timer to 3 after everyone has voted
+            int votesCounted = 0;
+            for (int i = 0; i < playerCount; i++)
             {
-                totalVotes += playerVotes[i];
+                if (playerVotes[i] != -1)
+                {
+                    votesCounted++;
+                }
             }
 
-            if (totalVotes == playerCount)
+            if (votesCounted == playerCount)
             {
-                if (!(timer >= (shopTimerDurationInSecs - 3f)))
-                {
-                    timer = shopTimerDurationInSecs - 3f;
-                }
+                timer = Mathf.Max(timer, shopTimerDurationInSecs - 3f);
             }
             yield return null;
         }
