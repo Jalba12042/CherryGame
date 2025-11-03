@@ -28,6 +28,11 @@ public class Playermovement : MonoBehaviour
     public float pickupRange = 2f;      // Range to detect other players
     public float grabCooldownTime = 1f; // seconds before player can grab again
 
+    [Header("Powerup Settings")]
+    //[SerializeField] private float powerupPickupRange = 2f;
+    private Powerup nearbyPowerup;
+
+
 
     public Gamepad assignedGamepad;
     private Rigidbody rb;
@@ -208,6 +213,7 @@ public class Playermovement : MonoBehaviour
         {
             HandleCherryPickup();
             HandlePlayerGrab();
+            HandlePowerupPickup();
         }
         else
         {
@@ -303,6 +309,14 @@ public class Playermovement : MonoBehaviour
         return null;
     }
 
+    private void HandlePowerupPickup()
+    {
+        if (nearbyPowerup != null)
+        {
+            nearbyPowerup.Activate(this);
+            nearbyPowerup = null; // prevent re-trigger
+        }
+    }
 
     public IEnumerator GrabCooldown()
     {
@@ -358,6 +372,12 @@ public class Playermovement : MonoBehaviour
         {
             nearbyCherry = other.gameObject;
         }
+
+        // Detect powerup
+        if (other.TryGetComponent(out Powerup powerup))
+        {
+            nearbyPowerup = powerup;
+        }
     }
 
     private void OnTriggerExit(Collider other)
@@ -365,6 +385,12 @@ public class Playermovement : MonoBehaviour
         if (other.CompareTag("Cherry") && other.gameObject == nearbyCherry)
         {
             nearbyCherry = null;
+        }
+
+        // Lose reference when leaving range
+        if (other.TryGetComponent(out Powerup powerup) && powerup == nearbyPowerup)
+        {
+            nearbyPowerup = null;
         }
     }
 
