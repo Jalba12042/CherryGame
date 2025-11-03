@@ -29,20 +29,22 @@ public class Powerup : MonoBehaviour
         powerUpEnd();
     }
 
-    /*private void OnCollisionEnter(Collision collision)
+  /*  private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.tag == "Player")
         {
             playerModel = collision.gameObject;
             pc = collision.gameObject.GetComponent<Playermovement>();
             StartCoroutine(startTimer());
-        }    
-    }*/
-
+        }
+    }
+*/
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log("enter triggered");
         if (other.CompareTag("Player"))
         {
+            Debug.Log("enter triggered with player");
             playerInRange = true;
             playerModel = other.gameObject;
             pc = playerModel.GetComponent<Playermovement>();
@@ -51,8 +53,10 @@ public class Powerup : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
+        Debug.Log("exit triggered");
         if (other.CompareTag("Player"))
         {
+            Debug.Log("exit triggered with player");
             playerInRange = false;
             playerModel = null;
             pc = null;
@@ -72,10 +76,12 @@ public class Powerup : MonoBehaviour
 
     private void Update()
     {
+        Debug.Log(playerInRange && Gamepad.current != null);
         if (playerInRange && Gamepad.current != null)
         {
             if (Gamepad.current.rightTrigger.wasPressedThisFrame)
             {
+                Debug.Log("activated");
                 StartCoroutine(startTimer());
             }
         }
