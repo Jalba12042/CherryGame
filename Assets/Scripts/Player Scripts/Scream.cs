@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -11,26 +12,48 @@ public class Scream : MonoBehaviour
     private Playermovement player;
     public AudioSource aSource;
     private Gamepad gp;
+    private Animator faceAnimator;
+    private bool isScreaming = false;
 
     private void Start()
     {
         player = GetComponentInChildren<Playermovement>();
         aSource = GetComponent<AudioSource>();
         gp = player.assignedGamepad;
+        faceAnimator = GetComponentInChildren<Animator>(); 
+
     }
 
     private void Update()
     {
-        if (gp.buttonEast.wasPressedThisFrame)
+        if (gp != null && gp.buttonEast.wasPressedThisFrame)
         {
-            // stop any screams
-            aSource.Stop();
-
-            // pick a random pitch for the scream
-            int rand = Random.Range(0, screamSFX.Count);
-            float randPitch = Random.Range(minPitch, maxPitch);
-            aSource.pitch = randPitch;
-            aSource.PlayOneShot(screamSFX[rand]);
+            StartCoroutine(HandleScream());
         }
+    }
+
+    private IEnumerator HandleScream()
+    {
+        // Stop any ongoing scream sound
+        aSource.Stop();
+
+        // Pick random scream clip and pitch
+        int rand = Random.Range(0, screamSFX.Count);
+        float randPitch = Random.Range(minPitch, maxPitch);
+        aSource.pitch = randPitch;
+
+        // Play scream
+        aSource.PlayOneShot(screamSFX[rand]);
+
+        // Trigger face animation
+        faceAnimator.SetBool("IsScreaming", true);
+        isScreaming = true;
+
+        // Wait for scream duration
+        yield return new WaitForSeconds(screamSFX[rand].length);
+
+        // Reset face animation
+        faceAnimator.SetBool("IsScreaming", false);
+        isScreaming = false;
     }
 }
