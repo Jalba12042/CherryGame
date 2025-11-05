@@ -17,4 +17,11 @@ public class JumpTestPowerup : Powerup
         pc.jumpForce = originalJumpForce;
         Destroy(gameObject);
     }
+
+    protected override void passOldPowerupInfo(Powerup oldPu)
+    {
+        JumpTestPowerup powerup = (JumpTestPowerup)oldPu;
+
+        this.originalJumpForce = powerup.originalJumpForce;
+    }
 }

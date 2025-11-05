@@ -17,4 +17,11 @@ public class SpeedPowerup : Powerup
         pc.moveSpeed = originalSpeed;
         Destroy(gameObject);
     }
+
+    protected override void passOldPowerupInfo(Powerup oldPu)
+    {
+        SpeedPowerup powerup = (SpeedPowerup)oldPu;
+
+        this.originalSpeed = powerup.originalSpeed;
+    }
 }

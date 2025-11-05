@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Playermovement : MonoBehaviour
 {
@@ -61,8 +62,14 @@ public class Playermovement : MonoBehaviour
     public bool isBig = false;
     [SerializeField] private float itemJumpForce = 7f;
     private bool wasGroundedLastFrame = false;
+
+    // Screen Shake reference
     [Header("Screen Shake")]
     [SerializeField] private ScreenShake screenShake;
+
+    [Header("Current Powerups activated")]
+    public List<bool> currPowerups;
+    public Dictionary<int, Powerup> activePowerupInstances = new Dictionary<int, Powerup>();
 
     // --- Sprinkler Interaction Fields ---
     [Header("Sprinkler Interaction")]
@@ -88,6 +95,27 @@ public class Playermovement : MonoBehaviour
 
         myCollider = GetComponent<Collider>();
 
+        int highestID = -1;
+        for (int i = 0; i < RoundManager.Instance.powerUpsInRotation.Count; i++)
+        {
+            if (RoundManager.Instance.powerUpsInRotation[i].GetComponent<Powerup>().powerUpID > highestID)
+            {
+                highestID = RoundManager.Instance.powerUpsInRotation[i].GetComponent<Powerup>().powerUpID;
+            }
+        }
+
+        if (highestID >= 0)
+        {
+            currPowerups = new List<bool>();
+            for (int i = 0; i <= highestID; i++)
+            {
+                currPowerups.Add(false);
+            }
+        }
+        else
+        {
+            currPowerups = null;
+        }
     }
 
     private void FixedUpdate()
