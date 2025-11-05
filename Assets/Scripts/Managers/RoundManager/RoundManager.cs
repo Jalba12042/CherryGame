@@ -149,7 +149,40 @@ public class RoundManager : MonoBehaviour
         }
 
         // spawn players
+        // spawn players
         playerObjects = new GameObject[GameManager.Instance.playerCount];
+        for (int playerSlot = 0; playerSlot < GameManager.Instance.playerCount; playerSlot++)
+        {
+            int assignedControllerIndex = GameManager.Instance.controllerAssignments[playerSlot];
+
+            // Spawn player for this slot
+            playerObjects[playerSlot] = Instantiate(
+                playerPrefab,
+                currPlayerSpawn.spawnPoints[playerSlot].position,
+                Quaternion.identity
+            );
+
+            Playermovement player = playerObjects[playerSlot].GetComponentInChildren<Playermovement>();
+            player.GetComponent<PlayerEscapeUI>().playerIndex = playerSlot;
+            player.playerIndex = playerSlot;
+
+            if (assignedControllerIndex >= 0 && assignedControllerIndex < UnityEngine.InputSystem.Gamepad.all.Count)
+            {
+                player.assignedGamepad = UnityEngine.InputSystem.Gamepad.all[assignedControllerIndex];
+                Debug.Log($"Player {playerSlot + 1} using controller {assignedControllerIndex} (Player index in array: {playerSlot})");
+            }
+            else
+            {
+                Debug.LogWarning($"Player {playerSlot + 1} has no valid controller assigned!");
+            }
+
+            // Attach each player their own face cam
+            Camera faceCam = player.GetComponentInChildren<Camera>();
+            if (faceCam != null && playerSlot < playerFaceRenderTextures.Length)
+                faceCam.targetTexture = playerFaceRenderTextures[playerSlot];
+        }
+
+        /*playerObjects = new GameObject[GameManager.Instance.playerCount];
         for (int i = 0; i < GameManager.Instance.playerCount; i++)
         {
             playerObjects[i] = Instantiate(playerPrefab, currPlayerSpawn.spawnPoints[i].position, Quaternion.identity);
@@ -158,12 +191,23 @@ public class RoundManager : MonoBehaviour
 
             player.playerIndex = i;
 
+            int assignedControllerIndex = GameManager.Instance.controllerAssignments[i];
+            if (assignedControllerIndex >= 0 && assignedControllerIndex < UnityEngine.InputSystem.Gamepad.all.Count)
+            {
+                player.assignedGamepad = UnityEngine.InputSystem.Gamepad.all[assignedControllerIndex];
+                Debug.Log($"Player {i + 1} using controller {assignedControllerIndex} (Player index in array: {i})");
+            }
+            else
+            {
+                Debug.LogWarning($"Player {i + 1} has no valid controller assigned!");
+            }
+
             //Attaches each player their own face cam
             Camera faceCam = player.GetComponentInChildren<Camera>();
             if (faceCam != null && i < playerFaceRenderTextures.Length)
                 faceCam.targetTexture = playerFaceRenderTextures[i];
 
-        }
+        }*/
 
         // initial timer for round start
         startTimer = 0;
