@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -171,6 +171,9 @@ public class ControllerConnect : MonoBehaviour
             gamepad.SetMotorSpeeds(0.5f, 0.5f); // lowFreq, highFreq
             StartCoroutine(StopRumble(gamepad, 0.2f));
         }
+
+        Debug.Log($"Controller {controllerIndex} entered Player {slotIndex} slot.");
+
     }
 
     // Switch controller to a different slot
@@ -217,9 +220,35 @@ public class ControllerConnect : MonoBehaviour
     }
 
     // Called when Player 1 presses A to start the game
-    public void OnPlayPressed()
+    /*public void OnPlayPressed()
     {
         GameManager.Instance.playerCount = slots.Length;
+        SceneManager.LoadScene(RoundManager.Instance.currRound.sceneName);
+    }*/
+
+    public void OnPlayPressed()
+    {
+        if (GameManager.Instance == null) return;
+
+        GameManager.Instance.playerCount = slots.Length;
+
+        // Resize and reset
+        GameManager.Instance.controllerAssignments = new int[slots.Length];
+        for (int i = 0; i < slots.Length; i++)
+            GameManager.Instance.controllerAssignments[i] = -1;
+
+        // Save controller → slot mapping
+        for (int i = 0; i < controllers.Length; i++)
+        {
+            int slot = controllerPositions[i];
+            if (slot > 0)
+            {
+                // slot is 1-based, so subtract 1
+                GameManager.Instance.controllerAssignments[slot - 1] = i;
+                Debug.Log($"Assigned Controller {i} to Player {slot}");
+            }
+        }
+
         SceneManager.LoadScene(RoundManager.Instance.currRound.sceneName);
     }
 

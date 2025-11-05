@@ -81,8 +81,8 @@ public class Playermovement : MonoBehaviour
     void Start()
     {
         screenShake = FindFirstObjectByType<ScreenShake>();
-        if (Gamepad.all.Count > playerIndex)
-            assignedGamepad = Gamepad.all[playerIndex];
+        /*if (Gamepad.all.Count > playerIndex)
+            assignedGamepad = Gamepad.all[playerIndex];*/
 
         rb = GetComponent<Rigidbody>();
         projectileScript = GetComponent<Projectile>();

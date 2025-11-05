@@ -31,7 +31,7 @@ public class GameManager : MonoBehaviour
     }
     public GameState currGameState;
 
-    private void Awake()
+    /*private void Awake()
     {
         if (Instance == null)
         {
@@ -48,7 +48,35 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }*/
+
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject); // Persist across scenes
+
+            if (playerCount > 0)
+            {
+                playerTotalScores = new int[playerCount];
+                controllerAssignments = new int[playerCount];
+
+                for (int i = 0; i < playerCount; i++)
+                {
+                    playerTotalScores[i] = 0;
+                    controllerAssignments[i] = -1; // means “unassigned”
+                }
+            }
+
+            SceneManager.sceneLoaded += OnSceneLoaded; // Listen for scene changes
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
+
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
