@@ -69,6 +69,7 @@ public class Playermovement : MonoBehaviour
 
     [Header("Current Powerups activated")]
     public List<bool> currPowerups;
+    public Dictionary<int, Powerup> activePowerupInstances = new Dictionary<int, Powerup>();
 
     // --- Sprinkler Interaction Fields ---
     [Header("Sprinkler Interaction")]

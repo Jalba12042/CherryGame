@@ -77,10 +77,22 @@ public class GrowPowerup : Powerup
     // set values to original
     protected override void powerUpEnd()
     {
+        screamScript = playerModel.GetComponent<Scream>();
         base.powerUpEnd();
-        StartCoroutine(Shrink());
         pc.moveSpeed = originalSpeed;
         screamScript.minPitch = ogMinPitch;
         screamScript.maxPitch = ogMaxPitch;
+        StartCoroutine(Shrink());
+    }
+
+    protected override void passOldPowerupInfo(Powerup oldPu)
+    {
+        GrowPowerup powerup = (GrowPowerup)oldPu;
+
+        this.originalSpeed = powerup.originalSpeed;
+        this.originalSize = powerup.originalSize;
+        this.ogMinPitch = powerup.ogMinPitch;
+        this.ogMaxPitch = powerup.ogMaxPitch;
+        this.screamScript = powerup.screamScript;
     }
 }

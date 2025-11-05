@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 4616916764817112660}
   - component: {fileID: 6792541190247790696}
   - component: {fileID: 551024904389749824}
+  - component: {fileID: -2742422976540844636}
   m_Layer: 0
   m_Name: Growth
   m_TagString: Untagged
@@ -173,9 +174,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   duration: 10
   puName: Mega Pill
+  powerUpID: 0
   scaleMultiplier: 3
   speedMultiplier: 0.5
   growthTime: 0.5
   grownMinPitch: 0.5
   grownMaxPitch: 0.75
   pitchTime: 2
+--- !u!114 &-2742422976540844636
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7088357627643974561}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 400424a60f824984bbe82ddd26112298, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isGrounded: 0
+  groundCheckDistance: 0
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  groundCheckOffset: {x: 0, y: 0.1, z: 0}
