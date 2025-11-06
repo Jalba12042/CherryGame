@@ -79,8 +79,14 @@ public class Playermovement : MonoBehaviour
     public bool IsSlowed = false;
     private float originalMoveSpeed;
 
+    [Header("Animator")]
+    private Animator animator;
+
+
     void Start()
     {
+        animator = GetComponent<Animator>();
+
         screenShake = FindFirstObjectByType<ScreenShake>();
         /*if (Gamepad.all.Count > playerIndex)
             assignedGamepad = Gamepad.all[playerIndex];*/
@@ -198,7 +204,11 @@ public class Playermovement : MonoBehaviour
         Vector3 targetVelocity = move * moveSpeed;
         rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
 
-    
+        if (animator != null)
+        {
+            float speedValue = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z).magnitude;
+            animator.SetFloat("Speed", speedValue);
+        }
 
 
         /*Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y);
