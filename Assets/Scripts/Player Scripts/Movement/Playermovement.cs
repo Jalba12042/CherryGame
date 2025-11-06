@@ -33,6 +33,9 @@ public class Playermovement : MonoBehaviour
     //[SerializeField] private float powerupPickupRange = 2f;
     private Powerup nearbyPowerup;
 
+    [Header("Rotation Settings")]
+    [SerializeField] private float rotationSpeed = 10f; // tweak this value in the Inspector
+
 
 
     public Gamepad assignedGamepad;
@@ -281,10 +284,11 @@ public class Playermovement : MonoBehaviour
             // Smoothly rotate toward look direction
             Quaternion targetRotation = Quaternion.LookRotation(lookDir, Vector3.up);
             transform.rotation = Quaternion.Slerp(
-                transform.rotation,
-                targetRotation,
-                Time.deltaTime * 15f * smoothedMagnitude
-            );
+    transform.rotation,
+    targetRotation,
+    Time.deltaTime * rotationSpeed * smoothedMagnitude
+);
+
 
             lastLookDir = lookDir;
         }
