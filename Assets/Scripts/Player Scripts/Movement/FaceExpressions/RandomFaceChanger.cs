@@ -17,7 +17,8 @@ public class RandomFaceChanger : MonoBehaviour
     void Start()
     {
         if (animator == null)
-            animator = GetComponent<Animator>();
+            animator = GetComponentInChildren<Animator>();
+        
 
         StartCoroutine(ChangeFaceLoop());
     }
@@ -37,6 +38,7 @@ public class RandomFaceChanger : MonoBehaviour
                 string chosenFace = faceAnimations[randomIndex];
                 animator.Play(chosenFace);
             }
+            yield return new WaitForSeconds(0.5f);
         }
     }
 
