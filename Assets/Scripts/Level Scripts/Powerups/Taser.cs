@@ -1,16 +1,14 @@
 using UnityEngine;
 
-public class Taser : MonoBehaviour
+public class Taser : Powerup
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    protected override void powerUpEffect()
     {
-        
+        base.powerUpEffect();
     }
 
-    // Update is called once per frame
-    void Update()
+    protected override void powerUpEnd()
     {
-        
+        base.powerUpEnd();
     }
 }

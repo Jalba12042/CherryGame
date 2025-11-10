@@ -43,6 +43,7 @@ public class Playermovement : MonoBehaviour
     private bool isGrounded;
     private bool jumpRequested = false;
     public bool canMove = true;
+    public bool isTase = false;
     private Vector2 moveInput;
 
     private GameObject heldCherry;
@@ -455,7 +456,10 @@ public class Playermovement : MonoBehaviour
     }
 
 
-
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player") && )
+    }
 
     // Pick up cherry
     private void OnTriggerEnter(Collider other)
