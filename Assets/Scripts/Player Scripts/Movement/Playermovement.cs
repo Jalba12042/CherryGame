@@ -42,6 +42,7 @@ public class Playermovement : MonoBehaviour
     private Rigidbody rb;
     private bool isGrounded;
     private bool jumpRequested = false;
+    public bool canMove = true;
     private Vector2 moveInput;
 
     private GameObject heldCherry;
@@ -198,14 +199,17 @@ public class Playermovement : MonoBehaviour
         //Debug.DrawRay(groundCheckPoint.position, Vector3.down * groundCheckDistance, isGrounded ? Color.green : Color.red);
 
 
-        if (isGrounded && moveInput == Vector2.zero)
+        if ((isGrounded && moveInput == Vector2.zero) || !canMove)
         {
             rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
         }
 
-        Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
-        Vector3 targetVelocity = move * moveSpeed;
-        rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
+        if (canMove)
+        {
+            Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
+            Vector3 targetVelocity = move * moveSpeed;
+            rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
+        }
 
         if (animator != null)
         {
@@ -228,7 +232,7 @@ public class Playermovement : MonoBehaviour
 
 
         // --- Jump (Button South) ---
-        if (jumpRequested && isGrounded)
+        if (jumpRequested && isGrounded && canMove)
         {
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z); // reset vertical
             rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
@@ -259,7 +263,7 @@ public class Playermovement : MonoBehaviour
             return;
 
         // --- Jump Input ---
-        if (isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame)
+        if (isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame && canMove)
         {
             //Debug.Log($"Player {playerIndex} jumped!");
             jumpRequested = true;
