@@ -212,16 +212,21 @@ public class ShopManager : MonoBehaviour
             }
         }
 
-        int winnerIndex = winners[0];
-
-        // if there's a tie
-        if (winners.Count > 1)
+        int winnerIndex;
+        if (winners.Count != 0)
         {
-            int randIndex = Random.Range(0, winners.Count);
-            winnerIndex = winners[randIndex];
-        }
+            winnerIndex = winners[0];
 
-        addedPowerUp = powerUps[winnerIndex];
+            // if there's a tie
+            if (winners.Count > 1)
+            {
+                int randIndex = Random.Range(0, winners.Count);
+                winnerIndex = winners[randIndex];
+            }
+
+            if (winnerIndex != -1)
+                addedPowerUp = powerUps[winnerIndex];
+        }
 /*        //addedPowerUp.added = true;
 
         for (int i = 0; i < powerUpRegistry.Count; i++)
@@ -233,7 +238,9 @@ public class ShopManager : MonoBehaviour
             }
         }*/
 
-        RoundManager.Instance.powerUpsInRotation.Add(addedPowerUp.powerup);
+        if (addedPowerUp)
+            RoundManager.Instance.powerUpsInRotation.Add(addedPowerUp.powerup);
+        
         RoundManager.Instance.switchRoundScene();
     }
 
