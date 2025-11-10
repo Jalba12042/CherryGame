@@ -433,9 +433,23 @@ public class Playermovement : MonoBehaviour
             heldCherry.transform.SetParent(handHoldPoint);
             heldCherry.transform.localPosition = Vector3.zero;
             if (projectileScript != null) projectileScript.PickUpCherry(heldCherry);
+
+            //Play pickup animation
+            // Play pickup animation
+            if (animator != null)
+            {
+                StartCoroutine(PlayCherryPickupAnimation());
+            }
         }
     }
 
+    private IEnumerator PlayCherryPickupAnimation()
+    {
+        animator.SetBool("isHoldingCherry", true);
+
+        // Wait for the animation to finish playing
+        yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
+    }
 
     private void HandleCherryDrop()
     {
@@ -449,6 +463,12 @@ public class Playermovement : MonoBehaviour
             if (projectileScript != null)
             {
                 projectileScript.CancelAim();
+            }
+
+            // Turn off the hold animation
+            if (animator != null)
+            {
+                animator.SetBool("isHoldingCherry", false);
             }
 
             heldCherry = null;
