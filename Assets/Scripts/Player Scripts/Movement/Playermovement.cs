@@ -458,7 +458,7 @@ public class Playermovement : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Player") && )
+       // if (collision.gameObject.CompareTag("Player") && )
     }
 
     // Pick up cherry

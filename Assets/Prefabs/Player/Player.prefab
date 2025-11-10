@@ -125,7 +125,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8284174307522529991}
   - component: {fileID: 3389964900590933051}
-  - component: {fileID: 6245206324777096885}
+  - component: {fileID: 1482991568474527000}
   m_Layer: 0
   m_Name: Face (1)
   m_TagString: Untagged
@@ -203,7 +203,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!95 &6245206324777096885
+--- !u!95 &1482991568474527000
 Animator:
   serializedVersion: 7
   m_ObjectHideFlags: 0
@@ -535,6 +535,12 @@ PrefabInstance:
       addedObject: {fileID: 9141082906996736155}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3e0fd010755704e65be6f2a845657370, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 1144399403036742313}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3e0fd010755704e65be6f2a845657370, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4515099913779855166}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3e0fd010755704e65be6f2a845657370, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 1694479125824659370}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3e0fd010755704e65be6f2a845657370, type: 3}
       insertIndex: -1
@@ -607,6 +613,8 @@ MonoBehaviour:
   pickupRange: 2
   grabCooldownTime: 3
   rotationSpeed: 10
+  canMove: 1
+  isTase: 0
   projectileScript: {fileID: 5825729168958471388}
   isBig: 0
   itemJumpForce: 7
@@ -614,6 +622,42 @@ MonoBehaviour:
   currPowerups: 
   pushbackResistance: 1
   IsSlowed: 0
+--- !u!114 &1144399403036742313
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2013628185433514460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6c05315e8ad77243a0d2c3a0532262c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerRenderer: {fileID: 5744577193563397231}
+  blueColor: {r: 0, g: 0.28763032, b: 1, a: 1}
+  redColor: {r: 0.9528302, g: 0.13932894, b: 0.13932894, a: 1}
+  playerColors: []
+--- !u!114 &4515099913779855166
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2013628185433514460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ef34661ba05e68419ab3dbedd263434, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerIndex: 0
+  animator: {fileID: 1482991568474527000}
+  faceAnimations:
+  - BlinkingNormal
+  - BlinkingRight
+  - BlinkingLeft
+  minChangeTime: 1
+  maxChangeTime: 3
 --- !u!114 &1694479125824659370
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -627,7 +671,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerIndex: 0
-  animator: {fileID: 6245206324777096885}
+  animator: {fileID: 0}
   faceAnimations:
   - BlinkingNormal
   - BlinkingRight
@@ -997,6 +1041,11 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 112
   m_CollisionDetection: 0
+--- !u!137 &5744577193563397231 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -2843909369972686622, guid: 3e0fd010755704e65be6f2a845657370, type: 3}
+  m_PrefabInstance: {fileID: 1671031155940891789}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &6739578142899849643 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5383907563702048038, guid: 3e0fd010755704e65be6f2a845657370, type: 3}

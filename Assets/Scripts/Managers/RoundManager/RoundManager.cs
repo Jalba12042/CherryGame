@@ -176,6 +176,13 @@ public class RoundManager : MonoBehaviour
                 Debug.LogWarning($"Player {playerSlot + 1} has no valid controller assigned!");
             }
 
+            //Assigns player color
+            PlayerColorAssigner colorAssigner = playerObjects[playerSlot].GetComponentInChildren<PlayerColorAssigner>();
+            if (colorAssigner != null)
+            {
+                colorAssigner.AssignColor(playerSlot);
+            }
+
             // Attach each player their own face cam
             Camera faceCam = player.GetComponentInChildren<Camera>();
             if (faceCam != null && playerSlot < playerFaceRenderTextures.Length)
