@@ -35,6 +35,8 @@ public class Playermovement : MonoBehaviour
 
     [Header("Rotation Settings")]
     [SerializeField] private float rotationSpeed = 10f; // tweak this value in the Inspector
+    private bool isAiming = false;
+
 
 
 
@@ -270,7 +272,47 @@ public class Playermovement : MonoBehaviour
             jumpRequested = true;
         }
         // --- Rotation (Right Stick with Smoothed Deadzone) ---
-        Vector2 rawLook = assignedGamepad.rightStick.ReadValue();
+        // --- Read stick input ---
+        Vector2 moveInput = assignedGamepad.leftStick.ReadValue();
+        Vector2 aimInput = assignedGamepad.rightStick.ReadValue();
+
+        // Check if the player is actively aiming
+        isAiming = projectileScript != null && projectileScript.IsAiming();
+
+        // --- Rotation Logic ---
+        Vector3 targetDir = Vector3.zero;
+
+        if (isAiming)
+        {
+            // Aim rotation (Right Stick)
+            if (aimInput.magnitude > 0.1f)
+            {
+                Transform cam = Camera.main.transform;
+                Vector3 camForward = Vector3.Scale(cam.forward, new Vector3(1, 0, 1)).normalized;
+                Vector3 camRight = Vector3.Scale(cam.right, new Vector3(1, 0, 1)).normalized;
+                targetDir = (camRight * aimInput.x + camForward * aimInput.y).normalized;
+            }
+        }
+        else
+        {
+            // Movement rotation (Left Stick)
+            if (moveInput.magnitude > 0.1f)
+            {
+                Transform cam = Camera.main.transform;
+                Vector3 camForward = Vector3.Scale(cam.forward, new Vector3(1, 0, 1)).normalized;
+                Vector3 camRight = Vector3.Scale(cam.right, new Vector3(1, 0, 1)).normalized;
+                targetDir = (camRight * moveInput.x + camForward * moveInput.y).normalized;
+            }
+        }
+
+        // Smoothly rotate the player toward the target direction
+        if (targetDir != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(targetDir, Vector3.up);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
+        }
+
+        /*Vector2 rawLook = assignedGamepad.rightStick.ReadValue();
         float magnitude = rawLook.magnitude;
 
         if (magnitude > 0.05f) // ignore micro noise
@@ -296,7 +338,7 @@ public class Playermovement : MonoBehaviour
 
 
             lastLookDir = lookDir;
-        }
+        }*/
 
 
 
