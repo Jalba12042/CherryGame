@@ -15,13 +15,29 @@ public class Scream : MonoBehaviour
     [SerializeField] private Animator faceAnimator;
     private bool isScreaming = false;
 
+    private void Awake()
+    {
+        if (aSource == null)
+            aSource = GetComponent<AudioSource>() ?? GetComponentInParent<AudioSource>();
+
+        if (player == null)
+            player = GetComponentInParent<Playermovement>();
+
+        if (faceAnimator == null)
+            faceAnimator = GetComponent<Animator>();
+    }
+
+
     private void Start()
     {
-        player = GetComponentInParent<Playermovement>();
+       // player = GetComponentInParent<Playermovement>();
         //aSource = GetComponent<AudioSource>();
-        aSource = GetComponentInParent<AudioSource>();
+        //aSource = GetComponentInParent<AudioSource>();
+       // if (aSource == null)
+       //     aSource = GetComponentInParent<AudioSource>();
+        
         gp = player.assignedGamepad;
-        faceAnimator = GetComponent<Animator>();
+        //faceAnimator = GetComponent<Animator>();
     }
 
     private void Update()

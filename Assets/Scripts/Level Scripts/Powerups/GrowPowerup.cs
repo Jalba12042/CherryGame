@@ -19,7 +19,9 @@ public class GrowPowerup : Powerup
     {
         base.powerUpEffect();
 
-        screamScript = playerModel.GetComponent<Scream>();
+        //screamScript = playerModel.GetComponent<Scream>();
+        screamScript = playerModel.GetComponentInChildren<Scream>();
+
 
         // record original values for speed, size, and scream pitches
         originalSpeed = pc.moveSpeed;
@@ -77,7 +79,8 @@ public class GrowPowerup : Powerup
     // set values to original
     protected override void powerUpEnd()
     {
-        screamScript = playerModel.GetComponent<Scream>();
+        //screamScript = playerModel.GetComponent<Scream>();
+        screamScript = playerModel.GetComponentInChildren<Scream>();
         base.powerUpEnd();
         pc.moveSpeed = originalSpeed;
         screamScript.minPitch = ogMinPitch;
