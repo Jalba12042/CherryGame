@@ -236,6 +236,7 @@ GameObject:
   - component: {fileID: 102409736}
   - component: {fileID: 102409735}
   - component: {fileID: 102409737}
+  - component: {fileID: 102409738}
   m_Layer: 5
   m_Name: Back Button
   m_TagString: Untagged
@@ -315,6 +316,28 @@ MonoBehaviour:
   normalImage: {fileID: 21300000, guid: 9b10a18270d2be84ba057793cd6652b0, type: 3}
   highlightImage: {fileID: 21300000, guid: b883f7d1b290e3e45a4b7c2e9e9d50c7, type: 3}
   sceneName: Title Screen
+--- !u!95 &102409738
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102409733}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 3a43112903919f04d8370dbe5cae1887, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &155724645
 GameObject:
   m_ObjectHideFlags: 0
@@ -523,6 +546,7 @@ GameObject:
   - component: {fileID: 1402856052}
   - component: {fileID: 1402856054}
   - component: {fileID: 1402856053}
+  - component: {fileID: 1402856055}
   m_Layer: 5
   m_Name: PaperBG
   m_TagString: Untagged
@@ -587,6 +611,28 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1402856051}
   m_CullTransparentMesh: 1
+--- !u!95 &1402856055
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1402856051}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 90141f73cb139bd4ba872f5f888a564f, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &1705290969
 GameObject:
   m_ObjectHideFlags: 0
@@ -856,6 +902,7 @@ GameObject:
   - component: {fileID: 2123205804}
   - component: {fileID: 2123205806}
   - component: {fileID: 2123205805}
+  - component: {fileID: 2123205807}
   m_Layer: 5
   m_Name: ControllerLayout
   m_TagString: Untagged
@@ -870,16 +917,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2123205803}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: 0.18234587, w: 0.9832345}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 19.020245, y: 11.331034, z: 14.632083}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5510297}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 21.013}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -34, y: -11}
+  m_AnchoredPosition: {x: 1228, y: 1186}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2123205805
@@ -902,7 +949,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: d71237a373c582b48b4a1b5f5933d082, type: 3}
+  m_Sprite: {fileID: 21300000, guid: eeba26630419e874c8a22defc4cdd570, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -920,6 +967,28 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2123205803}
   m_CullTransparentMesh: 1
+--- !u!95 &2123205807
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2123205803}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: ad574efc3f7baf84cad548c7fde1325b, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
