@@ -221,19 +221,6 @@ public class Playermovement : MonoBehaviour
         }
 
 
-        /*Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y);
-        if (move.magnitude > 0.1f)
-        {
-            Vector3 moveDir = transform.TransformDirection(move.normalized);
-            Vector3 targetVelocity = moveDir * moveSpeed;
-            rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
-        }
-        else
-        {
-            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
-        }*/
-
-
         // --- Jump (Button South) ---
         if (jumpRequested && isGrounded && canMove)
         {
@@ -272,7 +259,6 @@ public class Playermovement : MonoBehaviour
             jumpRequested = true;
         }
         // --- Rotation (Right Stick with Smoothed Deadzone) ---
-        // --- Read stick input ---
         Vector2 moveInput = assignedGamepad.leftStick.ReadValue();
         Vector2 aimInput = assignedGamepad.rightStick.ReadValue();
 
@@ -312,6 +298,8 @@ public class Playermovement : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
         }
 
+
+        #region Old Rotation logic (right joystick to rotate)
         /*Vector2 rawLook = assignedGamepad.rightStick.ReadValue();
         float magnitude = rawLook.magnitude;
 
@@ -339,7 +327,7 @@ public class Playermovement : MonoBehaviour
 
             lastLookDir = lookDir;
         }*/
-
+        #endregion
 
 
         // --- Pickup / Drop Cherry (RT) ---
@@ -659,22 +647,4 @@ public class Playermovement : MonoBehaviour
         moveSpeed = originalMoveSpeed;
         IsSlowed = false;
     }
-
-    /*public void InitializePlayer(int index)
-    {
-        playerIndex = index;
-        if (Gamepad.all.Count > playerIndex)
-        {
-            // adjust playerIndex on each script
-            GetComponentInChildren<PlayerEscapeUI>().playerIndex = playerIndex;
-
-            // assign gamepad
-            assignedGamepad = Gamepad.all[playerIndex];
-            Debug.Log($"Player {playerIndex + 1} initialized with gamepad: {assignedGamepad.displayName}");
-        }
-        else
-        {
-            Debug.LogWarning($"Player {playerIndex + 1} could not find a gamepad!");
-        }
-    }*/
 }
