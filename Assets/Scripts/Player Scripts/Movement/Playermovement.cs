@@ -302,6 +302,13 @@ public class Playermovement : MonoBehaviour
 
         // --- Pickup / Drop Cherry (RT) ---
         float rtValue = assignedGamepad.rightTrigger.ReadValue();
+
+            if (grabbedPlayer != null && assignedGamepad.leftTrigger.wasReleasedThisFrame)
+            {
+                ThrowGrabbedPlayer();
+                return;
+            }
+
         if (rtValue > 0.1f)
         {
             HandleCherryPickup();
@@ -311,13 +318,20 @@ public class Playermovement : MonoBehaviour
         else
         {
             HandleCherryDrop();
-            HandlePlayerRelease();
+            if (grabbedPlayer != null)
+            {
+                HandlePlayerRelease();
+            }
         }
     }
 
     // --- Handle Player Pickup Logic ---
     private void HandlePlayerGrab()
     {
+        // Prevent grabbing if holding a cherry
+        if (heldCherry != null)
+            return;
+
         if (grabbedPlayer == null && canGrab)
         {
             GameObject nearby = GetNearbyPlayer();
@@ -333,17 +347,14 @@ public class Playermovement : MonoBehaviour
                 if (grabbedCollider != null && myCollider != null)
                     Physics.IgnoreCollision(myCollider, grabbedCollider, true);
 
-                // Assign grabber reference
                 PlayerGrabbed grabbed = grabbedPlayer.GetComponent<PlayerGrabbed>();
                 if (grabbed != null)
                     grabbed.grabber = this;
 
-                // Temporarily disable movement on grabbed player
                 Playermovement grabbedMove = grabbedPlayer.GetComponent<Playermovement>();
                 if (grabbedMove != null)
                     grabbedMove.enabled = false;
 
-                // Trigger escape UI
                 PlayerEscapeUI escapeUI = grabbedPlayer.GetComponentInChildren<PlayerEscapeUI>();
                 if (escapeUI != null)
                     escapeUI.StartBeingGrabbed(grabbedMove.playerIndex);
@@ -358,6 +369,7 @@ public class Playermovement : MonoBehaviour
             grabbedPlayer.transform.rotation = pickupTarget.rotation;
         }
     }
+
 
     public void HandlePlayerRelease()
     {
@@ -390,6 +402,72 @@ public class Playermovement : MonoBehaviour
         }
     }
 
+    public void ThrowGrabbedPlayer()
+    {
+        if (grabbedPlayer == null) return;
+
+        // --- PREP FOR THROW ---
+        Vector3 throwDir = transform.forward; // throw where grabber is facing
+
+        // Make sure we fully release before applying force
+        if (grabbedRigidbody != null)
+        {
+            grabbedRigidbody.isKinematic = false;
+            grabbedRigidbody.linearVelocity = Vector3.zero;
+
+            // Give a stronger and clearer launch
+            float throwForce = 500f;   // tweak for distance
+            float upwardForce = 6f;   // tweak for height
+            Vector3 finalForce = throwDir.normalized * throwForce + Vector3.up * upwardForce;
+
+            grabbedRigidbody.AddForce(finalForce, ForceMode.Impulse);
+        }
+
+        // --- CLEANUP + STUN ---
+        Playermovement grabbedMove = grabbedPlayer.GetComponent<Playermovement>();
+        if (grabbedMove != null)
+        {
+            grabbedMove.enabled = true;
+            grabbedMove.StartCoroutine(grabbedMove.StunRoutine(2f)); // short stun
+        }
+
+        // Turn off Escape UI (so it doesn't stay visible)
+        PlayerEscapeUI escapeUI = grabbedPlayer.GetComponentInChildren<PlayerEscapeUI>();
+        if (escapeUI != null)
+        {
+            escapeUI.StopBeingGrabbed();
+        }
+
+        // Re-enable collisions
+        if (grabbedCollider != null && myCollider != null)
+            Physics.IgnoreCollision(myCollider, grabbedCollider, false);
+
+        // Clear all grab state
+        grabbedPlayer = null;
+        grabbedRigidbody = null;
+        grabbedCollider = null;
+        isCurrentlyGrabbed = false;
+
+        StartCoroutine(GrabCooldown());
+    }
+
+    public IEnumerator StunRoutine(float duration)
+    {
+        canMove = false;
+
+        // Optional: play stun animation or change color
+        /*if (animator != null)
+            animator.SetBool("isStunned", true);*/
+
+        yield return new WaitForSeconds(duration);
+
+        canMove = true;
+
+        /*if (animator != null)
+            animator.SetBool("isStunned", false);*/
+    }
+
+
     private GameObject GetNearbyPlayer()
     {
         Collider[] hits = Physics.OverlapSphere(transform.position, pickupRange);
@@ -421,6 +499,10 @@ public class Playermovement : MonoBehaviour
     // --- Handle Cherry Logic ---
     private void HandleCherryPickup()
     {
+        // Don't pick up if grabbing another player
+        if (grabbedPlayer != null)
+            return;
+
         // Don't pickup while aiming or throwing
         if (projectileScript != null && projectileScript.IsAiming())
             return;
@@ -434,14 +516,13 @@ public class Playermovement : MonoBehaviour
             heldCherry.transform.localPosition = Vector3.zero;
             if (projectileScript != null) projectileScript.PickUpCherry(heldCherry);
 
-            //Play pickup animation
-            // Play pickup animation
             if (animator != null)
             {
                 StartCoroutine(PlayCherryPickupAnimation());
             }
         }
     }
+
 
     private IEnumerator PlayCherryPickupAnimation()
     {

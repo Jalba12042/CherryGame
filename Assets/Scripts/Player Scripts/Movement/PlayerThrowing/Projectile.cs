@@ -105,23 +105,9 @@ public class Projectile : MonoBehaviour
             currentPower = 0f;
         }
 
-        /*else if (isAiming && ltValue <= 0.1f)
-        {
-            ThrowCherry();
-
-            isAiming = false;
-            lineRenderer.enabled = false;
-            isHoldingCherry = false;
-            heldCherry = null;
-
-            if (landingMarkerInstance != null)
-                landingMarkerInstance.SetActive(false);
-
-            throwPower = 0f;
-        }*/
         else if (isAiming && ltValue <= 0.1f)
         {
-            // ✅ Use the last non-zero throw power (don't let it drop to 0 before throwing)
+            // Use the last non-zero throw power (don't let it drop to 0 before throwing)
             float finalPower = Mathf.Max(throwPower, 0.25f); // ensures minimum power
             ThrowCherry(finalPower);
 
@@ -253,43 +239,6 @@ public class Projectile : MonoBehaviour
         if (landingMarkerInstance != null)
             landingMarkerInstance.SetActive(false);
     }
-
-
-
-    /*void ThrowCherry()
-    {
-        if (heldCherry == null) return;
-
-        Rigidbody rb = heldCherry.GetComponent<Rigidbody>();
-        heldCherry.transform.SetParent(null);
-
-        if (rb != null)
-        {
-            rb.isKinematic = false;
-            rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
-
-            // === Use same logic as DrawTrajectory() ===
-            float power = throwPower > 0 ? throwPower : 1f; // fallback in case
-            float baseSpeed = launchSpeed * power;
-
-            float upSpeed = baseSpeed * arcHeight;
-            float forwardSpeed = baseSpeed * distanceMultiplier / (1f + arcHeight);
-
-            // Clamp forward speed so it doesn't fly off the map
-            if (maxForwardSpeed > 0f)
-                forwardSpeed = Mathf.Min(forwardSpeed, maxForwardSpeed);
-
-            Vector3 velocity = launchPoint.forward * forwardSpeed + Vector3.up * upSpeed;
-
-            rb.linearVelocity = velocity;
-        }
-
-        heldCherry = null;
-
-        if (landingMarkerInstance != null)
-            landingMarkerInstance.SetActive(false);
-    }*/
-
 
     public void SetOwner(Playermovement player)
     {
