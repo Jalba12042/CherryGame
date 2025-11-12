@@ -589,7 +589,29 @@ public class Playermovement : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-       // if (collision.gameObject.CompareTag("Player") && )
+        if (collision.gameObject.CompareTag("Player") && isTase)
+        {
+            Playermovement otherChar = collision.gameObject.GetComponent<Playermovement>();
+            if (otherChar != null)
+            {
+                if (otherChar.canMove)
+                {
+                    Debug.Log("collision!");
+                    Rigidbody rb = collision.gameObject.GetComponent<Rigidbody>();
+                    if (rb != null)
+                    {
+                        Vector3 direction = (collision.transform.position - transform.position).normalized;
+                        direction.y = 0.5f; 
+                        rb.AddForce(direction * 50f, ForceMode.Impulse);
+                    }
+                    else
+                    {
+                        Debug.Log("rb is null!");
+                    }
+                    StartCoroutine(otherChar.StunRoutine(3f));
+                }
+            }
+        }
     }
 
     // Pick up cherry
