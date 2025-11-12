@@ -82,14 +82,10 @@ public class RoundManager : MonoBehaviour
                 // stop round
                 StopCoroutine(StartRound());
 
-                int winnerIndex = checkWinIndex();
-                // log winner
-                Debug.Log($"Winner is player {checkWinIndex() + 1}");
+                List<int> winnerIndexes = checkWinIndexes();
 
-                // Hardcode the win scene name
-                string hardcodedWinScene = "WinScene"; // <- replace with your scene name
-                WinScript.winningPlayer = winnerIndex + 1; // set winning player
-                SceneManager.LoadSceneAsync(hardcodedWinScene);
+                WinScript.winningPlayers = winnerIndexes; // set winning players
+                SceneManager.LoadSceneAsync(winSceneName);
 
                 //GameManager.Instance.currGameState = GameManager.GameState.Win;
 
@@ -244,17 +240,22 @@ public class RoundManager : MonoBehaviour
     }
 
     // returns the winner index
-    private int checkWinIndex()
+    private List<int> checkWinIndexes()
     {
         int currWinnerScore = currRoundScores[0];
-        int currWinnerIndex = 0;
+        List<int> currWinnerIndexes = new List<int>();
         for (int i = 0; i < currRoundScores.Length; i++)
         {
             if (currRoundScores[i] > currWinnerScore)
             {
-                currWinnerIndex = i;
+                currWinnerIndexes.Clear();
+                currWinnerIndexes.Add(i);
+            }
+            else if (currRoundScores[i] == currWinnerScore)
+            {
+                currWinnerIndexes.Add(i);
             }
         }
-        return currWinnerIndex;
+        return currWinnerIndexes;
     }
 }
