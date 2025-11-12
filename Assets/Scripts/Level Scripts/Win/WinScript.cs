@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -16,13 +17,37 @@ public class WinScript : MonoBehaviour
     [SerializeField] private string shopSceneName;
 
     // NEW: store the winning player
-    public static int winningPlayer = 1;
+    public static List<int> winningPlayers;
 
     void Start()
     {
         // Show winner text
         if (winnerText != null)
-            winnerText.text = $"Player {winningPlayer} Wins!";
+        {
+            if (winningPlayers.Count != 1)
+            {
+                string winners = "Players ";
+                for (int i = 0; i < winningPlayers.Count; i++)
+                {
+                    winners += winningPlayers[i]+1;
+                    if (i == winningPlayers.Count-1)
+                    {
+                        winners += " ";
+                    }
+                    else
+                    {
+                        winners += ", ";
+                    }
+                }
+                winners += "Tied!";
+
+                winnerText.text = winners;
+            }
+            else
+            {
+                winnerText.text = $"Player {winningPlayers[0]+1} Wins!";
+            }
+        }
 
         HighlightButton();
     }
