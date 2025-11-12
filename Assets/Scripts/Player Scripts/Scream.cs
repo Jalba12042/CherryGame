@@ -18,7 +18,7 @@ public class Scream : MonoBehaviour
     private void Awake()
     {
         if (aSource == null)
-            aSource = GetComponent<AudioSource>() ?? GetComponentInParent<AudioSource>();
+            aSource = GetComponentInChildren<AudioSource>() ?? GetComponentInParent<AudioSource>();
 
         if (player == null)
             player = GetComponentInParent<Playermovement>();
