@@ -183,7 +183,7 @@ public class ShopManager : MonoBehaviour
                 }
             }
 
-            if (votesCounted == playerCount)
+            if (votesCounted == playerCount || amtOfButtons == 0)
             {
                 timer = Mathf.Max(timer, shopTimerDurationInSecs - 3f);
             }
