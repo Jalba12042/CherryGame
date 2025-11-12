@@ -235,8 +235,9 @@ GameObject:
   - component: {fileID: 102409734}
   - component: {fileID: 102409736}
   - component: {fileID: 102409735}
-  - component: {fileID: 102409737}
   - component: {fileID: 102409738}
+  - component: {fileID: 102409739}
+  - component: {fileID: 102409740}
   m_Layer: 5
   m_Name: Back Button
   m_TagString: Untagged
@@ -301,21 +302,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 102409733}
   m_CullTransparentMesh: 1
---- !u!114 &102409737
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 102409733}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c5eacac23ca04fe499d1fc10120869d3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  normalImage: {fileID: 21300000, guid: 9b10a18270d2be84ba057793cd6652b0, type: 3}
-  highlightImage: {fileID: 21300000, guid: b883f7d1b290e3e45a4b7c2e9e9d50c7, type: 3}
-  sceneName: Title Screen
 --- !u!95 &102409738
 Animator:
   serializedVersion: 7
@@ -338,6 +324,38 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &102409739
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102409733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2743708559c441544a7eb658b2c9ba80, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  exitOrchestrator: {fileID: 760912740}
+  sceneToLoad: Title Screen
+  armOnStart: 0
+  delayBeforeInput: 3.19
+--- !u!114 &102409740
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102409733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5eacac23ca04fe499d1fc10120869d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  normalImage: {fileID: 21300000, guid: 9b10a18270d2be84ba057793cd6652b0, type: 3}
+  highlightImage: {fileID: 21300000, guid: b883f7d1b290e3e45a4b7c2e9e9d50c7, type: 3}
+  sceneName: Title Screen
+  exitOrchestrator: {fileID: 760912740}
 --- !u!1 &155724645
 GameObject:
   m_ObjectHideFlags: 0
@@ -417,6 +435,96 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &760912736
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 760912738}
+  - component: {fileID: 760912740}
+  - component: {fileID: 760912739}
+  - component: {fileID: 760912741}
+  m_Layer: 0
+  m_Name: BackManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &760912738
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 760912736}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1082.7528, y: 286.8647, z: 10.223843}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &760912739
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 760912736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ff45a5c8a3500947a987c37689f6298, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  controllerLayoutAnimator: {fileID: 2123205807}
+  backImageAnimator: {fileID: 102409738}
+  exitTrigger: Exit
+  sceneToLoad: Main Menu
+  armOnStart: 0
+  delayBeforeInput: 0.8
+  exitWaitSeconds: 1
+  controllerLeaveState: 
+  backLeaveState: 
+  stateWaitTimeout: 2
+--- !u!114 &760912740
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 760912736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af6bc0aa18717984f9488711833029b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  exitAnimators:
+  - {fileID: 102409738}
+  - {fileID: 2123205807}
+  exitTrigger: Exit
+  exitDuration: 1.25
+  menuControllerToDisable: {fileID: 0}
+--- !u!114 &760912741
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 760912736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2743708559c441544a7eb658b2c9ba80, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  exitOrchestrator: {fileID: 760912740}
+  sceneToLoad: Main Menu
+  armOnStart: 0
+  delayBeforeInput: 0.8
 --- !u!1 &909671453
 GameObject:
   m_ObjectHideFlags: 0
@@ -534,7 +642,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   buttons:
-  - {fileID: 102409737}
+  - {fileID: 102409740}
 --- !u!1 &1402856051
 GameObject:
   m_ObjectHideFlags: 0
@@ -998,3 +1106,4 @@ SceneRoots:
   - {fileID: 155724648}
   - {fileID: 5510297}
   - {fileID: 910669657}
+  - {fileID: 760912738}

@@ -1,78 +1,94 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
 
 public class AnyInputToAnimatorTrigger : MonoBehaviour
 {
-    [Header("Animators to Trigger")]
-    public Animator titleAnimator;   // FEUD title animator
-    public Animator promptAnimator;  // "PRESS ANY BUTTON" animator
+    [Header("Animators to Trigger (fade OUT)")]
+    public Animator titleAnimator;
+    public Animator promptAnimator;
     public string triggerName = "Fade";
 
-    [Header("Menu Objects")]
-    public GameObject menuManager;   // Clouds, hill, and signs parent
-    public MainMenuController menuController; // Script that handles A-button menu navigation
+    [Header("Menu Objects (shown AFTER fades)")]
+    public GameObject menuManager;
+    public MainMenuController menuController;
 
+    [Header("Timing")]
+    public float fadeOutWaitSeconds = 1.0f;   // ≈ fade length
+
+    [Header("Arming input")]
+    public bool armInputOnStart = false;      // turn ON to skip the ArmInput() event requirement
+
+    private bool inputArmed = false;
     private bool fired = false;
 
     void Start()
     {
-        // Hide main menu visuals and disable input at the start
-        if (menuManager != null)
-            menuManager.SetActive(false);
+        if (menuManager) menuManager.SetActive(false);
+        if (menuController) menuController.enabled = false;
 
-        if (menuController != null)
-            menuController.enabled = false;
+        if (armInputOnStart)
+        {
+            inputArmed = true;
+            Debug.Log("[AnyInputToAnimatorTrigger] Input armed on Start.");
+        }
+        else
+        {
+            Debug.Log("[AnyInputToAnimatorTrigger] Waiting for ArmInput() Animation Event…");
+        }
+    }
+
+    // Call this from your INTRO clip (last frame) when “PRESS ANY BUTTON” is visible
+    public void ArmInput()
+    {
+        inputArmed = true;
+        Debug.Log("[AnyInputToAnimatorTrigger] Input armed via Animation Event.");
     }
 
     void Update()
     {
-        if (fired) return;
+        if (!inputArmed || fired) return;
 
         if (AnyInput())
         {
             fired = true;
-            TriggerFadeAnimations();
-            StartCoroutine(WaitThenUnlock());
+            Debug.Log("[AnyInputToAnimatorTrigger] Any input detected → fading title/prompt.");
+            if (titleAnimator) titleAnimator.SetTrigger(triggerName);
+            if (promptAnimator) promptAnimator.SetTrigger(triggerName);
+
+            StartCoroutine(RevealAfterDelay());
         }
     }
 
-    void TriggerFadeAnimations()
+    IEnumerator RevealAfterDelay()
     {
-        if (titleAnimator != null)
-            titleAnimator.SetTrigger(triggerName);
-
-        if (promptAnimator != null)
-            promptAnimator.SetTrigger(triggerName);
+        yield return new WaitForSeconds(fadeOutWaitSeconds);
+        RevealMenu();
     }
 
-    IEnumerator WaitThenUnlock()
+    // (You can also call this from the end of your fade anim via Animation Event)
+    public void RevealMenu()
     {
-        // Wait a little longer than your fade duration (1 second = adjust if needed)
-        yield return new WaitForSeconds(1.2f);
+        if (menuManager) menuManager.SetActive(true);
 
-        // Fade finished � show menu visuals and unlock controller input
-        if (menuManager != null)
-            menuManager.SetActive(true);
-
-        if (menuController != null)
+        if (menuController)
+        {
             menuController.enabled = true;
+            Debug.Log("[AnyInputToAnimatorTrigger] MenuController enabled.");
+        }
+
+        enabled = false;
     }
 
     bool AnyInput()
     {
-        // Keyboard
-        if (Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame)
-            return true;
+        if (Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame) return true;
 
-        // Mouse
         if (Mouse.current != null &&
             (Mouse.current.leftButton.wasPressedThisFrame ||
              Mouse.current.rightButton.wasPressedThisFrame ||
-             Mouse.current.middleButton.wasPressedThisFrame))
-            return true;
+             Mouse.current.middleButton.wasPressedThisFrame)) return true;
 
-        // Gamepad (Xbox, PS, etc.)
         var pad = Gamepad.current;
         if (pad != null)
         {
@@ -83,13 +99,9 @@ public class AnyInputToAnimatorTrigger : MonoBehaviour
                 pad.leftTrigger.wasPressedThisFrame || pad.rightTrigger.wasPressedThisFrame)
                 return true;
 
-            if (pad.dpad.ReadValue() != Vector2.zero)
-                return true;
-
-            if (pad.leftStick.ReadValue().sqrMagnitude > 0.25f)
-                return true;
+            if (pad.dpad.ReadValue() != Vector2.zero) return true;
+            if (pad.leftStick.ReadValue().sqrMagnitude > 0.25f) return true;
         }
-
         return false;
     }
 }

@@ -543,6 +543,7 @@ MonoBehaviour:
   normalImage: {fileID: 21300000, guid: b4fc8052f0e98534e9ce36c39df42271, type: 3}
   highlightImage: {fileID: 21300000, guid: a321650a8178358489d4cbae6078f05d, type: 3}
   sceneName: ControllerLayoutScreen
+  exitOrchestrator: {fileID: 2147308734}
 --- !u!95 &383966648
 Animator:
   serializedVersion: 7
@@ -839,6 +840,7 @@ GameObject:
   - component: {fileID: 1033598922}
   - component: {fileID: 1033598921}
   - component: {fileID: 1033598920}
+  - component: {fileID: 1033598923}
   m_Layer: 5
   m_Name: PressAnyButton
   m_TagString: Untagged
@@ -986,6 +988,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1033598918}
   m_CullTransparentMesh: 1
+--- !u!114 &1033598923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1033598918}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9426060c40ceab14f997c2ecbceb10d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  titleAnimator: {fileID: 1378961924}
+  promptAnimator: {fileID: 1033598920}
+  triggerName: Fade
+  menuManager: {fileID: 910669656}
+  menuController: {fileID: 910669658}
+  fadeOutWaitSeconds: 1
+  armInputOnStart: 0
 --- !u!1 &1100925524
 GameObject:
   m_ObjectHideFlags: 0
@@ -1023,7 +1044,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -522, y: -699}
+  m_AnchoredPosition: {x: -519, y: -740}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1100925527
@@ -1123,6 +1144,7 @@ MonoBehaviour:
   normalImage: {fileID: 21300000, guid: 5e456e28321b27c419b8ad74befb3ba8, type: 3}
   highlightImage: {fileID: 21300000, guid: c7ef40e57175aef4aa5af9950445c21e, type: 3}
   sceneName: Local Screen
+  exitOrchestrator: {fileID: 2147308734}
 --- !u!95 &1100925531
 Animator:
   serializedVersion: 7
@@ -1696,7 +1718,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2147308732}
-  - component: {fileID: 2147308733}
+  - component: {fileID: 2147308735}
+  - component: {fileID: 2147308734}
   m_Layer: 0
   m_Name: IntroManager
   m_TagString: Untagged
@@ -1719,7 +1742,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2147308733
+--- !u!114 &2147308734
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2147308730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af6bc0aa18717984f9488711833029b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  exitAnimators:
+  - {fileID: 1953537445}
+  - {fileID: 172122142}
+  - {fileID: 1100925531}
+  - {fileID: 540432962}
+  - {fileID: 383966648}
+  exitTrigger: Exit
+  exitDuration: 1.14
+  menuControllerToDisable: {fileID: 0}
+--- !u!114 &2147308735
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1736,6 +1780,8 @@ MonoBehaviour:
   triggerName: Fade
   menuManager: {fileID: 910669656}
   menuController: {fileID: 910669658}
+  fadeOutWaitSeconds: 1
+  armInputOnStart: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
