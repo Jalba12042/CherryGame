@@ -5,12 +5,12 @@ public class Taser : Powerup
     protected override void powerUpEffect()
     {
         base.powerUpEffect();
-        pc.isTase = true;
+        powerupHandler.isTased = true;
     }
 
     protected override void powerUpEnd()
     {
         base.powerUpEnd();
-        pc.isTase = false;
+        powerupHandler.isTased = false;
     }
 }

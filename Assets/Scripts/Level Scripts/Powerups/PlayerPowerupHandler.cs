@@ -14,6 +14,7 @@ public class PlayerPowerupHandler : MonoBehaviour
 
     [Header("Status Flags")]
     public bool isSlowed;
+    public bool isTased;
 
     void Start()
     {
