@@ -9,14 +9,20 @@ public class Powerup : MonoBehaviour
     public int powerUpID; 
 
     protected Playermovement pc;
+    protected PlayerPowerupHandler powerupHandler;
     protected GameObject playerModel;
 
     private Coroutine activeTimer;
     private bool isActive;
-    public void Activate(Playermovement player)
+    public void Activate(PlayerPowerupHandler handler)
     {
-        pc = player;
-        playerModel = player.gameObject;
+        powerupHandler = handler;
+        pc = handler.GetComponent<Playermovement>();
+        playerModel = handler.gameObject;
+
+        /*pc = player;
+        powerupHandler = player.GetComponent<PlayerPowerupHandler>();
+        playerModel = player.gameObject;*/
 
         if (!isActive)
         {
@@ -35,10 +41,10 @@ public class Powerup : MonoBehaviour
             StopCoroutine(activeTimer);
         }
 
-        if (pc.currPowerups[powerUpID])
+        if (powerupHandler.currPowerups[powerUpID])
         {
             // Find and stop the old powerup instance
-            Powerup oldPowerup = pc.activePowerupInstances[powerUpID];
+            Powerup oldPowerup = powerupHandler.activePowerupInstances[powerUpID];
             if (oldPowerup != null && oldPowerup != this)
             {
                 passOldPowerupInfo(oldPowerup);
@@ -48,12 +54,12 @@ public class Powerup : MonoBehaviour
         }
         else
         {
-            pc.currPowerups[powerUpID] = true;
+            powerupHandler.currPowerups[powerUpID] = true;
             powerUpEffect();
         }
 
         // Register this as the active instance
-        pc.activePowerupInstances[powerUpID] = this;
+        powerupHandler.activePowerupInstances[powerUpID] = this;
 
         activeTimer = StartCoroutine(StartTimer());
     }
@@ -66,7 +72,7 @@ public class Powerup : MonoBehaviour
 
     protected virtual IEnumerator StartTimer()
     {
-        if (pc == null) yield break;
+        if (powerupHandler == null) yield break;
 
         float timer = 0;
         while (timer < duration)
@@ -92,16 +98,16 @@ public class Powerup : MonoBehaviour
 
     protected virtual void powerUpEffect()
     {
-        pc.currPowerups[powerUpID] = true;
+        powerupHandler.currPowerups[powerUpID] = true;
         Debug.Log($"Powerup activated: {puName} for {pc.name}");
     }
 
     protected virtual void powerUpEnd()
     {
-        pc.currPowerups[powerUpID] = false;
-        if (pc.activePowerupInstances[powerUpID] == this)
+        powerupHandler.currPowerups[powerUpID] = false;
+        if (powerupHandler.activePowerupInstances[powerUpID] == this)
         {
-            pc.activePowerupInstances[powerUpID] = null;
+            powerupHandler.activePowerupInstances[powerUpID] = null;
         }
         Debug.Log($"Powerup ended: {puName} for {pc.name}");
     }

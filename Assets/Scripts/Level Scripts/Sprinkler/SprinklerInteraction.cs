@@ -24,31 +24,18 @@ public class SprinklerInteraction : MonoBehaviour
         // Only affect objects tagged as "Player"
         if (!other.CompareTag("Player")) return;
 
-        // Apply pushback if player has Rigidbody
-        Rigidbody rb = other.GetComponent<Rigidbody>();
-        if (rb != null)
+        // --- Use the player's PowerupHandler instead of Playermovement directly ---
+        PlayerPowerupHandler handler = other.GetComponent<PlayerPowerupHandler>();
+        if (handler == null) return;
+
+        // Apply pushback using the handler
+        Vector3 pushDir = (other.transform.position - transform.position).normalized;
+        handler.ApplyPushback(pushDir, pushForce);
+
+        // Apply slow effect if not already slowed
+        if (!handler.isSlowed)
         {
-            Vector3 pushDir = (other.transform.position - transform.position).normalized;
-            rb.AddForce(pushDir * pushForce, ForceMode.VelocityChange);
+            handler.ApplySlow(slowMultiplier, slowDuration);
         }
-
-        // Apply slow effect if player has PlayerMovement component
-        Playermovement player = other.GetComponent<Playermovement>();
-        if (player != null && !player.IsSlowed)
-        {
-            player.StartCoroutine(ApplySlow(player));
-        }
-    }
-
-    private IEnumerator ApplySlow(Playermovement player)
-    {
-        player.IsSlowed = true;
-        float originalSpeed = player.moveSpeed;
-        player.moveSpeed *= slowMultiplier;
-
-        yield return new WaitForSeconds(slowDuration);
-
-        player.moveSpeed = originalSpeed;
-        player.IsSlowed = false;
     }
 }
