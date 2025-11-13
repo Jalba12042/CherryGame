@@ -14,10 +14,13 @@ public class GrowPowerup : Powerup
     private Scream screamScript;
     private float originalSpeed;
     private Vector3 originalSize;
+    private PlayerEffects playerEffects;
 
     protected override void powerUpEffect()
     {
         base.powerUpEffect();
+
+        playerEffects = playerModel.GetComponent<PlayerEffects>();
 
         //screamScript = playerModel.GetComponent<Scream>();
         screamScript = playerModel.GetComponentInChildren<Scream>();
@@ -53,7 +56,9 @@ public class GrowPowerup : Powerup
         }
 
         playerModel.transform.localScale = targetSize;
-        pc.isBig = true;
+        //pc.isBig = true;
+        if (playerEffects != null)
+            playerEffects.isBig = true;
     }
 
     // smoothly shrink and change pitch
@@ -72,7 +77,9 @@ public class GrowPowerup : Powerup
         }
 
         playerModel.transform.localScale = originalSize;
-        pc.isBig = false;
+        //pc.isBig = false;
+        if (playerEffects != null)
+            playerEffects.isBig = false;
         Destroy(gameObject);
     }
 

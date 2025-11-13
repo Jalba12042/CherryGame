@@ -367,7 +367,6 @@ MonoBehaviour:
   feetPosition: {fileID: 0}
   groundCheckRadius: 0.5
   groundLayer:
-    serializedVersion: 2
     m_Bits: 0
   jumpForce: 1200
   PlayerRoot: {fileID: 0}
@@ -375,6 +374,9 @@ MonoBehaviour:
   hips: {fileID: 0}
   targetPose: {fileID: 0}
   rightArmJoint: {fileID: 0}
+  defaultArmTarget: {x: 0, y: 0, z: 0, w: 0}
+  liftedArmTarget: {x: 0, y: 0, z: 0, w: 0}
+  holdingCherry: 0
   uprightForce: 500
   uprightTorque: 200
   uprightBodies: []
@@ -383,6 +385,11 @@ MonoBehaviour:
   turnSpeed: 5
   handHoldPoint: {fileID: 0}
   cherryPrefab: {fileID: 0}
+  heldCherry: {fileID: 0}
+  nearbyCherry: {fileID: 0}
+  pickupRadius: 6
+  moveInput: {x: 0, y: 0, z: 0}
+  lookInput: {x: 0, y: 0}
 --- !u!54 &11649649
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2848,6 +2855,10 @@ MonoBehaviour:
   handHoldPoint: {fileID: 1452162227}
   isCharging: 0
   heldLayerName: HeldCherry
+  heldCherry: {fileID: 0}
+  nearbyCherry: {fileID: 0}
+  projectileScript: {fileID: 0}
+  originalLayer: 0
 --- !u!1 &511561029
 GameObject:
   m_ObjectHideFlags: 0
@@ -2974,6 +2985,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d498753a998ebc441b37adb54aec6da6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rb: {fileID: 0}
   rotateSpeed: 300
   playerIndex: 0
 --- !u!114 &512121562
@@ -2994,8 +3006,10 @@ MonoBehaviour:
   groundCheckPoint: {fileID: 346626305}
   groundCheckDistance: 0.4
   groundLayer:
-    serializedVersion: 2
     m_Bits: 128
+  rb: {fileID: 0}
+  isGrounded: 0
+  jumpRequested: 0
 --- !u!1 &518678244
 GameObject:
   m_ObjectHideFlags: 0
@@ -3787,6 +3801,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b9da41af1f26fe4a8ba6f3ae1efe1af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rigidbody: {fileID: 0}
   keepUpright: 1
   uprightForce: 10
   uprightOffset: 1.45
@@ -4304,6 +4319,10 @@ MonoBehaviour:
   handHoldPoint: {fileID: 823273121}
   isCharging: 0
   heldLayerName: HeldCherry
+  heldCherry: {fileID: 0}
+  nearbyCherry: {fileID: 0}
+  projectileScript: {fileID: 0}
+  originalLayer: 0
 --- !u!54 &713357253
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -4879,7 +4898,6 @@ MonoBehaviour:
   feetPosition: {fileID: 0}
   groundCheckRadius: 0.5
   groundLayer:
-    serializedVersion: 2
     m_Bits: 0
   jumpForce: 1200
   PlayerRoot: {fileID: 0}
@@ -4887,6 +4905,9 @@ MonoBehaviour:
   hips: {fileID: 0}
   targetPose: {fileID: 0}
   rightArmJoint: {fileID: 0}
+  defaultArmTarget: {x: 0, y: 0, z: 0, w: 0}
+  liftedArmTarget: {x: 0, y: 0, z: 0, w: 0}
+  holdingCherry: 0
   uprightForce: 500
   uprightTorque: 200
   uprightBodies: []
@@ -4895,6 +4916,11 @@ MonoBehaviour:
   turnSpeed: 5
   handHoldPoint: {fileID: 0}
   cherryPrefab: {fileID: 0}
+  heldCherry: {fileID: 0}
+  nearbyCherry: {fileID: 0}
+  pickupRadius: 6
+  moveInput: {x: 0, y: 0, z: 0}
+  lookInput: {x: 0, y: 0}
 --- !u!54 &795689865
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -5203,28 +5229,21 @@ MonoBehaviour:
   playerIndex: 1
   moveSpeed: 5
   jumpForce: 5
-  handHoldPoint: {fileID: 0}
-  cherryPrefab: {fileID: 0}
+  fallMultiplier: 2.5
+  lowJumpMultiplier: 2
   groundCheckPoint: {fileID: 0}
   groundCheckDistance: 0.4
   groundLayer:
     serializedVersion: 2
     m_Bits: 0
-  fallMultiplier: 2.5
-  lowJumpMultiplier: 2
-  pickupTarget: {fileID: 0}
-  pickupRange: 2
-  grabCooldownTime: 1
   rotationSpeed: 10
-  canMove: 1
-  isTase: 0
+  handHoldPoint: {fileID: 0}
+  cherryPrefab: {fileID: 0}
   projectileScript: {fileID: 0}
-  isBig: 0
-  itemJumpForce: 7
   screenShake: {fileID: 0}
-  currPowerups: 
-  pushbackResistance: 1
-  IsSlowed: 0
+  canMove: 1
+  isGrounded: 0
+  isAiming: 0
 --- !u!1 &823059975
 GameObject:
   m_ObjectHideFlags: 0
@@ -6055,6 +6074,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d498753a998ebc441b37adb54aec6da6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rb: {fileID: 0}
   rotateSpeed: 300
   playerIndex: 1
 --- !u!114 &885210743
@@ -6075,8 +6095,10 @@ MonoBehaviour:
   groundCheckPoint: {fileID: 1671079937}
   groundCheckDistance: 0.4
   groundLayer:
-    serializedVersion: 2
     m_Bits: 128
+  rb: {fileID: 0}
+  isGrounded: 0
+  jumpRequested: 0
 --- !u!114 &885210744
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8406,7 +8428,6 @@ MonoBehaviour:
   feetPosition: {fileID: 0}
   groundCheckRadius: 0.5
   groundLayer:
-    serializedVersion: 2
     m_Bits: 0
   jumpForce: 1200
   PlayerRoot: {fileID: 0}
@@ -8414,6 +8435,9 @@ MonoBehaviour:
   hips: {fileID: 0}
   targetPose: {fileID: 0}
   rightArmJoint: {fileID: 0}
+  defaultArmTarget: {x: 0, y: 0, z: 0, w: 0}
+  liftedArmTarget: {x: 0, y: 0, z: 0, w: 0}
+  holdingCherry: 0
   uprightForce: 500
   uprightTorque: 200
   uprightBodies: []
@@ -8422,6 +8446,11 @@ MonoBehaviour:
   turnSpeed: 5
   handHoldPoint: {fileID: 0}
   cherryPrefab: {fileID: 0}
+  heldCherry: {fileID: 0}
+  nearbyCherry: {fileID: 0}
+  pickupRadius: 6
+  moveInput: {x: 0, y: 0, z: 0}
+  lookInput: {x: 0, y: 0}
 --- !u!54 &1411162736
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -8705,6 +8734,10 @@ MonoBehaviour:
   handHoldPoint: {fileID: 624446402}
   isCharging: 0
   heldLayerName: HeldCherry
+  heldCherry: {fileID: 0}
+  nearbyCherry: {fileID: 0}
+  projectileScript: {fileID: 0}
+  originalLayer: 0
 --- !u!54 &1440280086
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -10405,6 +10438,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b9da41af1f26fe4a8ba6f3ae1efe1af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rigidbody: {fileID: 0}
   keepUpright: 1
   uprightForce: 10
   uprightOffset: 1.45
@@ -12157,8 +12191,10 @@ MonoBehaviour:
   groundCheckPoint: {fileID: 346626305}
   groundCheckDistance: 0.4
   groundLayer:
-    serializedVersion: 2
     m_Bits: 128
+  rb: {fileID: 0}
+  isGrounded: 0
+  jumpRequested: 0
 --- !u!114 &1876927897
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12171,6 +12207,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d498753a998ebc441b37adb54aec6da6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rb: {fileID: 0}
   rotateSpeed: 300
   playerIndex: 0
 --- !u!114 &1876927898
@@ -12435,6 +12472,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b9da41af1f26fe4a8ba6f3ae1efe1af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rigidbody: {fileID: 0}
   keepUpright: 1
   uprightForce: 10
   uprightOffset: 1.45
@@ -12784,7 +12822,13 @@ MonoBehaviour:
   playerIndex: 0
   pickupTarget: {fileID: 9065369}
   pickupRange: 2
+  isCurrentlyGrabbed: 0
+  grabbedPlayerHip: {fileID: 0}
+  grabbedRigidbody: {fileID: 0}
+  playerPickupScript: {fileID: 0}
+  grabbedEscapeUI: {fileID: 0}
   grabCooldownTime: 2
+  canGrab: 1
 --- !u!65 &1980874498
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -13409,28 +13453,21 @@ MonoBehaviour:
   playerIndex: 1
   moveSpeed: 5
   jumpForce: 5
-  handHoldPoint: {fileID: 243184310}
-  cherryPrefab: {fileID: 377751968}
+  fallMultiplier: 2.5
+  lowJumpMultiplier: 2
   groundCheckPoint: {fileID: 1734172197}
   groundCheckDistance: 0.4
   groundLayer:
     serializedVersion: 2
     m_Bits: 128
-  fallMultiplier: 2.5
-  lowJumpMultiplier: 2
-  pickupTarget: {fileID: 235951}
-  pickupRange: 2
-  grabCooldownTime: 3
   rotationSpeed: 10
-  canMove: 1
-  isTase: 0
+  handHoldPoint: {fileID: 0}
+  cherryPrefab: {fileID: 0}
   projectileScript: {fileID: 2048221958}
-  isBig: 0
-  itemJumpForce: 7
   screenShake: {fileID: 0}
-  currPowerups: 
-  pushbackResistance: 1
-  IsSlowed: 0
+  canMove: 1
+  isGrounded: 0
+  isAiming: 0
 --- !u!4 &2048221963 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 28887ac0518804b81ba1356a42092fed, type: 3}
@@ -13569,7 +13606,13 @@ MonoBehaviour:
   playerIndex: 1
   pickupTarget: {fileID: 899385128}
   pickupRange: 2
+  isCurrentlyGrabbed: 0
+  grabbedPlayerHip: {fileID: 0}
+  grabbedRigidbody: {fileID: 0}
+  playerPickupScript: {fileID: 0}
+  grabbedEscapeUI: {fileID: 0}
   grabCooldownTime: 2
+  canGrab: 1
 --- !u!114 &2073456888
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13819,6 +13862,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d498753a998ebc441b37adb54aec6da6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rb: {fileID: 0}
   rotateSpeed: 300
   playerIndex: 1
 --- !u!114 &2091684650
@@ -13839,8 +13883,10 @@ MonoBehaviour:
   groundCheckPoint: {fileID: 1660746144}
   groundCheckDistance: 0.4
   groundLayer:
-    serializedVersion: 2
     m_Bits: 128
+  rb: {fileID: 0}
+  isGrounded: 0
+  jumpRequested: 0
 --- !u!65 &2091684651
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -13917,7 +13963,13 @@ MonoBehaviour:
   playerIndex: 1
   pickupTarget: {fileID: 309659778}
   pickupRange: 2
+  isCurrentlyGrabbed: 0
+  grabbedPlayerHip: {fileID: 0}
+  grabbedRigidbody: {fileID: 0}
+  playerPickupScript: {fileID: 0}
+  grabbedEscapeUI: {fileID: 0}
   grabCooldownTime: 5
+  canGrab: 1
 --- !u!1 &2111313661
 GameObject:
   m_ObjectHideFlags: 0
@@ -13987,7 +14039,13 @@ MonoBehaviour:
   playerIndex: 1
   pickupTarget: {fileID: 309659778}
   pickupRange: 2
+  isCurrentlyGrabbed: 0
+  grabbedPlayerHip: {fileID: 0}
+  grabbedRigidbody: {fileID: 0}
+  playerPickupScript: {fileID: 0}
+  grabbedEscapeUI: {fileID: 0}
   grabCooldownTime: 2
+  canGrab: 1
 --- !u!65 &2111313665
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -14436,7 +14494,6 @@ MonoBehaviour:
   feetPosition: {fileID: 2053200507}
   groundCheckRadius: 0.5
   groundLayer:
-    serializedVersion: 2
     m_Bits: 128
   jumpForce: 80
   PlayerRoot: {fileID: 170859948}
@@ -14444,6 +14501,9 @@ MonoBehaviour:
   hips: {fileID: 1012695300}
   targetPose: {fileID: 1746323461}
   rightArmJoint: {fileID: 935169224}
+  defaultArmTarget: {x: 0, y: 0, z: 0, w: 0}
+  liftedArmTarget: {x: 0, y: 0, z: 0, w: 0}
+  holdingCherry: 0
   uprightForce: 500
   uprightTorque: 1000
   uprightBodies:
@@ -14454,6 +14514,11 @@ MonoBehaviour:
   turnSpeed: 5
   handHoldPoint: {fileID: 106718910}
   cherryPrefab: {fileID: 377751968}
+  heldCherry: {fileID: 0}
+  nearbyCherry: {fileID: 0}
+  pickupRadius: 6
+  moveInput: {x: 0, y: 0, z: 0}
+  lookInput: {x: 0, y: 0}
 --- !u!120 &919132149184093996
 LineRenderer:
   serializedVersion: 2

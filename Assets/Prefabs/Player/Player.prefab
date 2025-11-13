@@ -569,6 +569,18 @@ PrefabInstance:
       addedObject: {fileID: 9141082906996736155}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3e0fd010755704e65be6f2a845657370, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 3956334085488742450}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3e0fd010755704e65be6f2a845657370, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 548928135148766638}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3e0fd010755704e65be6f2a845657370, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 966309323250976426}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3e0fd010755704e65be6f2a845657370, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4977814692495475439}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3e0fd010755704e65be6f2a845657370, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 1144399403036742313}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3e0fd010755704e65be6f2a845657370, type: 3}
       insertIndex: -1
@@ -631,28 +643,77 @@ MonoBehaviour:
   playerIndex: 0
   moveSpeed: 8
   jumpForce: 9
-  handHoldPoint: {fileID: 583683674574415266}
-  cherryPrefab: {fileID: 0}
+  fallMultiplier: 2.5
+  lowJumpMultiplier: 2
   groundCheckPoint: {fileID: 3758460403660673888}
   groundCheckDistance: 1
   groundLayer:
     serializedVersion: 2
     m_Bits: 128
-  fallMultiplier: 2.5
-  lowJumpMultiplier: 2
+  rotationSpeed: 10
+  handHoldPoint: {fileID: 583683674574415266}
+  cherryPrefab: {fileID: 0}
+  projectileScript: {fileID: 5825729168958471388}
+  screenShake: {fileID: 0}
+  canMove: 1
+  isGrounded: 0
+  isAiming: 0
+--- !u!114 &3956334085488742450
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2013628185433514460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0d222925e25b6246870574843fe4ace, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currPowerups: 
+  isSlowed: 0
+--- !u!114 &548928135148766638
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2013628185433514460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03617f6875bf5c64db776d0afba89b56, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   pickupTarget: {fileID: 6903827558914884060}
   pickupRange: 2
   grabCooldownTime: 3
-  rotationSpeed: 10
-  canMove: 1
-  isTase: 0
-  projectileScript: {fileID: 5825729168958471388}
+--- !u!114 &966309323250976426
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2013628185433514460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fb1046b27d4ce641b9923d648364394, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  handHoldPoint: {fileID: 583683674574415266}
+--- !u!114 &4977814692495475439
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2013628185433514460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fee28c172360f64cba6944c48879078, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   isBig: 0
   itemJumpForce: 7
-  screenShake: {fileID: 0}
-  currPowerups: 
-  pushbackResistance: 1
-  IsSlowed: 0
 --- !u!114 &1144399403036742313
 MonoBehaviour:
   m_ObjectHideFlags: 0
