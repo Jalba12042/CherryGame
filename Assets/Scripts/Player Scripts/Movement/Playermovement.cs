@@ -76,8 +76,20 @@ public class Playermovement : MonoBehaviour
         moveInput = assignedGamepad.leftStick.ReadValue();
         isGrounded = Physics.Raycast(groundCheckPoint.position, Vector3.down, groundCheckDistance, groundLayer);
 
-        Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
+        //Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
+        //Vector3 targetVelocity = move * moveSpeed;
+        Transform cam = Camera.main.transform;
+
+        // Flatten camera vectors (ignore Y)
+        Vector3 camForward = Vector3.Scale(cam.forward, new Vector3(1, 0, 1)).normalized;
+        Vector3 camRight = Vector3.Scale(cam.right, new Vector3(1, 0, 1)).normalized;
+
+        // Calculate camera-relative movement
+        Vector3 move = (camForward * moveInput.y + camRight * moveInput.x).normalized;
+
         Vector3 targetVelocity = move * moveSpeed;
+
+
         rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
 
         // --- Jump ---
@@ -116,25 +128,36 @@ public class Playermovement : MonoBehaviour
 
     private void HandleRotation()
     {
+        if (assignedGamepad == null) return;
+
         Vector2 moveInput = assignedGamepad.leftStick.ReadValue();
         Vector2 aimInput = assignedGamepad.rightStick.ReadValue();
 
         isAiming = projectileScript != null && projectileScript.IsAiming();
 
-        Vector3 targetDir = Vector3.zero;
         Transform cam = Camera.main.transform;
 
-        if (isAiming && aimInput.magnitude > 0.1f)
-            targetDir = (Vector3.Scale(cam.right, new Vector3(1, 0, 1)) * aimInput.x + Vector3.Scale(cam.forward, new Vector3(1, 0, 1)) * aimInput.y).normalized;
-        else if (!isAiming && moveInput.magnitude > 0.1f)
-            targetDir = (Vector3.Scale(cam.right, new Vector3(1, 0, 1)) * moveInput.x + Vector3.Scale(cam.forward, new Vector3(1, 0, 1)) * moveInput.y).normalized;
+        // Flattened camera vectors
+        Vector3 camForward = Vector3.Scale(cam.forward, new Vector3(1, 0, 1)).normalized;
+        Vector3 camRight = Vector3.Scale(cam.right, new Vector3(1, 0, 1)).normalized;
 
+        Vector3 targetDir = Vector3.zero;
+
+        // --- PLAYER ROTATION ALWAYS FROM MOVEMENT ---
+        if (moveInput.sqrMagnitude > 0.1f * 0.1f)
+        {
+            targetDir = (camForward * moveInput.y + camRight * moveInput.x).normalized;
+        }
+
+        // Apply rotation ONLY if move input exists
         if (targetDir != Vector3.zero)
         {
             Quaternion targetRot = Quaternion.LookRotation(targetDir, Vector3.up);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * rotationSpeed);
         }
     }
+
+
 
     public Gamepad GetAssignedGamepad() => assignedGamepad;
 }
