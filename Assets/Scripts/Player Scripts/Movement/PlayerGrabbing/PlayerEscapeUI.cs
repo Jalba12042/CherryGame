@@ -5,11 +5,11 @@ using TMPro;
 
 public class PlayerEscapeUI : MonoBehaviour
 {
-    [Header("Player Panels")]
+    /*[Header("Player Panels")]
     public GameObject P1;
     public GameObject P2;
     public GameObject P3;
-    public GameObject P4;
+    public GameObject P4;*/
 
     [Header("Escape Settings")]
     public float mashFillSpeed = 0.2f;   // How much bar fills per press
@@ -26,11 +26,20 @@ public class PlayerEscapeUI : MonoBehaviour
     private Image fillBar;
     private TextMeshProUGUI mashText;
     private Image yButtonIcon;
-    private GameObject currentPanel;
+    //private GameObject currentPanel;
+    public GameObject panelRoot;  
+
     private PlayerGrab grabbedBy; // the grabber
 
-
     void Start()
+    {
+        // Ensure the panel starts hidden
+        if (panelRoot != null)
+            panelRoot.SetActive(false);
+    }
+
+
+    /*void Start()
     {
         EscapeUIInfo escapeUI = GameObject.FindWithTag("EscapeUI").GetComponent<EscapeUIInfo>();
         P1 = escapeUI.P1;
@@ -43,11 +52,29 @@ public class PlayerEscapeUI : MonoBehaviour
         if (P2 != null) P2.SetActive(false);
         if (P3 != null) P3.SetActive(false);
         if (P4 != null) P4.SetActive(false);
-    }
+    }*/
 
     // Called by grabber when player is grabbed
     // Called by grabber when player is grabbed
     public void StartBeingGrabbed(PlayerGrab grabber)
+    {
+        isBeingGrabbed = true;
+        fillAmount = 0f;
+        grabbedBy = grabber;
+
+        // Enable this player's world-space UI
+        panelRoot.SetActive(true);
+
+        // Cache UI
+        fillBar = panelRoot.transform.Find("FillBar")?.GetComponent<Image>();
+        mashText = panelRoot.transform.Find("MashText")?.GetComponent<TextMeshProUGUI>();
+        yButtonIcon = panelRoot.transform.Find("YButton Image")?.GetComponent<Image>();
+
+        if (fillBar != null)
+            fillBar.fillAmount = 0f;
+    }
+
+    /*public void StartBeingGrabbed(PlayerGrab grabber)
     {
         isBeingGrabbed = true;
         fillAmount = 0f;
@@ -75,39 +102,22 @@ public class PlayerEscapeUI : MonoBehaviour
         }
 
         Debug.Log($"[EscapeUI] StartBeingGrabbed: Player {playerIndex} (grabbed by Player {grabber.GetComponent<Playermovement>().playerIndex})");
-    }
-
-
-    /*public void StartBeingGrabbed(int grabbedPlayerIndex)
-    {
-        isBeingGrabbed = true;
-        fillAmount = 0f;
-        playerIndex = grabbedPlayerIndex;
-
-        // Assign gamepad
-        if (Gamepad.all.Count > grabbedPlayerIndex)
-            assignedGamepad = Gamepad.all[grabbedPlayerIndex];
-
-        // Enable the correct panel
-        currentPanel = GetPanelForIndex(grabbedPlayerIndex);
-        if (currentPanel != null)
-        {
-            currentPanel.SetActive(true);
-
-            // Cache panel UI references
-            fillBar = currentPanel.transform.Find("FillBar")?.GetComponent<Image>();
-            mashText = currentPanel.transform.Find("MashText")?.GetComponent<TextMeshProUGUI>();
-            yButtonIcon = currentPanel.transform.Find("YButton Image")?.GetComponent<Image>();
-
-            // Reset fill bar
-            if (fillBar != null) fillBar.fillAmount = 0f;
-        }
-
-        Debug.Log($"[EscapeUI] StartBeingGrabbed: Player {grabbedPlayerIndex}");
     }*/
+
 
     // Called by grabber when player is released or escapes
     public void StopBeingGrabbed()
+    {
+        isBeingGrabbed = false;
+        fillAmount = 0f;
+
+        if (fillBar != null)
+            fillBar.fillAmount = 0f;
+
+        panelRoot.SetActive(false);
+    }
+
+    /*public void StopBeingGrabbed()
     {
         isBeingGrabbed = false;
         fillAmount = 0f;
@@ -121,7 +131,7 @@ public class PlayerEscapeUI : MonoBehaviour
             currentPanel.SetActive(false);
 
         Debug.Log($"[EscapeUI] StopBeingGrabbed: Player {playerIndex}");
-    }
+    }*/
 
     void Update()
     {
@@ -163,7 +173,7 @@ public class PlayerEscapeUI : MonoBehaviour
 
 
     // Returns the corresponding panel for a given player index
-    private GameObject GetPanelForIndex(int index)
+    /*private GameObject GetPanelForIndex(int index)
     {
         return index switch
         {
@@ -173,5 +183,5 @@ public class PlayerEscapeUI : MonoBehaviour
             3 => P4,
             _ => null
         };
-    }
+    }*/
 }
