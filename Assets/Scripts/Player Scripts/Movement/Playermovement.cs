@@ -112,6 +112,8 @@ public class Playermovement : MonoBehaviour
         // --- Animator Sync ---
         if (animator != null)
             animator.SetFloat("Speed", new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z).magnitude);
+            animator.SetBool("isGrounded", isGrounded);
+
     }
 
     private void Update()
