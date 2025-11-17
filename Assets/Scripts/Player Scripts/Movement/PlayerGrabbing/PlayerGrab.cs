@@ -57,6 +57,10 @@ public class PlayerGrab : MonoBehaviour
     {
         if (!canGrab || grabbedPlayer != null || nearbyPlayer == null || isGrabbed) return;
 
+        PlayerEffects pe = nearbyPlayer.GetComponent<PlayerEffects>();
+        if (pe != null && pe.isBig)
+            return;
+
         grabbedPlayer = nearbyPlayer;
         grabbedRigidbody = grabbedPlayer.GetComponent<Rigidbody>();
         if (grabbedRigidbody != null)
@@ -66,7 +70,6 @@ public class PlayerGrab : MonoBehaviour
         if (grabbedCollider != null)
             Physics.IgnoreCollision(myCollider, grabbedCollider, true);
 
-        // Disable grabbed player's movement
         Playermovement pm = grabbedPlayer.GetComponent<Playermovement>();
         if (pm != null)
             pm.canMove = false;
@@ -75,11 +78,10 @@ public class PlayerGrab : MonoBehaviour
         if (grabbedGrab != null)
             grabbedGrab.isGrabbed = true;
 
-        // Make sure the grabbed player's UI is activated (not the grabber's)
         PlayerEscapeUI escapeUI = grabbedPlayer.GetComponent<PlayerEscapeUI>();
         if (escapeUI != null)
         {
-            escapeUI.StartBeingGrabbed(this); // Pass the grabber reference
+            escapeUI.StartBeingGrabbed(this);
         }
     }
 
@@ -139,7 +141,7 @@ public class PlayerGrab : MonoBehaviour
         thrownRb.isKinematic = false;
         thrownRb.linearVelocity = Vector3.zero;
         Vector3 throwDir = transform.forward;
-        thrownRb.AddForce(throwDir * 100f + Vector3.up * 6f, ForceMode.Impulse);
+        thrownRb.AddForce(throwDir * 10f + Vector3.up * 6f, ForceMode.Impulse);
 
         // Apply stun only to the thrown player
         if (thrownPm != null)
