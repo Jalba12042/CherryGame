@@ -8,6 +8,7 @@ public class Playermovement : MonoBehaviour
     public int playerIndex = 0;
     public float moveSpeed = 5f;
     public float jumpForce = 7f;
+    public bool isSlowed = false;
 
     [Header("Jump Tuning")]
     public float fallMultiplier = 2.5f;
