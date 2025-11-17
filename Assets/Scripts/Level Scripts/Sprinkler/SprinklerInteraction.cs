@@ -5,8 +5,8 @@ using System.Collections;
 public class SprinklerInteraction : MonoBehaviour
 {
     [Header("Interaction Settings")]
-    public float pushForce = 5f;           // Force applied away from sprinkler
-    public float slowMultiplier = 0.5f;    // Player moveSpeed multiplier while slowed
+    public float pushForce = 5f;           // Impulse force applied away from sprinkler
+    public float slowMultiplier = 0.5f;    // Movement speed multiplier while slowed
     public float slowDuration = 2f;        // How long player is slowed
 
     private SprinklerController sprinkler;
@@ -18,24 +18,33 @@ public class SprinklerInteraction : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        // Only affect players when sprinkler is active
         if (!sprinkler.IsActive()) return;
-
-        // Only affect objects tagged as "Player"
         if (!other.CompareTag("Player")) return;
 
-        // --- Use the player's PowerupHandler instead of Playermovement directly ---
-        PlayerPowerupHandler handler = other.GetComponent<PlayerPowerupHandler>();
-        if (handler == null) return;
-
-        // Apply pushback using the handler
-        Vector3 pushDir = (other.transform.position - transform.position).normalized;
-        handler.ApplyPushback(pushDir, pushForce);
-
-        // Apply slow effect if not already slowed
-        if (!handler.isSlowed)
+        // --- PUSH FORCE (Impulse) ---
+        Rigidbody rb = other.GetComponent<Rigidbody>();
+        if (rb != null)
         {
-            handler.ApplySlow(slowMultiplier, slowDuration);
+            Vector3 pushDir = (other.transform.position - transform.position).normalized;
+            rb.AddForce(pushDir * pushForce, ForceMode.Impulse);
         }
+
+        // --- SLOW EFFECT ON PlayerMovement ---
+        Playermovement pm = other.GetComponent<Playermovement>();
+        if (pm != null && !pm.isSlowed)
+        {
+            StartCoroutine(ApplySlow(pm));
+        }
+    }
+
+    private IEnumerator ApplySlow(Playermovement pm)
+    {
+        pm.isSlowed = true;
+        pm.moveSpeed *= slowMultiplier;
+
+        yield return new WaitForSeconds(slowDuration);
+
+        pm.moveSpeed /= slowMultiplier;
+        pm.isSlowed = false;
     }
 }
