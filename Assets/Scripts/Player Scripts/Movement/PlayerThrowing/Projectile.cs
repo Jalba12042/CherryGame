@@ -86,7 +86,24 @@ public class Projectile : MonoBehaviour
 
             // continuously store LT power (never instantly reset)
             currentPower = Mathf.Lerp(currentPower, ltValue, Time.deltaTime * 8f);
+
+            Vector2 aimInput = gamepad.rightStick.ReadValue();
+
+            if (aimInput.sqrMagnitude > 0.1f)
+            {
+                Transform cam = Camera.main.transform;
+
+                Vector3 camForward = Vector3.Scale(cam.forward, new Vector3(1, 0, 1)).normalized;
+                Vector3 camRight = Vector3.Scale(cam.right, new Vector3(1, 0, 1)).normalized;
+
+                Vector3 aimDir = (camForward * aimInput.y + camRight * aimInput.x).normalized;
+
+                //Only rotates the throw direction — player stays still
+                launchPoint.forward = aimDir;
+            }
+
             DrawTrajectory(currentPower);
+            return;
         }
         else if (isAiming && ltValue <= 0.1f)
         {
@@ -221,7 +238,7 @@ public class Projectile : MonoBehaviour
             rb.isKinematic = false;
             rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
 
-            // ✅ Use the passed-in finalPower
+            // Use the passed-in finalPower
             float baseSpeed = launchSpeed * finalPower;
 
             float upSpeed = baseSpeed * arcHeight;

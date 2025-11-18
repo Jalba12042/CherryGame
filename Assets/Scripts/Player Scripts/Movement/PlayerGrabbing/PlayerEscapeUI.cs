@@ -1,15 +1,15 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using TMPro;
 
 public class PlayerEscapeUI : MonoBehaviour
 {
-    [Header("Player Panels")]
+    /*[Header("Player Panels")]
     public GameObject P1;
     public GameObject P2;
     public GameObject P3;
-    public GameObject P4;
+    public GameObject P4;*/
 
     [Header("Escape Settings")]
     public float mashFillSpeed = 0.2f;   // How much bar fills per press
@@ -26,9 +26,20 @@ public class PlayerEscapeUI : MonoBehaviour
     private Image fillBar;
     private TextMeshProUGUI mashText;
     private Image yButtonIcon;
-    private GameObject currentPanel;
+    //private GameObject currentPanel;
+    public GameObject panelRoot;  
+
+    private PlayerGrab grabbedBy; // the grabber
 
     void Start()
+    {
+        // Ensure the panel starts hidden
+        if (panelRoot != null)
+            panelRoot.SetActive(false);
+    }
+
+
+    /*void Start()
     {
         EscapeUIInfo escapeUI = GameObject.FindWithTag("EscapeUI").GetComponent<EscapeUIInfo>();
         P1 = escapeUI.P1;
@@ -41,39 +52,72 @@ public class PlayerEscapeUI : MonoBehaviour
         if (P2 != null) P2.SetActive(false);
         if (P3 != null) P3.SetActive(false);
         if (P4 != null) P4.SetActive(false);
-    }
+    }*/
 
     // Called by grabber when player is grabbed
-    public void StartBeingGrabbed(int grabbedPlayerIndex)
+    // Called by grabber when player is grabbed
+    public void StartBeingGrabbed(PlayerGrab grabber)
     {
         isBeingGrabbed = true;
         fillAmount = 0f;
-        playerIndex = grabbedPlayerIndex;
+        grabbedBy = grabber;
 
-        // Assign gamepad
-        if (Gamepad.all.Count > grabbedPlayerIndex)
-            assignedGamepad = Gamepad.all[grabbedPlayerIndex];
+        // Enable this player's world-space UI
+        panelRoot.SetActive(true);
 
-        // Enable the correct panel
-        currentPanel = GetPanelForIndex(grabbedPlayerIndex);
+        // Cache UI
+        fillBar = panelRoot.transform.Find("FillBar")?.GetComponent<Image>();
+        mashText = panelRoot.transform.Find("MashText")?.GetComponent<TextMeshProUGUI>();
+        yButtonIcon = panelRoot.transform.Find("YButton Image")?.GetComponent<Image>();
+
+        if (fillBar != null)
+            fillBar.fillAmount = 0f;
+    }
+
+    /*public void StartBeingGrabbed(PlayerGrab grabber)
+    {
+        isBeingGrabbed = true;
+        fillAmount = 0f;
+        grabbedBy = grabber;
+
+        // ✅ Use the grabbed player's own index (not the grabber's)
+        playerIndex = GetComponent<Playermovement>().playerIndex;
+
+        // ✅ Assign the grabbed player's own gamepad
+        if (Gamepad.all.Count > playerIndex)
+            assignedGamepad = Gamepad.all[playerIndex];
+
+        // ✅ Enable the correct panel for the grabbed player
+        currentPanel = GetPanelForIndex(playerIndex);
         if (currentPanel != null)
         {
             currentPanel.SetActive(true);
 
-            // Cache panel UI references
             fillBar = currentPanel.transform.Find("FillBar")?.GetComponent<Image>();
             mashText = currentPanel.transform.Find("MashText")?.GetComponent<TextMeshProUGUI>();
             yButtonIcon = currentPanel.transform.Find("YButton Image")?.GetComponent<Image>();
 
-            // Reset fill bar
-            if (fillBar != null) fillBar.fillAmount = 0f;
+            if (fillBar != null)
+                fillBar.fillAmount = 0f;
         }
 
-        Debug.Log($"[EscapeUI] StartBeingGrabbed: Player {grabbedPlayerIndex}");
-    }
+        Debug.Log($"[EscapeUI] StartBeingGrabbed: Player {playerIndex} (grabbed by Player {grabber.GetComponent<Playermovement>().playerIndex})");
+    }*/
+
 
     // Called by grabber when player is released or escapes
     public void StopBeingGrabbed()
+    {
+        isBeingGrabbed = false;
+        fillAmount = 0f;
+
+        if (fillBar != null)
+            fillBar.fillAmount = 0f;
+
+        panelRoot.SetActive(false);
+    }
+
+    /*public void StopBeingGrabbed()
     {
         isBeingGrabbed = false;
         fillAmount = 0f;
@@ -87,7 +131,7 @@ public class PlayerEscapeUI : MonoBehaviour
             currentPanel.SetActive(false);
 
         Debug.Log($"[EscapeUI] StopBeingGrabbed: Player {playerIndex}");
-    }
+    }*/
 
     void Update()
     {
@@ -116,25 +160,20 @@ public class PlayerEscapeUI : MonoBehaviour
 
     private void Escape()
     {
-        Debug.Log($"[EscapeUI] Escape triggered for Player {playerIndex}");
+        Debug.Log($"[EscapeUI] Escape triggered for grabbed player {playerIndex}, grabbed by player {grabbedBy.GetComponent<Playermovement>().playerIndex}");
         StopBeingGrabbed();
 
-        // Tell grabber to release this player
-        var grabbedBy = GetComponent<PlayerGrabbed>();
-        if (grabbedBy != null && grabbedBy.grabber != null)
+        // Tell grabber to release this player and start cooldown
+        if (grabbedBy != null)
         {
-            grabbedBy.grabber.StartCoroutine(grabbedBy.grabber.GrabCooldown());
-            grabbedBy.grabber.HandlePlayerRelease();
-
-            // Re-enable PlayerPickup if needed
-            PlayerPickup pickup = GetComponent<PlayerPickup>() ?? GetComponentInChildren<PlayerPickup>();
-            if (pickup != null)
-                pickup.enabled = true;
+            grabbedBy.StartCoroutine(grabbedBy.GrabCooldown());
+            grabbedBy.ForceRelease();
         }
     }
 
+
     // Returns the corresponding panel for a given player index
-    private GameObject GetPanelForIndex(int index)
+    /*private GameObject GetPanelForIndex(int index)
     {
         return index switch
         {
@@ -144,5 +183,5 @@ public class PlayerEscapeUI : MonoBehaviour
             3 => P4,
             _ => null
         };
-    }
+    }*/
 }
