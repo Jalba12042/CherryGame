@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 public class PlayerEffects : MonoBehaviour
 {
@@ -9,6 +10,11 @@ public class PlayerEffects : MonoBehaviour
     private bool wasGroundedLastFrame;
     private Playermovement player;
     private ScreenShake screenShake;
+
+    [Header("Taser Settings")]
+    [SerializeField] private float taseForce;
+    [SerializeField] private float stunDuration;
+    public bool isTasing;
 
     void Start()
     {
@@ -59,5 +65,31 @@ public class PlayerEffects : MonoBehaviour
             if (rb != null)
                 rb.AddForce(Vector3.up * itemJumpForce, ForceMode.Impulse);
         }
+    }
+
+    private void OnCollisionEnter(Collision collision) { 
+        if (collision.gameObject.CompareTag("Player") && isTasing) { 
+            Playermovement otherChar = collision.gameObject.GetComponent<Playermovement>(); 
+            if (otherChar != null) { 
+                if (otherChar.canMove) { 
+                    Debug.Log("collision!"); 
+                    Rigidbody rb = collision.gameObject.GetComponent<Rigidbody>(); 
+                   
+                    StartCoroutine(Stun(stunDuration, rb, otherChar)); 
+                } 
+            } 
+        } 
+    }
+    public IEnumerator Stun(float duration, Rigidbody rb, Playermovement pm)
+    {
+        pm.canMove = false;
+        if (rb != null)
+        {
+            Vector3 direction = (pm.gameObject.transform.position - transform.position).normalized;
+            direction.y = 0.5f; // add a little upward push if you want
+            rb.AddForce(direction * taseForce, ForceMode.Impulse);
+        }
+        yield return new WaitForSeconds(duration);
+        pm.canMove = true;
     }
 }
