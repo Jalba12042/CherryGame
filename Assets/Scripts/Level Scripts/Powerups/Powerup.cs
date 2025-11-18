@@ -11,6 +11,7 @@ public class Powerup : MonoBehaviour
     protected Playermovement pc;
     protected PlayerPowerupHandler powerupHandler;
     protected GameObject playerModel;
+    protected PlayerEffects pe;
 
     private Coroutine activeTimer;
     private bool isActive;
@@ -18,6 +19,7 @@ public class Powerup : MonoBehaviour
     {
         powerupHandler = handler;
         pc = handler.GetComponent<Playermovement>();
+        pe = handler.GetComponent<PlayerEffects>();
         playerModel = handler.gameObject;
 
         /*pc = player;
