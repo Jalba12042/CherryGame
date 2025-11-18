@@ -5,10 +5,8 @@ public class PlayerColorAssigner : MonoBehaviour
     [Header("Renderer Reference")]
     public Renderer playerRenderer; // drag your player’s mesh or model renderer here
 
-    [Header("Player Colors")]
-    public Color blueColor = Color.blue;
-    public Color redColor = Color.red;
-    public Color[] playerColors; // optional — use this if you want more than two players
+    [Header("Player Materials")]
+    public Material[] playerMaterials;
 
     public void AssignColor(int playerIndex)
     {
@@ -19,24 +17,14 @@ public class PlayerColorAssigner : MonoBehaviour
         }
 
         // If you define a color array, use that — otherwise default to just 2 colors
-        if (playerColors != null && playerColors.Length > 0 && playerIndex < playerColors.Length)
+        if (playerMaterials != null && playerMaterials.Length > 0 && playerIndex < playerMaterials.Length)
         {
-            playerRenderer.material.color = playerColors[playerIndex];
+            // Assign the whole material (shader + properties)
+            playerRenderer.material = playerMaterials[playerIndex];
         }
         else
         {
-            switch (playerIndex)
-            {
-                case 0:
-                    playerRenderer.material.color = blueColor;
-                    break;
-                case 1:
-                    playerRenderer.material.color = redColor;
-                    break;
-                default:
-                    playerRenderer.material.color = Color.white;
-                    break;
-            }
+            Debug.LogWarning($"No material found for player index {playerIndex}");
         }
     }
 }

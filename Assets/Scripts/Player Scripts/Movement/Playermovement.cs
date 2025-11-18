@@ -13,6 +13,8 @@ public class Playermovement : MonoBehaviour
     [Header("Jump Tuning")]
     public float fallMultiplier = 2.5f;
     public float lowJumpMultiplier = 2f;
+    private float jumpDelayTimer = 0f;
+
 
     [Header("Ground Check")]
     [SerializeField] private Transform groundCheckPoint;
@@ -94,12 +96,23 @@ public class Playermovement : MonoBehaviour
         rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
 
         // --- Jump ---
-        if (jumpRequested && isGrounded)
+        if (jumpRequested)
+        {
+            jumpDelayTimer -= Time.fixedDeltaTime;
+            if (jumpDelayTimer <= 0f && isGrounded)
+            {
+                rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+                rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
+                jumpRequested = false;
+            }
+        }
+
+        /*if (jumpRequested && isGrounded)
         {
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
             jumpRequested = false;
-        }
+        }*/
 
         // --- Enhanced Gravity ---
         if (!isGrounded)
@@ -110,10 +123,28 @@ public class Playermovement : MonoBehaviour
                 rb.AddForce(Vector3.up * Physics.gravity.y * (lowJumpMultiplier - 1) * rb.mass);
         }
 
-        // --- Animator Sync ---
         if (animator != null)
-            animator.SetFloat("Speed", new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z).magnitude);
+        {
+            float currentSpeed = animator.GetFloat("Speed");
+            float targetSpeed = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z).magnitude;
+
+            float smoothSpeed;
+            if (targetSpeed < currentSpeed)
+            {
+                // Decelerating → snap faster
+                smoothSpeed = Mathf.Lerp(currentSpeed, targetSpeed, Time.deltaTime * 20f);
+            }
+            else
+            {
+                // Accelerating → smoother
+                smoothSpeed = Mathf.Lerp(currentSpeed, targetSpeed, Time.deltaTime * 10f);
+            }
+
+            animator.SetFloat("Speed", smoothSpeed);
             animator.SetBool("isGrounded", isGrounded);
+
+        }
+
 
     }
 
@@ -122,8 +153,17 @@ public class Playermovement : MonoBehaviour
         if (assignedGamepad == null) return;
 
         // Jump input
+        /*if (isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame && canMove)
+            jumpRequested = true;*/
+
+        // Jump input
         if (isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame && canMove)
+        {
             jumpRequested = true;
+            jumpDelayTimer = 0.15f; // adjust to match animation anticipation
+            animator.SetTrigger("Jump"); // fire animation immediately
+        }
+
 
         // Rotation
         HandleRotation();

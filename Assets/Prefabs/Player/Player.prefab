@@ -996,12 +996,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8340085368896135223}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
-  m_LocalPosition: {x: -0.00047845472, y: 0.031270005, z: 0.014731327}
+  m_LocalRotation: {x: -0.004348797, y: 0.9989114, z: -0.0060533937, w: -0.04604841}
+  m_LocalPosition: {x: 0.00066068675, y: 0.003086229, z: 0.014669604}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 7510793053150873427}
+  m_Father: {fileID: 2667943416843023774}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!20 &6177990706283798088
 Camera:
@@ -1177,9 +1177,6 @@ PrefabInstance:
       addedObject: {fileID: 6258700834323604888}
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 5b83f30e9b5a7458880f9ce177610143, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2112812199325344215}
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 5b83f30e9b5a7458880f9ce177610143, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 9210341488620325377}
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 5b83f30e9b5a7458880f9ce177610143, type: 3}
       insertIndex: -1
@@ -1190,6 +1187,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5383907563702048038, guid: 5b83f30e9b5a7458880f9ce177610143, type: 3}
       insertIndex: 0
       addedObject: {fileID: 3172614233248173472}
+    - targetCorrespondingSourceObject: {fileID: 5383907563702048038, guid: 5b83f30e9b5a7458880f9ce177610143, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2112812199325344215}
     - targetCorrespondingSourceObject: {fileID: 197368767339752638, guid: 5b83f30e9b5a7458880f9ce177610143, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5548299175810455626}
@@ -1297,6 +1297,7 @@ MonoBehaviour:
   playerIndex: 0
   moveSpeed: 10
   jumpForce: 9
+  isSlowed: 0
   fallMultiplier: 2.5
   lowJumpMultiplier: 2
   groundCheckPoint: {fileID: 9210341488620325377}
@@ -1388,9 +1389,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerRenderer: {fileID: 3979331040377659482}
-  blueColor: {r: 0, g: 0.28763032, b: 1, a: 1}
-  redColor: {r: 0.9528302, g: 0.13932894, b: 0.13932894, a: 1}
-  playerColors: []
+  playerMaterials:
+  - {fileID: 2100000, guid: c3634c17a7f41bb4fb080992e922cb2c, type: 2}
+  - {fileID: 2100000, guid: c370cd0dc3d6d66459c7f85d6e669e6e, type: 2}
 --- !u!114 &5429358512836966802
 MonoBehaviour:
   m_ObjectHideFlags: 0
