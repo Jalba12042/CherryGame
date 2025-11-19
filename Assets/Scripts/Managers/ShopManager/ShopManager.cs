@@ -7,6 +7,8 @@ using UnityEngine.InputSystem;
 
 public class ShopManager : MonoBehaviour
 {
+    [SerializeField] private VoteImageManager vim;
+
     // List of all powerups
     public List<ItemData> powerUpRegistry;
 
@@ -133,7 +135,9 @@ public class ShopManager : MonoBehaviour
                     buttonVotes[chosenButton]++;
                     playerVotes[i] = chosenButton;
                     Debug.Log($"Player {i + 1} (Color {playerColors[i]}) voted for button {chosenButton + 1}. Total votes: {buttonVotes[chosenButton]}");
-                }                
+                }
+
+                vim.changeVote(i, chosenButton);
             }
 
         }
@@ -328,6 +332,4 @@ public class ShopManager : MonoBehaviour
             }
         }
     }
-
-
 }
