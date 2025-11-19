@@ -36,6 +36,7 @@ public class RoundManager : MonoBehaviour
     private int currRoundIndex;
     private int startTimer;
     private bool roundSelected;
+    private GameObject instructPanel;
 
     public RenderTexture[] playerFaceRenderTextures;
 
@@ -65,6 +66,7 @@ public class RoundManager : MonoBehaviour
         if (currRound != null && SceneManager.GetActiveScene().name.Equals(currRound.sceneName))
         {
             GameManager.Instance.currGameState = GameManager.GameState.Round;
+
             // we start with selecting a round and starting the timer
             if (!roundSelected)
             {
@@ -133,6 +135,8 @@ public class RoundManager : MonoBehaviour
     private IEnumerator StartRound()
     {
         currPlayerSpawn = FindFirstObjectByType<PlayerSpawn>();
+        instructPanel = GameObject.FindWithTag("InstructUI");
+        instructPanel.SetActive(true);
 
         // destroy any left over goal objects
         if (currRound.goalObjects.Count != 0 && currRound.goalObjects != null)
@@ -220,7 +224,7 @@ public class RoundManager : MonoBehaviour
             startTimer++;
             Debug.Log(startTimer);
         }
-
+        instructPanel.SetActive(false);
         // start the round
         StartCoroutine(currRound.StartGoal());
         while (currRoundProgress < currRoundDurationInSecs)
