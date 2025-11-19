@@ -64,6 +64,9 @@ public class Projectile : MonoBehaviour
         var gamepad = owner.GetAssignedGamepad();
         if (gamepad == null) return;
 
+        // Always aim wherever the player is facing
+        launchPoint.forward = owner.transform.forward;
+
         float ltValue = gamepad.leftTrigger.ReadValue();
 
         // Stop aiming if you no longer hold a cherry
@@ -87,7 +90,7 @@ public class Projectile : MonoBehaviour
             // continuously store LT power (never instantly reset)
             currentPower = Mathf.Lerp(currentPower, ltValue, Time.deltaTime * 8f);
 
-            Vector2 aimInput = gamepad.rightStick.ReadValue();
+            /*Vector2 aimInput = gamepad.rightStick.ReadValue();
 
             if (aimInput.sqrMagnitude > 0.1f)
             {
@@ -100,7 +103,7 @@ public class Projectile : MonoBehaviour
 
                 //Only rotates the throw direction — player stays still
                 launchPoint.forward = aimDir;
-            }
+            }*/
 
             DrawTrajectory(currentPower);
             return;
