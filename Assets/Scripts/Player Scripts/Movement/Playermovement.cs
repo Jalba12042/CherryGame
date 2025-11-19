@@ -43,7 +43,7 @@ public class Playermovement : MonoBehaviour
 
     [HideInInspector] public Gamepad assignedGamepad;
     private Rigidbody rb;
-    private Animator animator;
+    public Animator animator;
     private Vector2 moveInput;
 
     void Start()

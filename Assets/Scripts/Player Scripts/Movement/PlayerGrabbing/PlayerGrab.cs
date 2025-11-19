@@ -20,6 +20,7 @@ public class PlayerGrab : MonoBehaviour
 
     private bool grabEscapeCooldown = false; // prevents grab right after escape
     public float escapeCooldownTime = 1f;    // duration of cooldown after escape
+    private Animator animator;
 
 
 
@@ -28,6 +29,8 @@ public class PlayerGrab : MonoBehaviour
     {
         player = GetComponent<Playermovement>();
         myCollider = GetComponent<Collider>();
+        animator = GetComponent<Animator>();
+
     }
 
     void Update()
@@ -83,6 +86,10 @@ public class PlayerGrab : MonoBehaviour
         {
             escapeUI.StartBeingGrabbed(this);
         }
+
+        if (animator != null)
+            animator.SetBool("isPickingUp", true);
+
     }
 
 
@@ -115,6 +122,10 @@ public class PlayerGrab : MonoBehaviour
                 grabbedGrab.isGrabbed = false;
                 grabbedGrab.enabled = true;
             }
+
+            if (animator != null)
+                animator.SetBool("isPickingUp", false);
+
         }
 
         grabbedPlayer = null;
@@ -136,6 +147,9 @@ public class PlayerGrab : MonoBehaviour
 
         // Release the grab after storing references
         ReleaseGrab();
+
+        if (animator != null)
+            animator.SetBool("isPickingUp", false);
 
         // Apply throw force
         thrownRb.isKinematic = false;

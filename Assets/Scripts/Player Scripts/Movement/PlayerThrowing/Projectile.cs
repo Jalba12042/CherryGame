@@ -11,7 +11,7 @@ public class Projectile : MonoBehaviour
     private GameObject landingMarkerInstance;
 
     [Header("Throw Settings")]
-    public float launchSpeed = 10f;      // max throw speed
+    public float launchSpeed = 15f;      // max throw speed
     public int linePoints = 50;
     public float timeStep = 0.1f;
 
@@ -84,6 +84,8 @@ public class Projectile : MonoBehaviour
             isAiming = true;
             lineRenderer.enabled = true;
 
+            owner.animator.SetBool("isAiming", true);
+
             if (landingMarkerInstance != null)
                 landingMarkerInstance.SetActive(true);
 
@@ -112,6 +114,10 @@ public class Projectile : MonoBehaviour
         {
             float finalPower = Mathf.Max(currentPower, 0.25f); // ensure some minimum throw
             ThrowCherry(finalPower);
+
+            owner.animator.SetTrigger("doThrow");
+            owner.animator.SetBool("isAiming", false);
+            owner.animator.SetBool("isPickingUp", false);
 
             isAiming = false;
             lineRenderer.enabled = false;
@@ -241,9 +247,18 @@ public class Projectile : MonoBehaviour
             rb.isKinematic = false;
             rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
 
-            // Use the passed-in finalPower
-            float baseSpeed = launchSpeed * finalPower;
+            //ignore collision with the player for 0.3s
+            Collider cherryCol = heldCherry.GetComponent<Collider>();
+            Collider[] playerCols = owner.GetComponentsInChildren<Collider>();
 
+            foreach (var col in playerCols)
+                Physics.IgnoreCollision(cherryCol, col, true);
+
+            // 0.3s later re-enable collisions
+            owner.StartCoroutine(ReenableCherryCollision(cherryCol, playerCols));
+
+            //APPLY THROW FORCE
+            float baseSpeed = launchSpeed * finalPower;
             float upSpeed = baseSpeed * arcHeight;
             float forwardSpeed = baseSpeed * distanceMultiplier / (1f + arcHeight);
 
@@ -260,6 +275,15 @@ public class Projectile : MonoBehaviour
             landingMarkerInstance.SetActive(false);
     }
 
+    private System.Collections.IEnumerator ReenableCherryCollision(Collider cherryCol, Collider[] playerCols)
+    {
+        yield return new WaitForSeconds(0.3f);
+
+        foreach (var col in playerCols)
+            Physics.IgnoreCollision(cherryCol, col, false);
+    }
+
+
     public void SetOwner(Playermovement player)
     {
         owner = player;
@@ -270,6 +294,10 @@ public class Projectile : MonoBehaviour
         isAiming = false;
         isHoldingCherry = false;
         heldCherry = null;
+
+        owner.animator.SetBool("isAiming", false);
+        owner.animator.SetBool("isPickingUp", false);
+
 
         if (lineRenderer != null)
             lineRenderer.enabled = false;

@@ -51,7 +51,7 @@ public class PlayerCherry : MonoBehaviour
 
     private IEnumerator PlayPickupAnimation()
     {
-        animator.SetBool("isHoldingCherry", true);
+        animator.SetBool("isPickingUp", true);
         yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
     }
 
@@ -64,7 +64,7 @@ public class PlayerCherry : MonoBehaviour
             if (rbCherry != null) rbCherry.isKinematic = false;
             projectileScript?.CancelAim();
             if (animator != null)
-                animator.SetBool("isHoldingCherry", false);
+                animator.SetBool("isPickingUp", false);
             heldCherry = null;
         }
     }
