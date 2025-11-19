@@ -15,6 +15,7 @@ public class Projectile : MonoBehaviour
     public int linePoints = 50;
     public float timeStep = 0.1f;
 
+
     // Internal state
     private bool isHoldingCherry = false;
     private bool isAiming = false;

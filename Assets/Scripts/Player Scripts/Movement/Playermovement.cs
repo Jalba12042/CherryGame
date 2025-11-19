@@ -24,6 +24,9 @@ public class Playermovement : MonoBehaviour
     [Header("Rotation Settings")]
     [SerializeField] private float rotationSpeed = 10f;
 
+    [Range(0.05f, 1f)]
+    public float aimRotationMultiplier = 0.35f;
+
     [Header("Throw Settings")]
     public Transform handHoldPoint;  // Where cherry sits
     public GameObject cherryPrefab;  // Prefab for throwing
@@ -196,7 +199,15 @@ public class Playermovement : MonoBehaviour
         if (targetDir != Vector3.zero)
         {
             Quaternion targetRot = Quaternion.LookRotation(targetDir, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * rotationSpeed);
+
+            float appliedRotationSpeed = rotationSpeed;
+
+            // Slow rotation when aiming  
+            if (isAiming)
+                appliedRotationSpeed *= aimRotationMultiplier;
+
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * appliedRotationSpeed);
+
         }
     }
 
