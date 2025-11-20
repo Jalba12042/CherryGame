@@ -71,4 +71,10 @@ public class CherryRound : Round
     {
         return bc.countCherries();
     }
+
+    public void SetBasketContainer(BasketContainer container)
+    {
+        bc = container;
+    }
+
 }

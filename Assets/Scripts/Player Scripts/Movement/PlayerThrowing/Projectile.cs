@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 public class Projectile : MonoBehaviour
 {
@@ -15,6 +16,10 @@ public class Projectile : MonoBehaviour
     public int linePoints = 50;
     public float timeStep = 0.1f;
 
+    [Header("Throw Timing")]
+    public float throwDelay = 0.18f;
+
+
 
     // Internal state
     private bool isHoldingCherry = false;
@@ -23,6 +28,9 @@ public class Projectile : MonoBehaviour
     private float currentPower = 0f;  // tracks LT power while aiming
     private Gamepad assignedGamepad;
     private GameObject heldCherry;
+    private bool pendingThrow = false;
+
+
 
     [SerializeField] private LayerMask groundLayer;
 
@@ -42,6 +50,7 @@ public class Projectile : MonoBehaviour
 
 
     public bool IsAiming() => isAiming;
+    public bool IsThrowPending() => pendingThrow;
 
     void Start()
     {
@@ -114,7 +123,39 @@ public class Projectile : MonoBehaviour
         else if (isAiming && ltValue <= 0.1f)
         {
             float finalPower = Mathf.Max(currentPower, 0.25f); // ensure some minimum throw
-            ThrowCherry(finalPower);
+
+            // mark that a throw is pending so PlayerCherry won't drop it
+            pendingThrow = true;
+
+            // notify the PlayerCherry on the owner (optional redundancy)
+            owner.GetComponent<PlayerCherry>()?.NotifyThrowStarted();
+
+            // start the delayed throw coroutine
+            owner.StartCoroutine(DelayedThrow(finalPower));
+
+            // trigger animation
+            owner.animator.SetTrigger("doThrow");
+
+            // stop aiming visuals immediately (you can keep isAiming true if you prefer)
+            owner.animator.SetBool("isAiming", false);
+            owner.animator.SetBool("isPickingUp", false);
+
+            // do not set isHoldingCherry = false here — let ThrowCherry handle it
+            isAiming = false;
+            lineRenderer.enabled = false;
+
+            if (landingMarkerInstance != null)
+                landingMarkerInstance.SetActive(false);
+
+            // fully reset current power (we've saved finalPower above)
+            currentPower = 0f;
+        }
+
+        /*else if (isAiming && ltValue <= 0.1f)
+        {
+            float finalPower = Mathf.Max(currentPower, 0.25f); // ensure some minimum throw
+            StartCoroutine(DelayedThrow(finalPower));
+
 
             owner.animator.SetTrigger("doThrow");
             owner.animator.SetBool("isAiming", false);
@@ -130,31 +171,8 @@ public class Projectile : MonoBehaviour
 
             // fully reset after throw
             currentPower = 0f;
-        }
-
-        else if (isAiming && ltValue <= 0.1f)
-        {
-            // Use the last non-zero throw power (don't let it drop to 0 before throwing)
-            float finalPower = Mathf.Max(throwPower, 0.25f); // ensures minimum power
-            ThrowCherry(finalPower);
-
-            isAiming = false;
-            lineRenderer.enabled = false;
-            isHoldingCherry = false;
-            heldCherry = null;
-
-            if (landingMarkerInstance != null)
-                landingMarkerInstance.SetActive(false);
-
-            throwPower = 0f;
-        }
-        else
-        {
-            if (lineRenderer != null)
-                lineRenderer.enabled = false;
-        }
+        }*/
     }
-
 
 
     public void PickUpCherry(GameObject cherryObject)
@@ -308,6 +326,23 @@ public class Projectile : MonoBehaviour
 
         throwPower = 0f;
     }
+
+    private IEnumerator DelayedThrow(float power)
+    {
+        yield return new WaitForSeconds(throwDelay);
+
+        // if the cherry still exists, actually throw
+        if (heldCherry != null)
+        {
+            ThrowCherry(power);
+        }
+
+        // clear pending flag and notify player script
+        pendingThrow = false;
+        owner.GetComponent<PlayerCherry>()?.NotifyThrowEnded();
+    }
+
+
 
 
 

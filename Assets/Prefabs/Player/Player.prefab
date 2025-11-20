@@ -1300,12 +1300,14 @@ MonoBehaviour:
   isSlowed: 0
   fallMultiplier: 2.5
   lowJumpMultiplier: 2
+  allowJumpInput: 1
   groundCheckPoint: {fileID: 9210341488620325377}
   groundCheckDistance: 1
   groundLayer:
     serializedVersion: 2
     m_Bits: 128
   rotationSpeed: 10
+  aimRotationMultiplier: 0.35
   handHoldPoint: {fileID: 5548299175810455626}
   cherryPrefab: {fileID: 0}
   projectileScript: {fileID: 3613977573174308583}
@@ -1461,6 +1463,7 @@ MonoBehaviour:
   launchSpeed: 14.8
   linePoints: 35
   timeStep: 0.1
+  throwDelay: 0.2
   groundLayer:
     serializedVersion: 2
     m_Bits: 128
