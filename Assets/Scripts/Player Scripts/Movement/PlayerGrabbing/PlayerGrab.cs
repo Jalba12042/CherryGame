@@ -21,8 +21,17 @@ public class PlayerGrab : MonoBehaviour
     private bool grabEscapeCooldown = false; // prevents grab right after escape
     public float escapeCooldownTime = 1f;    // duration of cooldown after escape
     private Animator animator;
+    [SerializeField] private Animator faceAnimator;
+    public GameObject stunCanvas;
+    public TMPro.TMP_Text stunTimerText;
 
 
+
+    private void Awake()
+    {
+        if (faceAnimator == null)
+            faceAnimator = GetComponentInChildren<Animator>();
+    }
 
 
     void Start()
@@ -30,6 +39,9 @@ public class PlayerGrab : MonoBehaviour
         player = GetComponent<Playermovement>();
         myCollider = GetComponent<Collider>();
         animator = GetComponent<Animator>();
+
+        if (stunCanvas != null)
+            stunCanvas.SetActive(false);
 
     }
 
@@ -159,7 +171,7 @@ public class PlayerGrab : MonoBehaviour
 
         // Apply stun only to the thrown player
         if (thrownPm != null)
-            StartCoroutine(thrownPm.GetComponent<PlayerGrab>().StunRoutine(2f));
+            StartCoroutine(thrownPm.GetComponent<PlayerGrab>().StunRoutine(5f));
 
         // Re-enable thrown player's grab component
         if (thrownGrab != null)
@@ -167,13 +179,51 @@ public class PlayerGrab : MonoBehaviour
     }
 
 
-
     public IEnumerator StunRoutine(float duration)
     {
         player.canMove = false;
-        yield return new WaitForSeconds(duration);
+
+        // Freeze random blinking
+        RandomFaceChanger rfc = GetComponentInChildren<RandomFaceChanger>();
+        if (rfc != null)
+            rfc.PauseFaces();
+
+        if (faceAnimator != null)
+            faceAnimator.SetBool("isStunned", true);
+
+        // ----- ENABLE UI -----
+        if (stunCanvas != null)
+            stunCanvas.SetActive(true);
+
+        float remaining = duration;
+
+        while (remaining > 0f)
+        {
+            if (stunTimerText != null)
+                stunTimerText.text = Mathf.Ceil(remaining).ToString(); // 5,4,3,2,1
+
+            yield return new WaitForSeconds(1f);
+            remaining -= 1f;
+        }
+
+        // Turn off stunned animation
+        if (faceAnimator != null)
+            faceAnimator.SetBool("isStunned", false);
+
+        // Resume blinking
+        if (rfc != null)
+            rfc.ResumeFaces();
+
+        // ----- DISABLE UI -----
+        if (stunCanvas != null)
+            stunCanvas.SetActive(false);
+
         player.canMove = true;
     }
+
+
+
+
 
     private void OnTriggerEnter(Collider other)
     {

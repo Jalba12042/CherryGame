@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Multiplayer.Center.NetcodeForGameObjectsExample.DistributedAuthority;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class RoundManager : MonoBehaviour
 {
@@ -15,6 +16,9 @@ public class RoundManager : MonoBehaviour
     public bool currRoundActive;
     public int[] currRoundScores;
     public List<Round> roundList; // list of rounds we can cycle through
+
+    [Header("UI")]
+    private TextMeshProUGUI timerText;
 
     [Header("PowerUp List")]
     public List<GameObject> powerUpsInRotation; // List of all powerups in rotation
@@ -56,6 +60,18 @@ public class RoundManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        GameObject timerGO = GameObject.FindWithTag("Timer");
+        if (timerGO != null)
+        {
+            timerText = timerGO.GetComponent<TextMeshProUGUI>();
+            if (timerText == null)
+                Debug.LogWarning("Timer GameObject found but no TextMeshProUGUI component attached.");
+        }
+        else
+        {
+            Debug.LogWarning("No GameObject with tag 'Timer' found in the scene.");
+        }
     }
     private void Update()
     {
@@ -63,7 +79,9 @@ public class RoundManager : MonoBehaviour
         {
             SelectRound();
         }
-        if (currRound != null && SceneManager.GetActiveScene().name.Equals(currRound.sceneName))
+
+        #region Maxs old logic for Round stuff
+        /*if (currRound != null && SceneManager.GetActiveScene().name.Equals(currRound.sceneName))
         {
             GameManager.Instance.currGameState = GameManager.GameState.Round;
 
@@ -98,7 +116,8 @@ public class RoundManager : MonoBehaviour
                 GameManager.Instance.currGameState = GameManager.GameState.Win;
                 //SceneManager.LoadSceneAsync(shopSceneName);
             }
-        }
+        }*/
+        #endregion
     }
 
     // randomly selects a round depending on how many we have and if we want to allow repeats 
@@ -131,12 +150,13 @@ public class RoundManager : MonoBehaviour
         currRoundDurationInSecs = currRound.roundTimeInSeconds;
     }
 
+    #region Maxs old StartRound()
     // our game timer
-    private IEnumerator StartRound()
+    /*public IEnumerator StartRound()
     {
         currPlayerSpawn = FindFirstObjectByType<PlayerSpawn>();
-        instructPanel = GameObject.FindWithTag("InstructUI");
-        instructPanel.SetActive(true);
+        //instructPanel = GameObject.FindWithTag("InstructUI");
+        //instructPanel.SetActive(true);
 
         // destroy any left over goal objects
         if (currRound.goalObjects.Count != 0 && currRound.goalObjects != null)
@@ -189,42 +209,6 @@ public class RoundManager : MonoBehaviour
                 faceCam.targetTexture = playerFaceRenderTextures[playerSlot];
         }
 
-        /*playerObjects = new GameObject[GameManager.Instance.playerCount];
-        for (int i = 0; i < GameManager.Instance.playerCount; i++)
-        {
-            playerObjects[i] = Instantiate(playerPrefab, currPlayerSpawn.spawnPoints[i].position, Quaternion.identity);
-            Playermovement player = playerObjects[i].GetComponentInChildren<Playermovement>();
-            player.GetComponent<PlayerEscapeUI>().playerIndex = i;
-
-            player.playerIndex = i;
-
-            int assignedControllerIndex = GameManager.Instance.controllerAssignments[i];
-            if (assignedControllerIndex >= 0 && assignedControllerIndex < UnityEngine.InputSystem.Gamepad.all.Count)
-            {
-                player.assignedGamepad = UnityEngine.InputSystem.Gamepad.all[assignedControllerIndex];
-                Debug.Log($"Player {i + 1} using controller {assignedControllerIndex} (Player index in array: {i})");
-            }
-            else
-            {
-                Debug.LogWarning($"Player {i + 1} has no valid controller assigned!");
-            }
-
-            //Attaches each player their own face cam
-            Camera faceCam = player.GetComponentInChildren<Camera>();
-            if (faceCam != null && i < playerFaceRenderTextures.Length)
-                faceCam.targetTexture = playerFaceRenderTextures[i];
-
-        }*/
-
-        // initial timer for round start
-        startTimer = 0;
-        while (startTimer < startTimerInSeconds)
-        {
-            yield return new WaitForSeconds(1);
-            startTimer++;
-            Debug.Log(startTimer);
-        }
-        instructPanel.SetActive(false);
         // start the round
         StartCoroutine(currRound.StartGoal());
         while (currRoundProgress < currRoundDurationInSecs)
@@ -234,7 +218,8 @@ public class RoundManager : MonoBehaviour
         }
 
         currRoundProgress = currRoundDurationInSecs;
-    }
+    }*/
+    #endregion
     public void switchRoundScene()
     {
         if (!SceneManager.GetActiveScene().name.Equals(currRound.sceneName))
@@ -262,4 +247,96 @@ public class RoundManager : MonoBehaviour
         }
         return currWinnerIndexes;
     }
+
+    public void BeginRound()
+    {
+        if (currRound == null || currRoundActive) return;
+
+        currRoundProgress = 0;
+        roundSelected = true;
+        currRoundActive = true;
+
+        // Spawn players
+        SpawnPlayers();
+
+        // Assign BasketContainer if CherryRound
+        if (currRound is CherryRound cherryRound)
+        {
+            GameObject basketObj = GameObject.FindWithTag("BasketContainer");
+            if (basketObj != null)
+                cherryRound.SetBasketContainer(basketObj.GetComponent<BasketContainer>());
+            else
+                Debug.LogError("BasketContainer not found in scene!");
+        }
+
+        // Start the round goal and timer
+        StartCoroutine(currRound.StartGoal());
+        StartCoroutine(RoundTimer());
+    }
+
+
+    private void SpawnPlayers()
+    {
+        currPlayerSpawn = FindFirstObjectByType<PlayerSpawn>();
+        playerObjects = new GameObject[GameManager.Instance.playerCount];
+
+        for (int i = 0; i < GameManager.Instance.playerCount; i++)
+        {
+            int assignedControllerIndex = GameManager.Instance.controllerAssignments[i];
+
+            GameObject playerObj = Instantiate(playerPrefab, currPlayerSpawn.spawnPoints[i].position, Quaternion.identity);
+            Playermovement player = playerObj.GetComponentInChildren<Playermovement>();
+            player.playerIndex = i;
+            player.GetComponent<PlayerEscapeUI>().playerIndex = i;
+
+            if (assignedControllerIndex >= 0 && assignedControllerIndex < UnityEngine.InputSystem.Gamepad.all.Count)
+                player.assignedGamepad = UnityEngine.InputSystem.Gamepad.all[assignedControllerIndex];
+
+            // Assign color
+            PlayerColorAssigner colorAssigner = playerObj.GetComponentInChildren<PlayerColorAssigner>();
+            if (colorAssigner != null) colorAssigner.AssignColor(i);
+
+            // Assign face cam
+            Camera faceCam = player.GetComponentInChildren<Camera>();
+            if (faceCam != null && i < playerFaceRenderTextures.Length)
+                faceCam.targetTexture = playerFaceRenderTextures[i];
+
+            playerObjects[i] = playerObj;
+        }
+    }
+
+    private IEnumerator RoundTimer()
+    {
+        while (currRoundProgress < currRoundDurationInSecs)
+        {
+            currRoundProgress += Time.deltaTime;
+
+            if (timerText != null)
+            {
+                float remaining = currRoundDurationInSecs - currRoundProgress;
+                timerText.text = Mathf.CeilToInt(remaining).ToString();
+            }
+
+            yield return null;
+        }
+
+        currRoundProgress = currRoundDurationInSecs;
+
+        // Round over, calculate winners
+        currRoundScores = currRound.ScoreCount();
+        List<int> winnerIndexes = checkWinIndexes();
+        WinScript.winningPlayers = winnerIndexes;
+
+        SceneManager.LoadSceneAsync(winSceneName);
+
+        roundSelected = false;
+        currRoundActive = false;
+        currRound = null;
+    }
+
+    public void SetTimer(TextMeshProUGUI timer)
+    {
+        timerText = timer;
+    }
+
 }

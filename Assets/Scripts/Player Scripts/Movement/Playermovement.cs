@@ -14,6 +14,7 @@ public class Playermovement : MonoBehaviour
     public float fallMultiplier = 2.5f;
     public float lowJumpMultiplier = 2f;
     private float jumpDelayTimer = 0f;
+    public bool allowJumpInput = true;
 
 
     [Header("Ground Check")]
@@ -160,7 +161,7 @@ public class Playermovement : MonoBehaviour
             jumpRequested = true;*/
 
         // Jump input
-        if (isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame && canMove)
+        if (allowJumpInput && isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame && canMove)
         {
             jumpRequested = true;
             jumpDelayTimer = 0.15f; // adjust to match animation anticipation

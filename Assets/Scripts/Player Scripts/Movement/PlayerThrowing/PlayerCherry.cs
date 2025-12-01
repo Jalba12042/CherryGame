@@ -14,6 +14,8 @@ public class PlayerCherry : MonoBehaviour
     private GameObject heldCherry;
     private GameObject nearbyCherry;
 
+    private bool isThrowing = false;
+
     void Start()
     {
         player = GetComponent<Playermovement>();
@@ -57,6 +59,30 @@ public class PlayerCherry : MonoBehaviour
 
     private void HandleDrop()
     {
+        // If the Projectile reports aiming or a pending throw, DO NOT drop.
+        if (projectileScript != null && (projectileScript.IsAiming() || projectileScript.IsThrowPending() || isThrowing))
+            return;
+
+        if (heldCherry != null)
+        {
+            Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
+            heldCherry.transform.SetParent(null);
+            if (rbCherry != null) rbCherry.isKinematic = false;
+
+            projectileScript?.CancelAim();
+            if (animator != null)
+                animator.SetBool("isPickingUp", false);
+
+            heldCherry = null;
+        }
+    }
+
+
+    /*private void HandleDrop()
+    {
+        if (projectileScript.IsAiming())
+            return;
+
         if (heldCherry != null)
         {
             Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
@@ -67,7 +93,7 @@ public class PlayerCherry : MonoBehaviour
                 animator.SetBool("isPickingUp", false);
             heldCherry = null;
         }
-    }
+    }*/
 
     private void OnTriggerEnter(Collider other)
     {
@@ -79,5 +105,15 @@ public class PlayerCherry : MonoBehaviour
     {
         if (other.CompareTag("Cherry") && other.gameObject == nearbyCherry)
             nearbyCherry = null;
+    }
+
+    public void NotifyThrowStarted()
+    {
+        isThrowing = true;
+    }
+
+    public void NotifyThrowEnded()
+    {
+        isThrowing = false;
     }
 }

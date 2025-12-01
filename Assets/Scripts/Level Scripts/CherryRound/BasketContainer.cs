@@ -20,6 +20,24 @@ public class BasketContainer : MonoBehaviour
     public int[] countCherries()
     {
         int[] scores = new int[GameManager.Instance.playerCount];
+
+        for (int i = 0; i < scores.Length; i++)
+        {
+            Basket b = baskets[i].GetComponentInChildren<Basket>();
+            if (b != null)
+                scores[i] = b.numItemsInBasket;
+            else
+                Debug.LogError($"Basket script missing on basket {i} (GameObject: {baskets[i].name})");
+        }
+
+        return scores;
+    }
+
+
+    #region Maxs old countCherries()
+    /*public int[] countCherries()
+    {
+        int[] scores = new int[GameManager.Instance.playerCount];
         for (int i = 0; i < scores.Length; i++)
         {
             Basket b = baskets[i].GetComponent<Basket>();
@@ -27,5 +45,6 @@ public class BasketContainer : MonoBehaviour
         }
 
         return scores;
-    }
+    }*/
+    #endregion
 }
