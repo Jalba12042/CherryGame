@@ -47,4 +47,21 @@ public class RandomFaceChanger : MonoBehaviour
         isChanging = false;
         StopAllCoroutines();
     }
+
+    public void PauseFaces()
+    {
+        isChanging = false;
+        StopAllCoroutines();
+    }
+
+
+    public void ResumeFaces()
+    {
+        if (!isChanging)
+        {
+            isChanging = true;
+            StartCoroutine(ChangeFaceLoop());
+        }
+    }
+
 }
