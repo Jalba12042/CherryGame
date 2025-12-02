@@ -171,7 +171,7 @@ public class PlayerGrab : MonoBehaviour
 
         // Apply stun only to the thrown player
         if (thrownPm != null)
-            StartCoroutine(thrownPm.GetComponent<PlayerGrab>().StunRoutine(5f));
+            StartCoroutine(thrownPm.GetComponent<PlayerGrab>().StunRoutine(3f));
 
         // Re-enable thrown player's grab component
         if (thrownGrab != null)
@@ -200,7 +200,7 @@ public class PlayerGrab : MonoBehaviour
         while (remaining > 0f)
         {
             if (stunTimerText != null)
-                stunTimerText.text = Mathf.Ceil(remaining).ToString(); // 5,4,3,2,1
+                stunTimerText.text = Mathf.Ceil(remaining).ToString(); // 3,2,1
 
             yield return new WaitForSeconds(1f);
             remaining -= 1f;
