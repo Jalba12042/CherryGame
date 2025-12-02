@@ -10,7 +10,7 @@ public class RandomFaceChanger : MonoBehaviour
     public Animator animator;
     public string[] faceAnimations; // Drag animation state names here
     public float minChangeTime = 1f;
-    public float maxChangeTime = 3f;
+    public float maxChangeTime = 5f;
 
     private bool isChanging = true;
 
