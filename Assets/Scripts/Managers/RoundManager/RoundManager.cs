@@ -255,6 +255,7 @@ public class RoundManager : MonoBehaviour
         currRoundProgress = 0;
         roundSelected = true;
         currRoundActive = true;
+        currRound.goalObjects = new List<GameObject>();
 
         // Spawn players
         SpawnPlayers();
