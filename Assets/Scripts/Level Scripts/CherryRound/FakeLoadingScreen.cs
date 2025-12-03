@@ -89,6 +89,8 @@ public class FakeLoadingScreen : MonoBehaviour
 
     private void BeginRound()
     {
+        if (RoundManager.Instance.currRound.startTimerUI != null)
+            RoundManager.Instance.currRound.startTimerUI.SetActive(true);
         RoundManager.Instance.BeginRound();
         loadingPanel.SetActive(false);
         this.enabled = false; // prevent duplicate calls
