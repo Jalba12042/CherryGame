@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 59a03af5141731a41987fbd21cfd5346, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -1447,18 +1447,12 @@ PrefabInstance:
       insertIndex: 11
       addedObject: {fileID: 1130657829}
     - targetCorrespondingSourceObject: {fileID: 7289620005814338188, guid: 7b207423adcfcf64c99cb00f38de77fd, type: 3}
-      insertIndex: 2
+      insertIndex: -1
       addedObject: {fileID: 1350248452}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2126848131769411994, guid: 7b207423adcfcf64c99cb00f38de77fd, type: 3}
       insertIndex: -1
       addedObject: {fileID: 146812846}
-    - targetCorrespondingSourceObject: {fileID: 757368706038785658, guid: 7b207423adcfcf64c99cb00f38de77fd, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 122092825}
-    - targetCorrespondingSourceObject: {fileID: 8811985899638423052, guid: 7b207423adcfcf64c99cb00f38de77fd, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 122092824}
     - targetCorrespondingSourceObject: {fileID: 7194562745954850925, guid: 7b207423adcfcf64c99cb00f38de77fd, type: 3}
       insertIndex: -1
       addedObject: {fileID: 122092823}
@@ -1543,16 +1537,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 7194562745954850925, guid: 7b207423adcfcf64c99cb00f38de77fd, type: 3}
   m_PrefabInstance: {fileID: 122092819}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &122092821 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8811985899638423052, guid: 7b207423adcfcf64c99cb00f38de77fd, type: 3}
-  m_PrefabInstance: {fileID: 122092819}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &122092822 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 757368706038785658, guid: 7b207423adcfcf64c99cb00f38de77fd, type: 3}
-  m_PrefabInstance: {fileID: 122092819}
-  m_PrefabAsset: {fileID: 0}
 --- !u!64 &122092823
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1575,50 +1559,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 5358991509302202112, guid: e89b338e0109d9e4d84a80d7c7ac2e4c, type: 3}
---- !u!64 &122092824
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 122092821}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 5358991509302202112, guid: e89b338e0109d9e4d84a80d7c7ac2e4c, type: 3}
---- !u!64 &122092825
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 122092822}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -3675369248753904948, guid: e89b338e0109d9e4d84a80d7c7ac2e4c, type: 3}
 --- !u!1001 &145184406
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14109,13 +14049,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1340385529}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.34515074, y: -0.33843714, z: 0.12616813, w: 0.8662638}
-  m_LocalPosition: {x: 22, y: 25.5, z: 13.8}
+  m_LocalRotation: {x: -0.1381157, y: -0.3559231, z: -0.06145641, w: 0.9222072}
+  m_LocalPosition: {x: 22, y: -5.2, z: 13.8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 43.109, y: -43.146, z: -1.18}
+  m_LocalEulerAnglesHint: {x: -17.367, y: -42.07, z: -0.903}
 --- !u!114 &1340385533
 MonoBehaviour:
   m_ObjectHideFlags: 0
