@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+
 
 [CreateAssetMenu(fileName = "New Cherry Round", menuName = "Rounds/Round/Cherry", order = 1)]
 public class CherryRound : Round
@@ -16,25 +18,34 @@ public class CherryRound : Round
     private GameObject powerupSpawnArea; // temp power up spawn area
     private BasketContainer bc;
 
-    public override IEnumerator StartGoal()
+    public override void setValues()
     {
         GameObject basketContainer = GameObject.FindWithTag("BasketContainer");
         bc = basketContainer.GetComponent<BasketContainer>();
 
         // get the bounds of the area of where we want cherries to spawn
         spawnArea = GameObject.FindWithTag("SpawnArea");
-        Collider spawnCollider = spawnArea.GetComponent<Collider>();
-        Bounds b = spawnCollider.bounds;
-
+        
         // temp the bounds of power up spawn area
         powerupSpawnArea = GameObject.FindWithTag("PowerUpSpawnArea");
-        Collider puSpawnCollider = powerupSpawnArea.GetComponent<Collider>();
-        Bounds puB = puSpawnCollider.bounds;
+
+        // start timer
+        startTimerUI = GameObject.FindWithTag("StartTimer");
+        startTimerUI.SetActive(false);
 
         if (goalObjects == null)
         {
             goalObjects = new List<GameObject>();
         }
+    }
+    public override IEnumerator StartGoal()
+    {
+        Collider spawnCollider = spawnArea.GetComponent<Collider>();
+        Bounds b = spawnCollider.bounds;
+
+        Collider puSpawnCollider = powerupSpawnArea.GetComponent<Collider>();
+        Bounds puB = puSpawnCollider.bounds;
+
         // while the round is going, spawn a random amount of cherry prefabs in random spots in the spawn area every n seconds
         while (RoundManager.Instance.currRoundActive)
         {

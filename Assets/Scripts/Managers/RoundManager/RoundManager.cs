@@ -254,7 +254,7 @@ public class RoundManager : MonoBehaviour
 
         currRoundProgress = 0;
         roundSelected = true;
-        currRoundActive = true;
+        //currRoundActive = true;
         currRound.goalObjects = new List<GameObject>();
 
         // Spawn players
@@ -270,9 +270,9 @@ public class RoundManager : MonoBehaviour
                 Debug.LogError("BasketContainer not found in scene!");
         }
 
-        // Start the round goal and timer
-        StartCoroutine(currRound.StartGoal());
-        StartCoroutine(RoundTimer());
+        // Start the round timer and initial round values
+        currRound.setValues();
+        StartCoroutine(StartTimer());
     }
 
 
@@ -306,7 +306,31 @@ public class RoundManager : MonoBehaviour
         }
     }
 
-    private IEnumerator RoundTimer()
+    public IEnumerator StartTimer()
+    {
+        timerText.text = "";
+
+        // timer at round start
+        float timer = 0;
+        float maxTimer = 3;
+        TMP_Text startTimerText = currRound.startTimerUI.GetComponent<TMP_Text>();
+        if (currRound.startTimerUI != null)
+        {
+            currRound.startTimerUI.SetActive(true);
+            while (timer < 3)
+            {
+                timer += Time.deltaTime;
+                startTimerText.text = $"{((int)(maxTimer - timer)) + 1}";
+                yield return null;
+            }
+            currRound.startTimerUI.SetActive(false);
+        }
+
+        currRoundActive = true;
+        StartCoroutine(RoundTimer());
+        StartCoroutine(currRound.StartGoal());
+    }
+    public IEnumerator RoundTimer()
     {
         while (currRoundProgress < currRoundDurationInSecs)
         {
