@@ -363,33 +363,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87444275073604398496f1e4566134, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerIndex: 0
-  feetPosition: {fileID: 0}
-  groundCheckRadius: 0.5
-  groundLayer:
-    m_Bits: 0
-  jumpForce: 1200
-  PlayerRoot: {fileID: 0}
-  PlayerRigged: {fileID: 0}
-  hips: {fileID: 0}
-  targetPose: {fileID: 0}
-  rightArmJoint: {fileID: 0}
-  defaultArmTarget: {x: 0, y: 0, z: 0, w: 0}
-  liftedArmTarget: {x: 0, y: 0, z: 0, w: 0}
-  holdingCherry: 0
-  uprightForce: 500
-  uprightTorque: 200
-  uprightBodies: []
-  moveForce: 60
-  maxSpeed: 5
-  turnSpeed: 5
-  handHoldPoint: {fileID: 0}
-  cherryPrefab: {fileID: 0}
-  heldCherry: {fileID: 0}
-  nearbyCherry: {fileID: 0}
-  pickupRadius: 6
-  moveInput: {x: 0, y: 0, z: 0}
-  lookInput: {x: 0, y: 0}
 --- !u!54 &11649649
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2852,14 +2825,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 060fe94b2b4f56e4ca685d09936433c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerIndex: 0
-  handHoldPoint: {fileID: 1452162227}
-  isCharging: 0
-  heldLayerName: HeldCherry
-  heldCherry: {fileID: 0}
-  nearbyCherry: {fileID: 0}
-  projectileScript: {fileID: 0}
-  originalLayer: 0
 --- !u!1 &511561029
 GameObject:
   m_ObjectHideFlags: 0
@@ -2987,9 +2952,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d498753a998ebc441b37adb54aec6da6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 0}
-  rotateSpeed: 300
-  playerIndex: 0
 --- !u!114 &512121562
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3002,16 +2964,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: debb5a67b66f845458b10b91d78561b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerIndex: 0
-  speed: 3
-  jumpForce: 30
-  groundCheckPoint: {fileID: 346626305}
-  groundCheckDistance: 0.4
-  groundLayer:
-    m_Bits: 128
-  rb: {fileID: 0}
-  isGrounded: 0
-  jumpRequested: 0
 --- !u!1 &518678244
 GameObject:
   m_ObjectHideFlags: 0
@@ -3800,12 +3752,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b9da41af1f26fe4a8ba6f3ae1efe1af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rigidbody: {fileID: 0}
-  keepUpright: 1
-  uprightForce: 10
-  uprightOffset: 1.45
-  additionalUpwardForce: -5
-  dampenAngularForce: 0
 --- !u!75 &648609883
 ConstantForce:
   m_ObjectHideFlags: 0
@@ -4314,14 +4260,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 060fe94b2b4f56e4ca685d09936433c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerIndex: 1
-  handHoldPoint: {fileID: 823273121}
-  isCharging: 0
-  heldLayerName: HeldCherry
-  heldCherry: {fileID: 0}
-  nearbyCherry: {fileID: 0}
-  projectileScript: {fileID: 0}
-  originalLayer: 0
 --- !u!54 &713357253
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -4893,33 +4831,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87444275073604398496f1e4566134, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerIndex: 0
-  feetPosition: {fileID: 0}
-  groundCheckRadius: 0.5
-  groundLayer:
-    m_Bits: 0
-  jumpForce: 1200
-  PlayerRoot: {fileID: 0}
-  PlayerRigged: {fileID: 0}
-  hips: {fileID: 0}
-  targetPose: {fileID: 0}
-  rightArmJoint: {fileID: 0}
-  defaultArmTarget: {x: 0, y: 0, z: 0, w: 0}
-  liftedArmTarget: {x: 0, y: 0, z: 0, w: 0}
-  holdingCherry: 0
-  uprightForce: 500
-  uprightTorque: 200
-  uprightBodies: []
-  moveForce: 60
-  maxSpeed: 5
-  turnSpeed: 5
-  handHoldPoint: {fileID: 0}
-  cherryPrefab: {fileID: 0}
-  heldCherry: {fileID: 0}
-  nearbyCherry: {fileID: 0}
-  pickupRadius: 6
-  moveInput: {x: 0, y: 0, z: 0}
-  lookInput: {x: 0, y: 0}
 --- !u!54 &795689865
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -6074,9 +5985,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d498753a998ebc441b37adb54aec6da6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 0}
-  rotateSpeed: 300
-  playerIndex: 1
 --- !u!114 &885210743
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6089,16 +5997,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: debb5a67b66f845458b10b91d78561b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerIndex: 1
-  speed: 3
-  jumpForce: 30
-  groundCheckPoint: {fileID: 1671079937}
-  groundCheckDistance: 0.4
-  groundLayer:
-    m_Bits: 128
-  rb: {fileID: 0}
-  isGrounded: 0
-  jumpRequested: 0
 --- !u!114 &885210744
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8425,33 +8323,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87444275073604398496f1e4566134, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerIndex: 0
-  feetPosition: {fileID: 0}
-  groundCheckRadius: 0.5
-  groundLayer:
-    m_Bits: 0
-  jumpForce: 1200
-  PlayerRoot: {fileID: 0}
-  PlayerRigged: {fileID: 0}
-  hips: {fileID: 0}
-  targetPose: {fileID: 0}
-  rightArmJoint: {fileID: 0}
-  defaultArmTarget: {x: 0, y: 0, z: 0, w: 0}
-  liftedArmTarget: {x: 0, y: 0, z: 0, w: 0}
-  holdingCherry: 0
-  uprightForce: 500
-  uprightTorque: 200
-  uprightBodies: []
-  moveForce: 60
-  maxSpeed: 5
-  turnSpeed: 5
-  handHoldPoint: {fileID: 0}
-  cherryPrefab: {fileID: 0}
-  heldCherry: {fileID: 0}
-  nearbyCherry: {fileID: 0}
-  pickupRadius: 6
-  moveInput: {x: 0, y: 0, z: 0}
-  lookInput: {x: 0, y: 0}
 --- !u!54 &1411162736
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -8731,14 +8602,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 060fe94b2b4f56e4ca685d09936433c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerIndex: 1
-  handHoldPoint: {fileID: 624446402}
-  isCharging: 0
-  heldLayerName: HeldCherry
-  heldCherry: {fileID: 0}
-  nearbyCherry: {fileID: 0}
-  projectileScript: {fileID: 0}
-  originalLayer: 0
 --- !u!54 &1440280086
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -10439,12 +10302,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b9da41af1f26fe4a8ba6f3ae1efe1af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rigidbody: {fileID: 0}
-  keepUpright: 1
-  uprightForce: 10
-  uprightOffset: 1.45
-  additionalUpwardForce: -5
-  dampenAngularForce: 0
 --- !u!75 &1646148358
 ConstantForce:
   m_ObjectHideFlags: 0
@@ -12186,16 +12043,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: debb5a67b66f845458b10b91d78561b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerIndex: 0
-  speed: 3
-  jumpForce: 30
-  groundCheckPoint: {fileID: 346626305}
-  groundCheckDistance: 0.4
-  groundLayer:
-    m_Bits: 128
-  rb: {fileID: 0}
-  isGrounded: 0
-  jumpRequested: 0
 --- !u!114 &1876927897
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12208,9 +12055,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d498753a998ebc441b37adb54aec6da6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 0}
-  rotateSpeed: 300
-  playerIndex: 0
 --- !u!114 &1876927898
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12474,12 +12318,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b9da41af1f26fe4a8ba6f3ae1efe1af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rigidbody: {fileID: 0}
-  keepUpright: 1
-  uprightForce: 10
-  uprightOffset: 1.45
-  additionalUpwardForce: -5
-  dampenAngularForce: 0
 --- !u!75 &1915381789
 ConstantForce:
   m_ObjectHideFlags: 0
@@ -12774,7 +12612,97 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 28887ac0518804b81ba1356a42092fed, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2048221954}
+    - targetCorrespondingSourceObject: {fileID: -541363609340431614, guid: 28887ac0518804b81ba1356a42092fed, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1980460897}
+    - targetCorrespondingSourceObject: {fileID: -6624703314495361479, guid: 28887ac0518804b81ba1356a42092fed, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1980460896}
   m_SourcePrefab: {fileID: 100100000, guid: 28887ac0518804b81ba1356a42092fed, type: 3}
+--- !u!1 &1980460894 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6624703314495361479, guid: 28887ac0518804b81ba1356a42092fed, type: 3}
+  m_PrefabInstance: {fileID: 1980460893}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1980460895 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -541363609340431614, guid: 28887ac0518804b81ba1356a42092fed, type: 3}
+  m_PrefabInstance: {fileID: 1980460893}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1980460896
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1980460894}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e01f27e0f3b6af4fbd42fbfef0b909d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UpdateWithPhysics: 0
+  UseCenterOfMass: 0
+  CenterOfMass: {x: 1, y: 0, z: 0}
+  CenterOfMassInertia: 1
+  AddWind: 0
+  WindDirection: {x: 1, y: 0, z: 0}
+  WindStrength: 1
+  AddNoise: 0
+  NoiseStrength: 1
+  NoiseScale: 1
+  NoiseSpeed: 1
+  RotationInertia: 1
+  Gravity: 0
+  SpringStrength: 0.4
+  Dampening: 0.4
+  BlendToOriginalRotation: 0
+  Hinge: 0
+  HingeAngle: 0
+  UseAngleLimit: 0
+  AngleLimit: 180
+  UseSoftLimit: 0
+  SoftLimitInfluence: 0.5
+  SoftLimitStrength: 0.5
+  ShowViewportGizmos: 1
+  GizmoScale: 0.1
+--- !u!114 &1980460897
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1980460895}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e01f27e0f3b6af4fbd42fbfef0b909d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  UpdateWithPhysics: 0
+  UseCenterOfMass: 0
+  CenterOfMass: {x: 1, y: 0, z: 0}
+  CenterOfMassInertia: 1
+  AddWind: 0
+  WindDirection: {x: 1, y: 0, z: 0}
+  WindStrength: 1
+  AddNoise: 0
+  NoiseStrength: 1
+  NoiseScale: 1
+  NoiseSpeed: 1
+  RotationInertia: 1
+  Gravity: 0
+  SpringStrength: 0.4
+  Dampening: 0.4
+  BlendToOriginalRotation: 0
+  Hinge: 0
+  HingeAngle: 0
+  UseAngleLimit: 0
+  AngleLimit: 180
+  UseSoftLimit: 0
+  SoftLimitInfluence: 0.5
+  SoftLimitStrength: 0.5
+  ShowViewportGizmos: 1
+  GizmoScale: 0.1
 --- !u!1 &1980874495
 GameObject:
   m_ObjectHideFlags: 0
@@ -12821,16 +12749,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c124906b111ef76418a1dda7c30d286c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerIndex: 0
-  pickupTarget: {fileID: 9065369}
-  pickupRange: 2
-  isCurrentlyGrabbed: 0
-  grabbedPlayerHip: {fileID: 0}
-  grabbedRigidbody: {fileID: 0}
-  playerPickupScript: {fileID: 0}
-  grabbedEscapeUI: {fileID: 0}
-  grabCooldownTime: 2
-  canGrab: 1
 --- !u!65 &1980874498
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -13604,16 +13522,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c124906b111ef76418a1dda7c30d286c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerIndex: 1
-  pickupTarget: {fileID: 899385128}
-  pickupRange: 2
-  isCurrentlyGrabbed: 0
-  grabbedPlayerHip: {fileID: 0}
-  grabbedRigidbody: {fileID: 0}
-  playerPickupScript: {fileID: 0}
-  grabbedEscapeUI: {fileID: 0}
-  grabCooldownTime: 2
-  canGrab: 1
 --- !u!114 &2073456888
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13861,9 +13769,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d498753a998ebc441b37adb54aec6da6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 0}
-  rotateSpeed: 300
-  playerIndex: 1
 --- !u!114 &2091684650
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13876,16 +13781,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: debb5a67b66f845458b10b91d78561b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerIndex: 1
-  speed: 3
-  jumpForce: 30
-  groundCheckPoint: {fileID: 1660746144}
-  groundCheckDistance: 0.4
-  groundLayer:
-    m_Bits: 128
-  rb: {fileID: 0}
-  isGrounded: 0
-  jumpRequested: 0
 --- !u!65 &2091684651
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -13956,16 +13851,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c124906b111ef76418a1dda7c30d286c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerIndex: 1
-  pickupTarget: {fileID: 309659778}
-  pickupRange: 2
-  isCurrentlyGrabbed: 0
-  grabbedPlayerHip: {fileID: 0}
-  grabbedRigidbody: {fileID: 0}
-  playerPickupScript: {fileID: 0}
-  grabbedEscapeUI: {fileID: 0}
-  grabCooldownTime: 5
-  canGrab: 1
 --- !u!1 &2111313661
 GameObject:
   m_ObjectHideFlags: 0
@@ -14029,16 +13914,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c124906b111ef76418a1dda7c30d286c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerIndex: 1
-  pickupTarget: {fileID: 309659778}
-  pickupRange: 2
-  isCurrentlyGrabbed: 0
-  grabbedPlayerHip: {fileID: 0}
-  grabbedRigidbody: {fileID: 0}
-  playerPickupScript: {fileID: 0}
-  grabbedEscapeUI: {fileID: 0}
-  grabCooldownTime: 2
-  canGrab: 1
 --- !u!65 &2111313665
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -14483,35 +14358,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87444275073604398496f1e4566134, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerIndex: 0
-  feetPosition: {fileID: 2053200507}
-  groundCheckRadius: 0.5
-  groundLayer:
-    m_Bits: 128
-  jumpForce: 80
-  PlayerRoot: {fileID: 170859948}
-  PlayerRigged: {fileID: 543450653711795600}
-  hips: {fileID: 1012695300}
-  targetPose: {fileID: 1746323461}
-  rightArmJoint: {fileID: 935169224}
-  defaultArmTarget: {x: 0, y: 0, z: 0, w: 0}
-  liftedArmTarget: {x: 0, y: 0, z: 0, w: 0}
-  holdingCherry: 0
-  uprightForce: 500
-  uprightTorque: 1000
-  uprightBodies:
-  - {fileID: 787717364}
-  - {fileID: 1917330956}
-  moveForce: 60
-  maxSpeed: 5
-  turnSpeed: 5
-  handHoldPoint: {fileID: 106718910}
-  cherryPrefab: {fileID: 377751968}
-  heldCherry: {fileID: 0}
-  nearbyCherry: {fileID: 0}
-  pickupRadius: 6
-  moveInput: {x: 0, y: 0, z: 0}
-  lookInput: {x: 0, y: 0}
 --- !u!120 &919132149184093996
 LineRenderer:
   serializedVersion: 2
