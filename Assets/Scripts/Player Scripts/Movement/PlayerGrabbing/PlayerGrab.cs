@@ -93,6 +93,10 @@ public class PlayerGrab : MonoBehaviour
         if (grabbedGrab != null)
             grabbedGrab.isGrabbed = true;
 
+        Animator grabbedAnimator = grabbedPlayer.GetComponent<Animator>();
+        if (grabbedAnimator != null)
+            grabbedAnimator.SetBool("isGrabbed", true);
+
         PlayerEscapeUI escapeUI = grabbedPlayer.GetComponent<PlayerEscapeUI>();
         if (escapeUI != null)
         {
@@ -135,6 +139,10 @@ public class PlayerGrab : MonoBehaviour
                 grabbedGrab.enabled = true;
             }
 
+            Animator grabbedAnimator = grabbedPlayer.GetComponent<Animator>();
+            if (grabbedAnimator != null)
+                grabbedAnimator.SetBool("isGrabbed", false);
+
             if (animator != null)
                 animator.SetBool("isPickingUp", false);
 
@@ -162,6 +170,10 @@ public class PlayerGrab : MonoBehaviour
 
         if (animator != null)
             animator.SetBool("isPickingUp", false);
+
+        Animator thrownAnimator = thrownPlayer.GetComponent<Animator>();
+        if (thrownAnimator != null)
+            thrownAnimator.SetBool("isGrabbed", false);
 
         // Apply throw force
         thrownRb.isKinematic = false;
