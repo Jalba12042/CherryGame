@@ -44,6 +44,8 @@ public class RoundManager : MonoBehaviour
 
     public RenderTexture[] playerFaceRenderTextures;
 
+    public int[] roundsWon = { 0, 0, 0, 0 };
+
 
     private void Awake()
     {
@@ -244,6 +246,11 @@ public class RoundManager : MonoBehaviour
             {
                 currWinnerIndexes.Add(i);
             }
+        }
+
+        for (int i = 0; i < currWinnerIndexes.Count; i++)
+        {
+            roundsWon[currWinnerIndexes[i]]++;
         }
         return currWinnerIndexes;
     }
