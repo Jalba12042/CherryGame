@@ -30,9 +30,13 @@ public class RoundManager : MonoBehaviour
     [SerializeField] private string shopSceneName;
     [SerializeField] private string controllerSceneName;
     [SerializeField] private string winSceneName;
+    [SerializeField] private string gameWinSceneName;
 
     [SerializeField] private int startTimerInSeconds;
     [SerializeField] private GameObject playerPrefab;
+
+    [Header("Max Score to Win Game")]
+    [SerializeField] private int maxScore = 5;
 
     public GameObject[] playerObjects;
     public List<GameObject> powerupsInPlay;
@@ -255,6 +259,20 @@ public class RoundManager : MonoBehaviour
         return currWinnerIndexes;
     }
 
+    private List<int> checkGameWinIndexes()
+    {
+        List<int> currWinnerIndexes = new List<int>();
+        for (int i = 0; i < roundsWon.Length; i++)
+        {
+            if (roundsWon[i] == maxScore)
+            {
+                currWinnerIndexes.Add(i);
+            }
+        }
+
+        return currWinnerIndexes;
+    }
+
     public void BeginRound()
     {
         if (currRound == null || currRoundActive) return;
@@ -359,7 +377,17 @@ public class RoundManager : MonoBehaviour
         List<int> winnerIndexes = checkWinIndexes();
         WinScript.winningPlayers = winnerIndexes;
 
-        SceneManager.LoadSceneAsync(winSceneName);
+        List<int> gameWinners = checkGameWinIndexes();
+        if (gameWinners.Count != 0)
+        {
+            GameWinScript.winningPlayers = gameWinners;
+            roundsWon = new int[] { 0, 0, 0, 0 };
+            SceneManager.LoadSceneAsync(gameWinSceneName);
+        }
+        else
+        {
+            SceneManager.LoadSceneAsync(winSceneName);
+        }
 
         roundSelected = false;
         currRoundActive = false;
