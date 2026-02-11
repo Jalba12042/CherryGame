@@ -13,7 +13,6 @@ public class Playermovement : MonoBehaviour
     [Header("Jump Tuning")]
     public float fallMultiplier = 2.5f;
     public float lowJumpMultiplier = 2f;
-    private float jumpDelayTimer = 0f;
     public bool allowJumpInput = true;
 
 
@@ -42,7 +41,6 @@ public class Playermovement : MonoBehaviour
     [Header("State")]
     public bool canMove = true;
     public bool isGrounded;
-    private bool jumpRequested = false;
     public bool isAiming = false;
 
     [HideInInspector] public Gamepad assignedGamepad;
@@ -99,24 +97,6 @@ public class Playermovement : MonoBehaviour
 
         rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
 
-        // --- Jump ---
-        if (jumpRequested)
-        {
-            jumpDelayTimer -= Time.fixedDeltaTime;
-            if (jumpDelayTimer <= 0f && isGrounded)
-            {
-                rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
-                rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
-                jumpRequested = false;
-            }
-        }
-
-        /*if (jumpRequested && isGrounded)
-        {
-            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
-            jumpRequested = false;
-        }*/
 
         // --- Enhanced Gravity ---
         if (!isGrounded)
@@ -126,6 +106,7 @@ public class Playermovement : MonoBehaviour
             else if (rb.linearVelocity.y > 0 && !assignedGamepad.buttonSouth.isPressed)
                 rb.AddForce(Vector3.up * Physics.gravity.y * (lowJumpMultiplier - 1) * rb.mass);
         }
+
 
         if (animator != null)
         {
@@ -157,14 +138,10 @@ public class Playermovement : MonoBehaviour
         if (assignedGamepad == null) return;
 
         // Jump input
-        /*if (isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame && canMove)
-            jumpRequested = true;*/
 
         // Jump input
         if (allowJumpInput && isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame && canMove)
         {
-            jumpRequested = true;
-            jumpDelayTimer = 0.15f; // adjust to match animation anticipation
             animator.SetTrigger("Jump"); // fire animation immediately
         }
 
@@ -210,6 +187,19 @@ public class Playermovement : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * appliedRotationSpeed);
 
         }
+    }
+
+
+    public void DoJump()
+    {
+        // Only jump if still grounded at the moment of the event
+        if (!isGrounded) return;
+
+        // Reset vertical velocity for consistent jumps
+        rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+
+        // Apply the actual jump force
+        rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
     }
 
 
