@@ -267,6 +267,7 @@ public class RoundManager : MonoBehaviour
             if (roundsWon[i] == maxScore)
             {
                 currWinnerIndexes.Add(i);
+                powerUpsInRotation.Clear();
             }
         }
 
