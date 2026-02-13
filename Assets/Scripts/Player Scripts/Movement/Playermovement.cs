@@ -98,14 +98,22 @@ public class Playermovement : MonoBehaviour
         rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
 
 
-        // --- Enhanced Gravity ---
+        // --- Enhanced Gravity (fixed jump height) ---
         if (!isGrounded)
         {
             if (rb.linearVelocity.y < 0)
+            {
+                // Falling — stronger gravity
                 rb.AddForce(Vector3.up * Physics.gravity.y * (fallMultiplier - 1) * rb.mass);
-            else if (rb.linearVelocity.y > 0 && !assignedGamepad.buttonSouth.isPressed)
+            }
+            else if (rb.linearVelocity.y > 0)
+            {
+                // Rising — always apply same extra gravity
                 rb.AddForce(Vector3.up * Physics.gravity.y * (lowJumpMultiplier - 1) * rb.mass);
+            }
         }
+
+
 
 
         if (animator != null)
