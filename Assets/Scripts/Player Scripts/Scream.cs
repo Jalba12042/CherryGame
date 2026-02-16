@@ -13,7 +13,6 @@ public class Scream : MonoBehaviour
     public AudioSource aSource;
     private Gamepad gp;
     [SerializeField] private Animator faceAnimator;
-    private bool isScreaming = false;
 
     private void Awake()
     {
@@ -64,13 +63,11 @@ public class Scream : MonoBehaviour
 
         // Trigger face animation
         faceAnimator.SetBool("IsScreaming", true);
-        //isScreaming = true;
 
         // Wait for scream duration
         yield return new WaitForSeconds(screamSFX[rand].length);
 
         // Reset face animation
         faceAnimator.SetBool("IsScreaming", false);
-        //isScreaming = false;
     }
 }

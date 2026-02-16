@@ -75,10 +75,11 @@ public class Playermovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (assignedGamepad == null || !canMove) return;
+        //if (assignedGamepad == null || !canMove) return;
+        if (!canMove) return;
 
         // --- Movement ---
-        moveInput = assignedGamepad.leftStick.ReadValue();
+        moveInput = GameManager.Instance.isOnKeyboard ? new Vector2(Input.GetAxis("HorizontalWASD"), Input.GetAxis("VerticalWASD")) : assignedGamepad.leftStick.ReadValue();
         isGrounded = Physics.Raycast(groundCheckPoint.position, Vector3.down, groundCheckDistance, groundLayer);
 
         //Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
@@ -143,14 +144,15 @@ public class Playermovement : MonoBehaviour
 
     private void Update()
     {
-        if (assignedGamepad == null) return;
+        //if (assignedGamepad == null) return;
 
         // Jump input
-
-        // Jump input
-        if (allowJumpInput && isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame && canMove)
+        if (!GameManager.Instance.isOnKeyboard)
         {
-            animator.SetTrigger("Jump"); // fire animation immediately
+            if (allowJumpInput && isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame && canMove)
+            {
+                animator.SetTrigger("Jump"); // fire animation immediately
+            }
         }
 
 
@@ -160,10 +162,12 @@ public class Playermovement : MonoBehaviour
 
     private void HandleRotation()
     {
-        if (assignedGamepad == null) return;
+        //if (assignedGamepad == null) return;
 
-        Vector2 moveInput = assignedGamepad.leftStick.ReadValue();
-        Vector2 aimInput = assignedGamepad.rightStick.ReadValue();
+        Vector2 moveInput = GameManager.Instance.isOnKeyboard ? new Vector2(Input.GetAxis("HorizontalWASD"), Input.GetAxis("VerticalWASD")) : assignedGamepad.leftStick.ReadValue();
+        Vector2 aimInput = GameManager.Instance.isOnKeyboard ? new Vector2(Input.GetAxis("HorizontalArrows"), Input.GetAxis("VerticalArrows")) : assignedGamepad.rightStick.ReadValue();
+        //Vector2 moveInput = assignedGamepad.leftStick.ReadValue();
+        //Vector2 aimInput = assignedGamepad.rightStick.ReadValue();
 
         isAiming = projectileScript != null && projectileScript.IsAiming();
 
