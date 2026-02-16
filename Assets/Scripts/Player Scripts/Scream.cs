@@ -50,6 +50,7 @@ public class Scream : MonoBehaviour
 
     private IEnumerator HandleScream()
     {
+        faceAnimator.SetBool("IsScreaming", false);
         // Stop any ongoing scream sound
         aSource.Stop();
 
@@ -63,13 +64,13 @@ public class Scream : MonoBehaviour
 
         // Trigger face animation
         faceAnimator.SetBool("IsScreaming", true);
-        isScreaming = true;
+        //isScreaming = true;
 
         // Wait for scream duration
         yield return new WaitForSeconds(screamSFX[rand].length);
 
         // Reset face animation
         faceAnimator.SetBool("IsScreaming", false);
-        isScreaming = false;
+        //isScreaming = false;
     }
 }
