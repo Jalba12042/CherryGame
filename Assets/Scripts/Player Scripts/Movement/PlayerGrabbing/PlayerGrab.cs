@@ -47,8 +47,9 @@ public class PlayerGrab : MonoBehaviour
 
     void Update()
     {
-        if (player.assignedGamepad == null) return;
-        gamepad = player.assignedGamepad;
+        //if (player.assignedGamepad == null) return;
+        if (!GameManager.Instance.isOnKeyboard)
+            gamepad = player.assignedGamepad;
 
         // Keep grabbed player at pickup target
         if (grabbedPlayer != null && pickupTarget != null)
@@ -59,12 +60,24 @@ public class PlayerGrab : MonoBehaviour
 
         if (grabEscapeCooldown) return;
 
-        if (gamepad.rightTrigger.wasPressedThisFrame)
-            TryGrab();
-        else if (gamepad.rightTrigger.wasReleasedThisFrame)
-            ReleaseGrab();
-        else if (gamepad.leftTrigger.wasReleasedThisFrame && grabbedPlayer != null)
-            ThrowGrabbedPlayer();
+        if (!GameManager.Instance.isOnKeyboard)
+        {
+            if (gamepad.rightTrigger.wasPressedThisFrame)
+                TryGrab();
+            else if (gamepad.rightTrigger.wasReleasedThisFrame)
+                ReleaseGrab();
+            else if (gamepad.leftTrigger.wasReleasedThisFrame && grabbedPlayer != null)
+                ThrowGrabbedPlayer();
+        }
+        else
+        {
+            if (Input.GetKeyDown(KeyCode.E))
+                TryGrab();
+            else if (Input.GetKeyUp(KeyCode.E))
+                ReleaseGrab();
+            else if (Input.GetKeyUp(KeyCode.Q) && grabbedPlayer != null)
+                ThrowGrabbedPlayer();
+        }
     }
 
 

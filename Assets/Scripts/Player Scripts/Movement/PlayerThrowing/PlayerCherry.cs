@@ -25,15 +25,30 @@ public class PlayerCherry : MonoBehaviour
 
     void Update()
     {
-        if (player.assignedGamepad == null) return;
-        gamepad = player.assignedGamepad;
+        if (!GameManager.Instance.isOnKeyboard)
+        {
+            if (player.assignedGamepad == null) return;
+            gamepad = player.assignedGamepad;
 
-        float rtValue = gamepad.rightTrigger.ReadValue();
 
-        if (rtValue > 0.1f)
-            HandlePickup();
+            float rtValue = gamepad.rightTrigger.ReadValue();
+
+            if (rtValue > 0.1f)
+                HandlePickup();
+            else
+                HandleDrop();
+        }
         else
-            HandleDrop();
+        {
+            if (Input.GetKey(KeyCode.E))
+            {
+                HandlePickup();
+            }
+            else if (Input.GetKeyUp(KeyCode.E))
+            {
+                HandleDrop();
+            } 
+        }
     }
 
     private void HandlePickup()

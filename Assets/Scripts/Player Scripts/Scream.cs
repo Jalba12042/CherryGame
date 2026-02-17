@@ -41,9 +41,19 @@ public class Scream : MonoBehaviour
 
     private void Update()
     {
-        if (gp != null && gp.buttonEast.wasPressedThisFrame)
+        if (!GameManager.Instance.isOnKeyboard)
         {
-            StartCoroutine(HandleScream());
+            if (gp != null && gp.buttonEast.wasPressedThisFrame)
+            {
+                StartCoroutine(HandleScream());
+            }
+        }
+        else
+        {
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                StartCoroutine(HandleScream());
+            }
         }
     }
 

@@ -54,8 +54,10 @@ public class Projectile : MonoBehaviour
 
     void Start()
     {
+       
         if (Gamepad.all.Count > 0)
             assignedGamepad = Gamepad.all[0]; // assign first controller by default
+        
 
         if (lineRenderer != null)
             lineRenderer.positionCount = 0;
@@ -73,6 +75,7 @@ public class Projectile : MonoBehaviour
 
         var gamepad = owner.GetAssignedGamepad();
         if (gamepad == null) return;
+        
 
         // Always aim wherever the player is facing
         launchPoint.forward = owner.transform.forward;
