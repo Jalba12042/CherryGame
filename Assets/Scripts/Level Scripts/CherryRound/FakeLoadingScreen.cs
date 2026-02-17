@@ -87,7 +87,7 @@ public class FakeLoadingScreen : MonoBehaviour
         }
     }
 
-    private void BeginRound()
+    public void BeginRound()
     {
         if (RoundManager.Instance.currRound.startTimerUI != null)
             RoundManager.Instance.currRound.startTimerUI.SetActive(true);
