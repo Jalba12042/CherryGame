@@ -154,6 +154,13 @@ public class Playermovement : MonoBehaviour
                 animator.SetTrigger("Jump"); // fire animation immediately
             }
         }
+        else
+        {
+            if (allowJumpInput && isGrounded && Input.GetKeyDown(KeyCode.Space) && canMove)
+            {
+                animator.SetTrigger("Jump");
+            }
+        }
 
 
         // Rotation
