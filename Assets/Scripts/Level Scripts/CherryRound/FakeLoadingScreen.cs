@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using TMPro;
+using UnityEditor;
 
 
 public class FakeLoadingScreen : MonoBehaviour
@@ -22,6 +23,8 @@ public class FakeLoadingScreen : MonoBehaviour
     private bool loadingComplete = false;
     private float tipTimer = 0f;
     private int currentTip = 0;
+
+    private bool roundStarted = false;
 
 
     private void Start()
@@ -89,8 +92,12 @@ public class FakeLoadingScreen : MonoBehaviour
 
     public void BeginRound()
     {
+        if (roundStarted) return;
+        roundStarted = true;
+
         if (RoundManager.Instance.currRound.startTimerUI != null)
             RoundManager.Instance.currRound.startTimerUI.SetActive(true);
+
         RoundManager.Instance.BeginRound();
         loadingPanel.SetActive(false);
         this.enabled = false; // prevent duplicate calls
