@@ -44,6 +44,7 @@ public class PlayerCherry : MonoBehaviour
             Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
             if (rbCherry != null) rbCherry.isKinematic = true;
             heldCherry.transform.SetParent(handHoldPoint);
+            SetCherryCollision(false);   // disable collisions
             heldCherry.transform.localPosition = Vector3.zero;
             projectileScript?.PickUpCherry(heldCherry);
             if (animator != null)
@@ -72,6 +73,10 @@ public class PlayerCherry : MonoBehaviour
             projectileScript?.CancelAim();
             if (animator != null)
                 animator.SetBool("isPickingUp", false);
+
+           SetCherryCollision(true);    // re-enable collisions
+
+
 
             heldCherry = null;
         }
@@ -116,4 +121,21 @@ public class PlayerCherry : MonoBehaviour
     {
         isThrowing = false;
     }
+
+    void SetCherryCollision(bool enabled)
+    {
+        if (heldCherry == null) return;
+
+        Collider[] playerCols = GetComponentsInChildren<Collider>();
+        Collider[] cherryCols = heldCherry.GetComponentsInChildren<Collider>();
+
+        foreach (var p in playerCols)
+        {
+            foreach (var c in cherryCols)
+            {
+                Physics.IgnoreCollision(p, c, !enabled);
+            }
+        }
+    }
+
 }

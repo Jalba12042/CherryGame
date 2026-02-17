@@ -30,9 +30,13 @@ public class RoundManager : MonoBehaviour
     [SerializeField] private string shopSceneName;
     [SerializeField] private string controllerSceneName;
     [SerializeField] private string winSceneName;
+    [SerializeField] private string gameWinSceneName;
 
     [SerializeField] private int startTimerInSeconds;
     [SerializeField] private GameObject playerPrefab;
+
+    [Header("Max Score to Win Game")]
+    [SerializeField] private int maxScore = 5;
 
     public GameObject[] playerObjects;
     public List<GameObject> powerupsInPlay;
@@ -43,6 +47,8 @@ public class RoundManager : MonoBehaviour
     private GameObject instructPanel;
 
     public RenderTexture[] playerFaceRenderTextures;
+
+    public int[] roundsWon = { 0, 0, 0, 0 };
 
 
     private void Awake()
@@ -245,6 +251,26 @@ public class RoundManager : MonoBehaviour
                 currWinnerIndexes.Add(i);
             }
         }
+
+        for (int i = 0; i < currWinnerIndexes.Count; i++)
+        {
+            roundsWon[currWinnerIndexes[i]]++;
+        }
+        return currWinnerIndexes;
+    }
+
+    private List<int> checkGameWinIndexes()
+    {
+        List<int> currWinnerIndexes = new List<int>();
+        for (int i = 0; i < roundsWon.Length; i++)
+        {
+            if (roundsWon[i] == maxScore)
+            {
+                currWinnerIndexes.Add(i);
+                powerUpsInRotation.Clear();
+            }
+        }
+
         return currWinnerIndexes;
     }
 
@@ -254,7 +280,8 @@ public class RoundManager : MonoBehaviour
 
         currRoundProgress = 0;
         roundSelected = true;
-        currRoundActive = true;
+        //currRoundActive = true;
+        currRound.goalObjects = new List<GameObject>();
 
         // Spawn players
         SpawnPlayers();
@@ -269,9 +296,9 @@ public class RoundManager : MonoBehaviour
                 Debug.LogError("BasketContainer not found in scene!");
         }
 
-        // Start the round goal and timer
-        StartCoroutine(currRound.StartGoal());
-        StartCoroutine(RoundTimer());
+        // Start the round timer and initial round values
+        currRound.setValues();
+        StartCoroutine(StartTimer());
     }
 
 
@@ -305,7 +332,31 @@ public class RoundManager : MonoBehaviour
         }
     }
 
-    private IEnumerator RoundTimer()
+    public IEnumerator StartTimer()
+    {
+        timerText.text = "";
+
+        // timer at round start
+        float timer = 0;
+        float maxTimer = 3;
+        TMP_Text startTimerText = currRound.startTimerUI.GetComponent<TMP_Text>();
+        if (currRound.startTimerUI != null)
+        {
+            currRound.startTimerUI.SetActive(true);
+            while (timer < 3)
+            {
+                timer += Time.deltaTime;
+                startTimerText.text = $"{((int)(maxTimer - timer)) + 1}";
+                yield return null;
+            }
+            currRound.startTimerUI.SetActive(false);
+        }
+
+        currRoundActive = true;
+        StartCoroutine(RoundTimer());
+        StartCoroutine(currRound.StartGoal());
+    }
+    public IEnumerator RoundTimer()
     {
         while (currRoundProgress < currRoundDurationInSecs)
         {
@@ -327,7 +378,17 @@ public class RoundManager : MonoBehaviour
         List<int> winnerIndexes = checkWinIndexes();
         WinScript.winningPlayers = winnerIndexes;
 
-        SceneManager.LoadSceneAsync(winSceneName);
+        List<int> gameWinners = checkGameWinIndexes();
+        if (gameWinners.Count != 0)
+        {
+            GameWinScript.winningPlayers = gameWinners;
+            roundsWon = new int[] { 0, 0, 0, 0 };
+            SceneManager.LoadSceneAsync(gameWinSceneName);
+        }
+        else
+        {
+            SceneManager.LoadSceneAsync(winSceneName);
+        }
 
         roundSelected = false;
         currRoundActive = false;

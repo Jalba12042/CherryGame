@@ -9,6 +9,7 @@ public class Round : ScriptableObject
     //public List<GameObject> powerupsInPlay;
     public float roundTimeInSeconds;
     public string sceneName;
+    public GameObject startTimerUI;
 
     public virtual IEnumerator StartGoal()
     {
@@ -18,5 +19,10 @@ public class Round : ScriptableObject
     public virtual int[] ScoreCount()
     {
         return new int[0];
+    }
+
+    public virtual void setValues()
+    {
+        return;
     }
 }
