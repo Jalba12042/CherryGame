@@ -13,7 +13,7 @@ public class SprinklerController : MonoBehaviour
     [Header("Timing Settings")]
     [SerializeField] private Vector2 activeTimeRange = new Vector2(3f, 6f);  // How long it's active (random)
     [SerializeField] private Vector2 idleTimeRange = new Vector2(2f, 4f);    // How long it's off (random)
-    [SerializeField] private bool autoStart = true;                          // Should it start cycling on Start?
+    [SerializeField] private bool autoStart = true;
 
     private Vector3 loweredPos;
     private Vector3 raisedPos;
