@@ -20,7 +20,6 @@ public class Projectile : MonoBehaviour
     public float throwDelay = 0.18f;
 
 
-
     // Internal state
     private bool isHoldingCherry = false;
     private bool isAiming = false;
@@ -29,6 +28,7 @@ public class Projectile : MonoBehaviour
     private Gamepad assignedGamepad;
     private GameObject heldCherry;
     private bool pendingThrow = false;
+
 
 
 
@@ -47,6 +47,9 @@ public class Projectile : MonoBehaviour
 
     [Tooltip("Optional extra clamp on forward speed to prevent flying off the map.")]
     public float maxForwardSpeed = 15f;
+
+    [Tooltip("If you increase this it will increase the distance of the aim arc")]
+    public float travelSpeedMultiplier = 1.5f;
 
 
     public bool IsAiming() => isAiming;
@@ -93,8 +96,8 @@ public class Projectile : MonoBehaviour
         }
 
         if (isHoldingCherry && ltValue > 0.1f)
-        {
-            isAiming = true;
+        {                                                  
+            isAiming = true; 
             lineRenderer.enabled = true;
 
             owner.animator.SetBool("isAiming", true);
@@ -104,6 +107,7 @@ public class Projectile : MonoBehaviour
 
             // continuously store LT power (never instantly reset)
             currentPower = Mathf.Lerp(currentPower, ltValue, Time.deltaTime * 8f);
+
 
             /*Vector2 aimInput = gamepad.rightStick.ReadValue();
 
@@ -214,7 +218,9 @@ public class Projectile : MonoBehaviour
             forwardSpeed = Mathf.Min(forwardSpeed, maxForwardSpeed);
 
         // combine into full velocity
-        Vector3 velocity = launchPoint.forward * forwardSpeed + Vector3.up * upSpeed;
+        //Vector3 velocity = launchPoint.forward * forwardSpeed + Vector3.up * upSpeed;
+
+        Vector3 velocity = (launchPoint.forward * forwardSpeed + Vector3.up * upSpeed) * travelSpeedMultiplier;
 
         // === Draw the line ===
         lineRenderer.positionCount = linePoints;
@@ -224,6 +230,7 @@ public class Projectile : MonoBehaviour
         {
             float t = i * timeStep;
             Vector3 point = origin + velocity * t + 0.5f * Physics.gravity * t * t;
+
             lineRenderer.SetPosition(i, point);
 
             if (i > 0)
@@ -287,7 +294,10 @@ public class Projectile : MonoBehaviour
             if (maxForwardSpeed > 0f)
                 forwardSpeed = Mathf.Min(forwardSpeed, maxForwardSpeed);
 
-            Vector3 velocity = launchPoint.forward * forwardSpeed + Vector3.up * upSpeed;
+            //Vector3 velocity = launchPoint.forward * forwardSpeed + Vector3.up * upSpeed;
+
+            Vector3 velocity = (launchPoint.forward * forwardSpeed + Vector3.up * upSpeed) * travelSpeedMultiplier;
+
             rb.linearVelocity = velocity;
         }
 
@@ -304,7 +314,6 @@ public class Projectile : MonoBehaviour
         foreach (var col in playerCols)
             Physics.IgnoreCollision(cherryCol, col, false);
     }
-
 
     public void SetOwner(Playermovement player)
     {
@@ -343,6 +352,7 @@ public class Projectile : MonoBehaviour
         // clear pending flag and notify player script
         pendingThrow = false;
         owner.GetComponent<PlayerCherry>()?.NotifyThrowEnded();
+
     }
 
 
