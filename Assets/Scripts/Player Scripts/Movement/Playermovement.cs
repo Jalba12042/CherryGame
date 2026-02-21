@@ -43,6 +43,13 @@ public class Playermovement : MonoBehaviour
     public bool isGrounded;
     public bool isAiming = false;
 
+    [Header("Footstep Audio")]
+    [SerializeField] private AudioSource footstepSource;
+    [SerializeField] private AudioClip grassClip;
+    [SerializeField] private AudioClip brickClip;
+
+    private string currentSurface = "";
+
     [HideInInspector] public Gamepad assignedGamepad;
     private Rigidbody rb;
     public Animator animator;
@@ -81,6 +88,8 @@ public class Playermovement : MonoBehaviour
         // --- Movement ---
         moveInput = GameManager.Instance.isOnKeyboard ? new Vector2(Input.GetAxis("HorizontalWASD"), Input.GetAxis("VerticalWASD")) : assignedGamepad.leftStick.ReadValue();
         isGrounded = Physics.Raycast(groundCheckPoint.position, Vector3.down, groundCheckDistance, groundLayer);
+
+        HandleFootsteps();
 
         //Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
         //Vector3 targetVelocity = move * moveSpeed;
@@ -222,6 +231,40 @@ public class Playermovement : MonoBehaviour
     }
 
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Brick"))
+        {
+            currentSurface = "Brick";
+            footstepSource.clip = brickClip;
+            Debug.Log("Entered Brick");
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Brick"))
+        {
+            currentSurface = "Grass";
+            footstepSource.clip = grassClip;
+            Debug.Log("Exited Brick");
+        }
+    }
+
+    private void HandleFootsteps()
+    {
+        if (!isGrounded || rb.linearVelocity.magnitude < 0.1f)
+        {
+            if (footstepSource.isPlaying)
+                footstepSource.Stop();
+            return;
+        }
+
+        if (!footstepSource.isPlaying)
+        {
+            footstepSource.Play();
+        }
+    }
 
     public Gamepad GetAssignedGamepad() => assignedGamepad;
 }

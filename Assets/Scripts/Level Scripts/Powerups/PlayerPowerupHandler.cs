@@ -19,6 +19,10 @@ public class PlayerPowerupHandler : MonoBehaviour
     [Header("Visual Effects")]
     [SerializeField] private GameObject taserVFX;
 
+    [Header("Taser Audio")]
+    [SerializeField] private AudioSource taserAudioSource;
+    [SerializeField] private AudioClip taserClip;
+
     void Start()
     {
         player = GetComponent<Playermovement>();
@@ -103,6 +107,9 @@ public class PlayerPowerupHandler : MonoBehaviour
 
         if (taserVFX != null)
             taserVFX.SetActive(true);
+
+        if (taserAudioSource != null && taserClip != null)
+            taserAudioSource.PlayOneShot(taserClip);
 
         yield return new WaitForSeconds(duration);
 
