@@ -1,6 +1,7 @@
+using Assets.DuckType.Jiggle;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections;
 
 public class PlayerGrab : MonoBehaviour
 {
@@ -25,7 +26,7 @@ public class PlayerGrab : MonoBehaviour
     public GameObject stunCanvas;
     public TMPro.TMP_Text stunTimerText;
 
-
+    private Jiggle[] myJiggles;
 
     private void Awake()
     {
@@ -39,6 +40,7 @@ public class PlayerGrab : MonoBehaviour
         player = GetComponent<Playermovement>();
         myCollider = GetComponent<Collider>();
         animator = GetComponent<Animator>();
+        myJiggles = GetComponentsInChildren<Jiggle>();
 
         if (stunCanvas != null)
             stunCanvas.SetActive(false);
@@ -119,6 +121,7 @@ public class PlayerGrab : MonoBehaviour
         if (animator != null)
             animator.SetBool("isPickingUp", true);
 
+        SetMyJiggle(false);
     }
 
 
@@ -160,6 +163,7 @@ public class PlayerGrab : MonoBehaviour
                 animator.SetBool("isPickingUp", false);
 
         }
+        SetMyJiggle(true);
 
         grabbedPlayer = null;
         grabbedRigidbody = null;
@@ -284,5 +288,16 @@ public class PlayerGrab : MonoBehaviour
         grabEscapeCooldown = true;
         yield return new WaitForSeconds(escapeCooldownTime);
         grabEscapeCooldown = false;
+    }
+
+    void SetMyJiggle(bool enabled)
+    {
+        if (myJiggles == null) return;
+
+        foreach (var jiggle in myJiggles)
+        {
+            if (jiggle != null)
+                jiggle.enabled = enabled;
+        }
     }
 }

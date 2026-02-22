@@ -1,6 +1,7 @@
+using Assets.DuckType.Jiggle;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections;
 
 public class PlayerCherry : MonoBehaviour
 {
@@ -16,11 +17,14 @@ public class PlayerCherry : MonoBehaviour
 
     private bool isThrowing = false;
 
+    private Jiggle[] jiggleParts;
+
     void Start()
     {
         player = GetComponent<Playermovement>();
         animator = GetComponent<Animator>();
         projectileScript = GetComponent<Projectile>();
+        jiggleParts = GetComponentsInChildren<Jiggle>();
     }
 
     void Update()
@@ -56,6 +60,7 @@ public class PlayerCherry : MonoBehaviour
         if (heldCherry == null && nearbyCherry != null)
         {
             heldCherry = nearbyCherry;
+            SetJiggle(false);
             Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
             if (rbCherry != null) rbCherry.isKinematic = true;
             heldCherry.transform.SetParent(handHoldPoint);
@@ -92,7 +97,7 @@ public class PlayerCherry : MonoBehaviour
            SetCherryCollision(true);    // re-enable collisions
 
 
-
+            SetJiggle(true);
             heldCherry = null;
         }
     }
@@ -150,6 +155,16 @@ public class PlayerCherry : MonoBehaviour
             {
                 Physics.IgnoreCollision(p, c, !enabled);
             }
+        }
+    }
+
+    void SetJiggle(bool enabled)
+    {
+        if (jiggleParts == null) return;
+
+        foreach (var jiggle in jiggleParts)
+        {
+            jiggle.enabled = enabled;
         }
     }
 
