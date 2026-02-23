@@ -230,8 +230,50 @@ public class Playermovement : MonoBehaviour
         rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
     }
 
+    private void HandleFootsteps()
+    {
+        if (!isGrounded || rb.linearVelocity.magnitude < 0.1f)
+        {
+            if (footstepSource.isPlaying)
+                footstepSource.Stop();
+            return;
+        }
 
-    private void OnTriggerEnter(Collider other)
+        if (Physics.Raycast(groundCheckPoint.position, Vector3.down, out RaycastHit hit, 2f))
+        {
+            string newSurface = hit.collider.tag;
+
+            // Only change if surface changed
+            if (newSurface != currentSurface)
+            {
+                if (newSurface == "Brick")
+                {
+                    footstepSource.clip = brickClip;
+                    Debug.Log("Switched from " + currentSurface + " to Brick");
+                }
+                else if (newSurface == "Grass")
+                {
+                    footstepSource.clip = grassClip;
+                    Debug.Log("Switched from " + currentSurface + " to Grass");
+                }
+
+                currentSurface = newSurface;
+
+                if (footstepSource.isPlaying)
+                    footstepSource.Stop();
+
+                footstepSource.Play();
+            }
+        }
+
+        if (!footstepSource.isPlaying)
+        {
+            footstepSource.Play();
+        }
+    }
+
+
+    /*private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Brick"))
         {
@@ -264,7 +306,7 @@ public class Playermovement : MonoBehaviour
         {
             footstepSource.Play();
         }
-    }
+    }*/
 
     public Gamepad GetAssignedGamepad() => assignedGamepad;
 }
