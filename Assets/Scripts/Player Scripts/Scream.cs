@@ -45,6 +45,7 @@ public class Scream : MonoBehaviour
         {
             if (gp != null && gp.buttonEast.wasPressedThisFrame)
             {
+                StopAllCoroutines();
                 StartCoroutine(HandleScream());
             }
         }
@@ -52,6 +53,7 @@ public class Scream : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.R))
             {
+                StopAllCoroutines();
                 StartCoroutine(HandleScream());
             }
         }
@@ -59,25 +61,21 @@ public class Scream : MonoBehaviour
 
     private IEnumerator HandleScream()
     {
-        faceAnimator.SetBool("IsScreaming", false);
-        // Stop any ongoing scream sound
         aSource.Stop();
 
-        // Pick random scream clip and pitch
         int rand = Random.Range(0, screamSFX.Count);
         float randPitch = Random.Range(minPitch, maxPitch);
+
+        AudioClip clip = screamSFX[rand];
+
         aSource.pitch = randPitch;
+        aSource.clip = clip;
+        aSource.Play();
 
-        // Play scream
-        aSource.PlayOneShot(screamSFX[rand]);
+        faceAnimator.SetBool("isScreaming", true);
 
-        // Trigger face animation
-        faceAnimator.SetBool("IsScreaming", true);
+        yield return new WaitWhile(() => aSource.isPlaying);
 
-        // Wait for scream duration
-        yield return new WaitForSeconds(screamSFX[rand].length);
-
-        // Reset face animation
-        faceAnimator.SetBool("IsScreaming", false);
+        faceAnimator.SetBool("isScreaming", false);
     }
 }
