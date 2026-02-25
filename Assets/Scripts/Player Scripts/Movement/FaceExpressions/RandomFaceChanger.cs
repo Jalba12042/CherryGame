@@ -32,7 +32,7 @@ public class RandomFaceChanger : MonoBehaviour
             yield return new WaitForSeconds(waitTime);
 
             // Pick a random animation
-            if (faceAnimations.Length > 0)
+            if (faceAnimations.Length > 0 && !animator.GetCurrentAnimatorStateInfo(0).IsName("Scream(MouthOpen"))
             {
                 int randomIndex = Random.Range(0, faceAnimations.Length);
                 string chosenFace = faceAnimations[randomIndex];
