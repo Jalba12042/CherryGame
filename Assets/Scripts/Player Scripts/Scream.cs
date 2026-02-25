@@ -14,6 +14,19 @@ public class Scream : MonoBehaviour
     private Gamepad gp;
     [SerializeField] private Animator faceAnimator;
 
+    private Coroutine screamRoutine;
+
+    private bool currentlyScreaming;
+
+    private void TryScream()
+    {
+        // 1. If we are already screaming, ignore the button press entirely.
+        if (currentlyScreaming)
+            return;
+
+        // 2. Start the scream coroutine
+        screamRoutine = StartCoroutine(HandleScream());
+    }
     private void Awake()
     {
         if (aSource == null)
@@ -45,37 +58,42 @@ public class Scream : MonoBehaviour
         {
             if (gp != null && gp.buttonEast.wasPressedThisFrame)
             {
-                StopAllCoroutines();
-                StartCoroutine(HandleScream());
+                TryScream();
             }
         }
         else
         {
             if (Input.GetKeyDown(KeyCode.R))
             {
-                StopAllCoroutines();
-                StartCoroutine(HandleScream());
+                TryScream();
             }
         }
     }
 
     private IEnumerator HandleScream()
     {
-        aSource.Stop();
+        if (currentlyScreaming)
+            yield break;
+
+        currentlyScreaming = true;
 
         int rand = Random.Range(0, screamSFX.Count);
         float randPitch = Random.Range(minPitch, maxPitch);
-
         AudioClip clip = screamSFX[rand];
 
         aSource.pitch = randPitch;
         aSource.clip = clip;
         aSource.Play();
 
+        // Turn ON the screaming animation state
         faceAnimator.SetBool("isScreaming", true);
 
-        yield return new WaitWhile(() => aSource.isPlaying);
+        // wait for clip length adjusted by pitch
+        yield return new WaitForSeconds(clip.length / Mathf.Abs(randPitch));
 
+        // Turn OFF the screaming animation state
         faceAnimator.SetBool("isScreaming", false);
+
+        currentlyScreaming = false;
     }
 }
