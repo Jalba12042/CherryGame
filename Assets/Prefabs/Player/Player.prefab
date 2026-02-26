@@ -2553,7 +2553,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7165335654521888233}
   serializedVersion: 4
-  m_Mass: 1
+  m_Mass: 15
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -2756,20 +2756,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   launchPoint: {fileID: 6540022978618366206}
-  cherry: {fileID: 0}
-  lineRenderer: {fileID: 3304768506201026735}
-  landingMarkerPrefab: {fileID: 2245115627992007439, guid: 7450f1637d316bd4086849007aa8db7c, type: 3}
-  launchSpeed: 14.6
-  linePoints: 35
-  timeStep: 0.1
+  launchSpeed: 7.56
   throwDelay: 0.3
-  groundLayer:
-    serializedVersion: 2
-    m_Bits: 128
   arcHeight: 0.62
   distanceMultiplier: 1
   maxForwardSpeed: 100.3
-  travelSpeedMultiplier: 1.1
+  airSpeedMultiplier: 3.64
+  lineRenderer: {fileID: 3304768506201026735}
+  landingMarkerPrefab: {fileID: 2245115627992007439, guid: 7450f1637d316bd4086849007aa8db7c, type: 3}
+  linePoints: 50
+  timeStep: 0.1
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 128
 --- !u!120 &3304768506201026735
 LineRenderer:
   serializedVersion: 2
