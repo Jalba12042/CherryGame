@@ -10,6 +10,7 @@ public class Round : ScriptableObject
     public float roundTimeInSeconds;
     public string sceneName;
     public GameObject startTimerUI;
+    public bool canHaveEvents;
 
     public virtual IEnumerator StartGoal()
     {
