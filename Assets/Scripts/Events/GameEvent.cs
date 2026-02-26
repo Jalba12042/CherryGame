@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public abstract class GameEvent 
+public abstract class GameEvent : MonoBehaviour
 {
     public string eventName;
     public float weight;

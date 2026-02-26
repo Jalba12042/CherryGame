@@ -29,6 +29,7 @@ public class EventManager : MonoBehaviour
     {
         return eventCurve.Evaluate(RoundManager.Instance.currRoundProgressNormalized);
     } 
+
     public GameEvent GetRandomEvent()
     {
         float totalWeight = 0f;
