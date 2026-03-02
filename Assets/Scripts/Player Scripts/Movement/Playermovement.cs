@@ -48,6 +48,10 @@ public class Playermovement : MonoBehaviour
     [SerializeField] private AudioClip grassClip;
     [SerializeField] private AudioClip brickClip;
 
+    [Header("Jump Audio")]
+    [SerializeField] private AudioSource jumpSource;
+    [SerializeField] private AudioClip jumpClip;
+
     private string currentSurface = "";
 
     [HideInInspector] public Gamepad assignedGamepad;
@@ -222,6 +226,12 @@ public class Playermovement : MonoBehaviour
     {
         // Only jump if still grounded at the moment of the event
         if (!isGrounded) return;
+
+        // Play jump sound
+        if (jumpSource != null && jumpClip != null)
+        {
+            jumpSource.PlayOneShot(jumpClip);
+        }
 
         // Reset vertical velocity for consistent jumps
         rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);

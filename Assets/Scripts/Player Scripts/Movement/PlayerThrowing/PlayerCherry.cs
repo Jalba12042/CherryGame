@@ -8,6 +8,11 @@ public class PlayerCherry : MonoBehaviour
     [Header("Throw Settings")]
     public Transform handHoldPoint;
 
+    [Header("Pickup Audio")]
+    [SerializeField] private AudioSource pickupSource;
+    [SerializeField] private AudioClip pickupClip;
+    [SerializeField] private AudioClip dropClip;
+
     private Playermovement player;
     private Gamepad gamepad;
     private Animator animator;
@@ -104,13 +109,24 @@ public class PlayerCherry : MonoBehaviour
         if (heldCherry == null && nearbyCherry != null)
         {
             heldCherry = nearbyCherry;
+
+            if (pickupSource != null && pickupClip != null)
+            {
+                pickupSource.pitch = Random.Range(0.95f, 1.05f); // slight variation (optional but nice)
+                pickupSource.PlayOneShot(pickupClip);
+            }
+
             SetJiggle(false);
+
             Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
             if (rbCherry != null) rbCherry.isKinematic = true;
+
             heldCherry.transform.SetParent(handHoldPoint);
             SetCherryCollision(false);   // disable collisions
             heldCherry.transform.localPosition = Vector3.zero;
+
             projectileScript?.PickUpCherry(heldCherry);
+
             if (animator != null)
                 StartCoroutine(PlayPickupAnimation());
         }
@@ -119,6 +135,12 @@ public class PlayerCherry : MonoBehaviour
     private void CancelAimAndDrop()
     {
         if (heldCherry == null) return;
+
+        if (pickupSource != null && dropClip != null)
+        {
+            pickupSource.pitch = Random.Range(0.9f, 1.0f); // slightly lower pitch for drop
+            pickupSource.PlayOneShot(dropClip);
+        }
 
         // Stop aiming in Projectile
         projectileScript?.CancelAim();
@@ -152,6 +174,12 @@ public class PlayerCherry : MonoBehaviour
 
         if (heldCherry != null)
         {
+            if (pickupSource != null && dropClip != null)
+            {
+                pickupSource.pitch = Random.Range(0.9f, 1.0f); // slightly lower pitch for drop
+                pickupSource.PlayOneShot(dropClip);
+            }
+
             Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
             heldCherry.transform.SetParent(null);
             if (rbCherry != null) rbCherry.isKinematic = false;

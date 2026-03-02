@@ -28,6 +28,11 @@ public class PlayerGrab : MonoBehaviour
 
     private Jiggle[] myJiggles;
 
+    [Header("Grab Audio")]
+    [SerializeField] private AudioSource grabSource;
+    [SerializeField] private AudioClip grabClip;
+    [SerializeField] private AudioClip dropClip;
+
     private void Awake()
     {
         if (faceAnimator == null)
@@ -92,6 +97,13 @@ public class PlayerGrab : MonoBehaviour
             return;
 
         grabbedPlayer = nearbyPlayer;
+
+        if (grabSource != null && grabClip != null)
+        {
+            grabSource.pitch = Random.Range(0.95f, 1.05f); // slight variation
+            grabSource.PlayOneShot(grabClip);
+        }
+
         grabbedRigidbody = grabbedPlayer.GetComponent<Rigidbody>();
         if (grabbedRigidbody != null)
             grabbedRigidbody.isKinematic = true;
@@ -129,6 +141,12 @@ public class PlayerGrab : MonoBehaviour
     public void ReleaseGrab()
     {
         if (grabbedPlayer == null) return;
+
+        if (grabSource != null && dropClip != null)
+        {
+            grabSource.pitch = Random.Range(0.9f, 1.0f);
+            grabSource.PlayOneShot(dropClip);
+        }
 
         if (grabbedRigidbody != null)
             grabbedRigidbody.isKinematic = false;
