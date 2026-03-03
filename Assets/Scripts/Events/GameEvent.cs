@@ -1,11 +1,13 @@
+using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 
-public abstract class GameEvent : MonoBehaviour
+public abstract class GameEvent : ScriptableObject
 {
     public string eventName;
     public float weight;
     public float cooldown;
-    public bool canRepeat;
+    public bool isRunning;
 
-    public abstract void Trigger();
+    public abstract IEnumerator Trigger();
 }

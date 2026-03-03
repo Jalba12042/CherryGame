@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 public class EventManager : MonoBehaviour
 {
@@ -48,5 +49,20 @@ public class EventManager : MonoBehaviour
         }
 
         return null;
+    }
+
+    public IEnumerator EventTimer()
+    {
+        int i = 0;
+        while (true)
+        {
+            yield return new WaitForSeconds(2f);
+            Debug.Log(getIntensityFromCurve());
+            i++;
+            if (i == 10)
+            {
+                break;
+            }
+        }
     }
 }
