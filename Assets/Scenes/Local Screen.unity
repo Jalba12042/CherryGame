@@ -1436,6 +1436,7 @@ MonoBehaviour:
   maxScore: 5
   playerObjects: []
   powerupsInPlay: []
+  currPlayerSpawn: {fileID: 0}
   playerFaceRenderTextures:
   - {fileID: 8400000, guid: 397254725f2d65349911e6944795ac40, type: 2}
   - {fileID: 8400000, guid: 1d02e6dddda724b4eb84608103489b14, type: 2}
@@ -1871,6 +1872,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   eventsInRotation:
+  - {fileID: 11400000, guid: c6ff4330a1548f349ae7430c8e9bbf1e, type: 2}
   - {fileID: 11400000, guid: 26ee35e2d468a1c4eba11603a12e0173, type: 2}
   currEvent: {fileID: 0}
   eventCurve:
@@ -1951,6 +1953,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  eventRunning: 0
+  onCooldown: 0
 --- !u!1 &1705290969
 GameObject:
   m_ObjectHideFlags: 0

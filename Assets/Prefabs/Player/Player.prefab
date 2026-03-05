@@ -2378,6 +2378,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: -15.119936
       objectReference: {fileID: 0}
+    - target: {fileID: -2843909369972686622, guid: 5b83f30e9b5a7458880f9ce177610143, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: -2835128156172741638, guid: 5b83f30e9b5a7458880f9ce177610143, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: -2.2734516
@@ -2674,6 +2678,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5b83f30e9b5a7458880f9ce177610143, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3613977573174308583}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5b83f30e9b5a7458880f9ce177610143, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5447563130720053516}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5b83f30e9b5a7458880f9ce177610143, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3304768506201026735}
@@ -3088,6 +3095,21 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 128
+--- !u!114 &5447563130720053516
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7165335654521888233}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02e8443c79cdb7749bc4fca72f6a1392, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerRenderer: {fileID: 3979331040377659482}
+  pm: {fileID: 0}
+  respawnDuration: 5
 --- !u!120 &3304768506201026735
 LineRenderer:
   serializedVersion: 2
