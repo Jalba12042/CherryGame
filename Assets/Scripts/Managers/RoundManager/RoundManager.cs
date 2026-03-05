@@ -41,7 +41,7 @@ public class RoundManager : MonoBehaviour
 
     public GameObject[] playerObjects;
     public List<GameObject> powerupsInPlay;
-    private PlayerSpawn currPlayerSpawn;
+    public PlayerSpawn currPlayerSpawn;
     private int currRoundIndex;
 
     public RenderTexture[] playerFaceRenderTextures;

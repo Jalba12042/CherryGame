@@ -14,6 +14,7 @@ public class UFO : MonoBehaviour
     public GameObject[] players;
     public GameObject targetPlayer;
     public Playermovement playerMove;
+    public PlayerKill playerKill;
 
     private UFOState currentState;
 
@@ -35,6 +36,7 @@ public class UFO : MonoBehaviour
         int randPlayer = Random.Range(0, players.Length);
         targetPlayer = players[randPlayer];
         playerMove = targetPlayer.GetComponentInChildren<Playermovement>();
+        playerKill = targetPlayer.GetComponentInChildren<PlayerKill>();
 
         ChangeState(UFOState.Approaching);
     }
@@ -55,10 +57,6 @@ public class UFO : MonoBehaviour
 
             case UFOState.Abducting:
                 HandleAbduct();
-                break;
-
-            case UFOState.Leaving:
-                HandleLeave();
                 break;
         }
     }
@@ -106,22 +104,10 @@ public class UFO : MonoBehaviour
 
         stateTimer += Time.deltaTime;
 
-        if (stateTimer > 3f)
-        {
-            ChangeState(UFOState.Leaving);
-        }
-    }
-
-    private void HandleLeave()
-    {
-        transform.position += Vector3.up * moveSpeed * Time.deltaTime;
-
-        stateTimer += Time.deltaTime;
-
         if (stateTimer > 5f)
         {
             myEvent.isRunning = false;
-            playerMove.canMove = true; // change this to KILL
+            playerKill.killPlayer();
             Destroy(gameObject);
         }
     }
