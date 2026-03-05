@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 
 
-[CreateAssetMenu(fileName = "New Cherry Round", menuName = "Rounds/Round/Cherry", order = 1)]
+[CreateAssetMenu(fileName = "New Cherry Round", menuName = "Rounds/Cherry", order = 1)]
 public class CherryRound : Round
 {
     [SerializeField] private GameObject cherryPrefab;

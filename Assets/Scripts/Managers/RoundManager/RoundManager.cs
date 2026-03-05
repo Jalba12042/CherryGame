@@ -373,6 +373,7 @@ public class RoundManager : MonoBehaviour
         currRoundActive = true;
         StartCoroutine(RoundTimer());
         StartCoroutine(currRound.StartGoal());
+        StartCoroutine(EventManager.Instance.EventTimer());
     }
     public IEnumerator RoundTimer() // timer for the round
     {
