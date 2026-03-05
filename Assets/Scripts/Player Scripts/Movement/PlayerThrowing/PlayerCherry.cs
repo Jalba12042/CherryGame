@@ -1,11 +1,17 @@
+using Assets.DuckType.Jiggle;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections;
 
 public class PlayerCherry : MonoBehaviour
 {
     [Header("Throw Settings")]
     public Transform handHoldPoint;
+
+    [Header("Pickup Audio")]
+    [SerializeField] private AudioSource pickupSource;
+    [SerializeField] private AudioClip pickupClip;
+    [SerializeField] private AudioClip dropClip;
 
     private Playermovement player;
     private Gamepad gamepad;
@@ -16,24 +22,86 @@ public class PlayerCherry : MonoBehaviour
 
     private bool isThrowing = false;
 
+    private Jiggle[] jiggleParts;
+
     void Start()
     {
         player = GetComponent<Playermovement>();
         animator = GetComponent<Animator>();
         projectileScript = GetComponent<Projectile>();
+        jiggleParts = GetComponentsInChildren<Jiggle>();
     }
+
+    /*void Update()
+    {
+        if (!GameManager.Instance.isOnKeyboard)
+        {
+            if (player.assignedGamepad == null) return;
+            gamepad = player.assignedGamepad;
+
+
+            float rtValue = gamepad.rightTrigger.ReadValue();
+
+            if (rtValue > 0.1f)
+                HandlePickup();
+            else
+                HandleDrop();
+        }
+        else
+        {
+            if (Input.GetKey(KeyCode.E))
+            {
+                HandlePickup();
+            }
+            else if (Input.GetKeyUp(KeyCode.E))
+            {
+                HandleDrop();
+            } 
+        }
+    }*/
 
     void Update()
     {
-        if (player.assignedGamepad == null) return;
-        gamepad = player.assignedGamepad;
+        float rtValue = 0f;
+        bool isPickingKey = false;
 
-        float rtValue = gamepad.rightTrigger.ReadValue();
+        // ---- INPUT ----
+        if (!GameManager.Instance.isOnKeyboard)
+        {
+            if (player.assignedGamepad == null) return;
+            gamepad = player.assignedGamepad;
 
-        if (rtValue > 0.1f)
-            HandlePickup();
+            rtValue = gamepad.rightTrigger.ReadValue();
+            isPickingKey = rtValue > 0.1f;
+
+            // If holding cherry but RT released, cancel aim and drop
+            if (heldCherry != null && rtValue <= 0.1f)
+            {
+                CancelAimAndDrop();
+                return; // early exit so we don't pick up again
+            }
+
+            if (isPickingKey)
+                HandlePickup();
+            else
+                HandleDrop();
+        }
         else
-            HandleDrop();
+        {
+            isPickingKey = Input.GetKey(KeyCode.E);
+
+            // If holding cherry but E released, cancel aim and drop
+            if (heldCherry != null && !isPickingKey)
+            {
+                CancelAimAndDrop();
+                return;
+            }
+
+            if (isPickingKey)
+                HandlePickup();
+            else
+                HandleDrop();
+        }
     }
 
     private void HandlePickup()
@@ -41,15 +109,55 @@ public class PlayerCherry : MonoBehaviour
         if (heldCherry == null && nearbyCherry != null)
         {
             heldCherry = nearbyCherry;
+
+            if (pickupSource != null && pickupClip != null)
+            {
+                pickupSource.pitch = Random.Range(0.95f, 1.05f); // slight variation (optional but nice)
+                pickupSource.PlayOneShot(pickupClip);
+            }
+
+            SetJiggle(false);
+
             Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
             if (rbCherry != null) rbCherry.isKinematic = true;
+
             heldCherry.transform.SetParent(handHoldPoint);
             SetCherryCollision(false);   // disable collisions
             heldCherry.transform.localPosition = Vector3.zero;
+
             projectileScript?.PickUpCherry(heldCherry);
+
             if (animator != null)
                 StartCoroutine(PlayPickupAnimation());
         }
+    }
+
+    private void CancelAimAndDrop()
+    {
+        if (heldCherry == null) return;
+
+        if (pickupSource != null && dropClip != null)
+        {
+            pickupSource.pitch = Random.Range(0.9f, 1.0f); // slightly lower pitch for drop
+            pickupSource.PlayOneShot(dropClip);
+        }
+
+        // Stop aiming in Projectile
+        projectileScript?.CancelAim();
+
+        // Drop the cherry
+        Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
+        heldCherry.transform.SetParent(null);
+        if (rbCherry != null)
+            rbCherry.isKinematic = false;
+
+        SetCherryCollision(true);
+        SetJiggle(true);
+
+        if (animator != null)
+            animator.SetBool("isPickingUp", false);
+
+        heldCherry = null;
     }
 
     private IEnumerator PlayPickupAnimation()
@@ -61,11 +169,17 @@ public class PlayerCherry : MonoBehaviour
     private void HandleDrop()
     {
         // If the Projectile reports aiming or a pending throw, DO NOT drop.
-        if (projectileScript != null && (projectileScript.IsAiming() || projectileScript.IsThrowPending() || isThrowing))
+        if (projectileScript != null && (projectileScript.IsThrowPending() || isThrowing))
             return;
 
         if (heldCherry != null)
         {
+            if (pickupSource != null && dropClip != null)
+            {
+                pickupSource.pitch = Random.Range(0.9f, 1.0f); // slightly lower pitch for drop
+                pickupSource.PlayOneShot(dropClip);
+            }
+
             Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
             heldCherry.transform.SetParent(null);
             if (rbCherry != null) rbCherry.isKinematic = false;
@@ -77,7 +191,7 @@ public class PlayerCherry : MonoBehaviour
            SetCherryCollision(true);    // re-enable collisions
 
 
-
+            SetJiggle(true);
             heldCherry = null;
         }
     }
@@ -135,6 +249,16 @@ public class PlayerCherry : MonoBehaviour
             {
                 Physics.IgnoreCollision(p, c, !enabled);
             }
+        }
+    }
+
+    void SetJiggle(bool enabled)
+    {
+        if (jiggleParts == null) return;
+
+        foreach (var jiggle in jiggleParts)
+        {
+            jiggle.enabled = enabled;
         }
     }
 

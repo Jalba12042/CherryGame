@@ -16,6 +16,13 @@ public class PlayerPowerupHandler : MonoBehaviour
     public bool isSlowed;
     public bool isTased;
 
+    [Header("Visual Effects")]
+    [SerializeField] private GameObject taserVFX;
+
+    [Header("Taser Audio")]
+    [SerializeField] private AudioSource taserAudioSource;
+    [SerializeField] private AudioClip taserClip;
+
     void Start()
     {
         player = GetComponent<Playermovement>();
@@ -86,5 +93,29 @@ public class PlayerPowerupHandler : MonoBehaviour
         yield return new WaitForSeconds(duration);
         player.moveSpeed = originalMoveSpeed;
         isSlowed = false;
+    }
+
+    public void ApplyTase(float duration)
+    {
+        if (isTased) return;
+        StartCoroutine(TaseRoutine(duration));
+    }
+
+    private IEnumerator TaseRoutine(float duration)
+    {
+        isTased = true;
+
+        if (taserVFX != null)
+            taserVFX.SetActive(true);
+
+        if (taserAudioSource != null && taserClip != null)
+            taserAudioSource.PlayOneShot(taserClip);
+
+        yield return new WaitForSeconds(duration);
+
+        if (taserVFX != null)
+            taserVFX.SetActive(false);
+
+        isTased = false;
     }
 }

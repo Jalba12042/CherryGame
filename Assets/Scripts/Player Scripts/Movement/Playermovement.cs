@@ -43,6 +43,17 @@ public class Playermovement : MonoBehaviour
     public bool isGrounded;
     public bool isAiming = false;
 
+    [Header("Footstep Audio")]
+    [SerializeField] private AudioSource footstepSource;
+    [SerializeField] private AudioClip grassClip;
+    [SerializeField] private AudioClip brickClip;
+
+    [Header("Jump Audio")]
+    [SerializeField] private AudioSource jumpSource;
+    [SerializeField] private AudioClip jumpClip;
+
+    private string currentSurface = "";
+
     [HideInInspector] public Gamepad assignedGamepad;
     private Rigidbody rb;
     public Animator animator;
@@ -75,11 +86,14 @@ public class Playermovement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (assignedGamepad == null || !canMove) return;
+        //if (assignedGamepad == null || !canMove) return;
+        if (!canMove) return;
 
         // --- Movement ---
-        moveInput = assignedGamepad.leftStick.ReadValue();
+        moveInput = GameManager.Instance.isOnKeyboard ? new Vector2(Input.GetAxis("HorizontalWASD"), Input.GetAxis("VerticalWASD")) : assignedGamepad.leftStick.ReadValue();
         isGrounded = Physics.Raycast(groundCheckPoint.position, Vector3.down, groundCheckDistance, groundLayer);
+
+        HandleFootsteps();
 
         //Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
         //Vector3 targetVelocity = move * moveSpeed;
@@ -143,14 +157,22 @@ public class Playermovement : MonoBehaviour
 
     private void Update()
     {
-        if (assignedGamepad == null) return;
+        //if (assignedGamepad == null) return;
 
         // Jump input
-
-        // Jump input
-        if (allowJumpInput && isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame && canMove)
+        if (!GameManager.Instance.isOnKeyboard)
         {
-            animator.SetTrigger("Jump"); // fire animation immediately
+            if (allowJumpInput && isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame && canMove)
+            {
+                animator.SetTrigger("Jump"); // fire animation immediately
+            }
+        }
+        else
+        {
+            if (allowJumpInput && isGrounded && Input.GetKeyDown(KeyCode.Space) && canMove)
+            {
+                animator.SetTrigger("Jump");
+            }
         }
 
 
@@ -160,10 +182,12 @@ public class Playermovement : MonoBehaviour
 
     private void HandleRotation()
     {
-        if (assignedGamepad == null) return;
+        //if (assignedGamepad == null) return;
 
-        Vector2 moveInput = assignedGamepad.leftStick.ReadValue();
-        Vector2 aimInput = assignedGamepad.rightStick.ReadValue();
+        Vector2 moveInput = GameManager.Instance.isOnKeyboard ? new Vector2(Input.GetAxis("HorizontalWASD"), Input.GetAxis("VerticalWASD")) : assignedGamepad.leftStick.ReadValue();
+        Vector2 aimInput = GameManager.Instance.isOnKeyboard ? new Vector2(Input.GetAxis("HorizontalArrows"), Input.GetAxis("VerticalArrows")) : assignedGamepad.rightStick.ReadValue();
+        //Vector2 moveInput = assignedGamepad.leftStick.ReadValue();
+        //Vector2 aimInput = assignedGamepad.rightStick.ReadValue();
 
         isAiming = projectileScript != null && projectileScript.IsAiming();
 
@@ -203,6 +227,12 @@ public class Playermovement : MonoBehaviour
         // Only jump if still grounded at the moment of the event
         if (!isGrounded) return;
 
+        // Play jump sound
+        if (jumpSource != null && jumpClip != null)
+        {
+            jumpSource.PlayOneShot(jumpClip);
+        }
+
         // Reset vertical velocity for consistent jumps
         rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
 
@@ -210,7 +240,83 @@ public class Playermovement : MonoBehaviour
         rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
     }
 
+    private void HandleFootsteps()
+    {
+        if (!isGrounded || rb.linearVelocity.magnitude < 0.1f)
+        {
+            if (footstepSource.isPlaying)
+                footstepSource.Stop();
+            return;
+        }
 
+        if (Physics.Raycast(groundCheckPoint.position, Vector3.down, out RaycastHit hit, 2f))
+        {
+            string newSurface = hit.collider.tag;
+
+            // Only change if surface changed
+            if (newSurface != currentSurface)
+            {
+                if (newSurface == "Brick")
+                {
+                    footstepSource.clip = brickClip;
+                    Debug.Log("Switched from " + currentSurface + " to Brick");
+                }
+                else if (newSurface == "Grass")
+                {
+                    footstepSource.clip = grassClip;
+                    Debug.Log("Switched from " + currentSurface + " to Grass");
+                }
+
+                currentSurface = newSurface;
+
+                if (footstepSource.isPlaying)
+                    footstepSource.Stop();
+
+                footstepSource.Play();
+            }
+        }
+
+        if (!footstepSource.isPlaying)
+        {
+            footstepSource.Play();
+        }
+    }
+
+
+    /*private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Brick"))
+        {
+            currentSurface = "Brick";
+            footstepSource.clip = brickClip;
+            Debug.Log("Entered Brick");
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Brick"))
+        {
+            currentSurface = "Grass";
+            footstepSource.clip = grassClip;
+            Debug.Log("Exited Brick");
+        }
+    }
+
+    private void HandleFootsteps()
+    {
+        if (!isGrounded || rb.linearVelocity.magnitude < 0.1f)
+        {
+            if (footstepSource.isPlaying)
+                footstepSource.Stop();
+            return;
+        }
+
+        if (!footstepSource.isPlaying)
+        {
+            footstepSource.Play();
+        }
+    }*/
 
     public Gamepad GetAssignedGamepad() => assignedGamepad;
 }

@@ -26,7 +26,8 @@ public class SprinklerInteraction : MonoBehaviour
         }
         else
         {
-            Debug.LogError("NO WATER ZONE FOUND!");
+            // this error crashes the game so i removed it for now:
+            //Debug.LogError("NO WATER ZONE FOUND!");
         }
     }
 

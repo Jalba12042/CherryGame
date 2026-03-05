@@ -23,6 +23,8 @@ public class GameManager : MonoBehaviour
     private bool canMove = true;
     private float deadzone = 0.5f;
 
+    public bool isOnKeyboard = false;
+
     public enum GameState
     {
         Shop,

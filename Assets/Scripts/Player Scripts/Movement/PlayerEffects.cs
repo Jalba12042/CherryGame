@@ -67,18 +67,30 @@ public class PlayerEffects : MonoBehaviour
         }
     }
 
-    private void OnCollisionEnter(Collision collision) { 
-        if (collision.gameObject.CompareTag("Player") && isTasing) { 
-            Playermovement otherChar = collision.gameObject.GetComponent<Playermovement>(); 
-            if (otherChar != null) { 
-                if (otherChar.canMove) { 
-                    Debug.Log("collision!"); 
-                    Rigidbody rb = collision.gameObject.GetComponent<Rigidbody>(); 
-                   
-                    StartCoroutine(Stun(stunDuration, rb, otherChar)); 
-                } 
-            } 
-        } 
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player") && isTasing)
+        {
+            Playermovement otherChar = collision.gameObject.GetComponent<Playermovement>();
+
+            if (otherChar != null && otherChar.canMove)
+            {
+                Debug.Log("collision!");
+
+                Rigidbody rb = collision.gameObject.GetComponent<Rigidbody>();
+
+                //Get their PlayerPowerupHandler
+                PlayerPowerupHandler otherHandler =
+                    collision.gameObject.GetComponent<PlayerPowerupHandler>();
+
+                if (otherHandler != null)
+                {
+                    otherHandler.ApplyTase(stunDuration);
+                }
+
+                StartCoroutine(Stun(stunDuration, rb, otherChar));
+            }
+        }
     }
     public IEnumerator Stun(float duration, Rigidbody rb, Playermovement pm)
     {

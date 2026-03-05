@@ -12,6 +12,7 @@ public class RoundManager : MonoBehaviour
     [Header("Current Round Information")]
     public float currRoundProgress;
     public float currRoundDurationInSecs;
+    public float currRoundProgressNormalized; // used in events
     public Round currRound;
     public bool currRoundActive;
     public int[] currRoundScores;
@@ -40,11 +41,8 @@ public class RoundManager : MonoBehaviour
 
     public GameObject[] playerObjects;
     public List<GameObject> powerupsInPlay;
-    private PlayerSpawn currPlayerSpawn;
+    public PlayerSpawn currPlayerSpawn;
     private int currRoundIndex;
-    private int startTimer;
-    private bool roundSelected;
-    private GameObject instructPanel;
 
     public RenderTexture[] playerFaceRenderTextures;
 
@@ -56,7 +54,6 @@ public class RoundManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            roundSelected = false;
             currRoundProgress = 0;
             currRoundActive = false;
             currRound = null;
@@ -81,7 +78,7 @@ public class RoundManager : MonoBehaviour
     }
     private void Update()
     {
-        if (currRound == null && (SceneManager.GetActiveScene().name.Equals(controllerSceneName) || SceneManager.GetActiveScene().name.Equals(shopSceneName)))
+        if (currRound == null && (SceneManager.GetActiveScene().name.Equals(controllerSceneName) || SceneManager.GetActiveScene().name.Equals(shopSceneName) || SceneManager.GetActiveScene().name.Equals("Local Screen"))) // the local screen check will be removed later
         {
             SelectRound();
         }
@@ -279,7 +276,8 @@ public class RoundManager : MonoBehaviour
         if (currRound == null || currRoundActive) return;
 
         currRoundProgress = 0;
-        roundSelected = true;
+        currRoundProgressNormalized = 0;
+        //roundSelected = true;
         //currRoundActive = true;
         currRound.goalObjects = new List<GameObject>();
 
@@ -287,14 +285,14 @@ public class RoundManager : MonoBehaviour
         SpawnPlayers();
 
         // Assign BasketContainer if CherryRound
-        if (currRound is CherryRound cherryRound)
+        /*if (currRound is CherryRound cherryRound)
         {
             GameObject basketObj = GameObject.FindWithTag("BasketContainer");
             if (basketObj != null)
                 cherryRound.SetBasketContainer(basketObj.GetComponent<BasketContainer>());
             else
                 Debug.LogError("BasketContainer not found in scene!");
-        }
+        }*/
 
         // Start the round timer and initial round values
         currRound.setValues();
@@ -306,33 +304,53 @@ public class RoundManager : MonoBehaviour
     {
         currPlayerSpawn = FindFirstObjectByType<PlayerSpawn>();
         playerObjects = new GameObject[GameManager.Instance.playerCount];
-
-        for (int i = 0; i < GameManager.Instance.playerCount; i++)
+        if (!GameManager.Instance.isOnKeyboard)
         {
-            int assignedControllerIndex = GameManager.Instance.controllerAssignments[i];
+            for (int i = 0; i < GameManager.Instance.playerCount; i++)
+            {
+                int assignedControllerIndex = GameManager.Instance.controllerAssignments[i];
 
-            GameObject playerObj = Instantiate(playerPrefab, currPlayerSpawn.spawnPoints[i].position, Quaternion.identity);
+                GameObject playerObj = Instantiate(playerPrefab, currPlayerSpawn.spawnPoints[i].position, Quaternion.identity);
+                Playermovement player = playerObj.GetComponentInChildren<Playermovement>();
+                player.playerIndex = i;
+                player.GetComponent<PlayerEscapeUI>().playerIndex = i;
+
+                if (assignedControllerIndex >= 0 && assignedControllerIndex < UnityEngine.InputSystem.Gamepad.all.Count)
+                    player.assignedGamepad = UnityEngine.InputSystem.Gamepad.all[assignedControllerIndex];
+
+                // Assign color
+                PlayerColorAssigner colorAssigner = playerObj.GetComponentInChildren<PlayerColorAssigner>();
+                if (colorAssigner != null) colorAssigner.AssignColor(i);
+
+                // Assign face cam
+                Camera faceCam = player.GetComponentInChildren<Camera>();
+                if (faceCam != null && i < playerFaceRenderTextures.Length)
+                    faceCam.targetTexture = playerFaceRenderTextures[i];
+
+                playerObjects[i] = playerObj;
+            }
+        }
+        else
+        {
+            GameObject playerObj = Instantiate(playerPrefab, currPlayerSpawn.spawnPoints[0].position, Quaternion.identity);
             Playermovement player = playerObj.GetComponentInChildren<Playermovement>();
-            player.playerIndex = i;
-            player.GetComponent<PlayerEscapeUI>().playerIndex = i;
-
-            if (assignedControllerIndex >= 0 && assignedControllerIndex < UnityEngine.InputSystem.Gamepad.all.Count)
-                player.assignedGamepad = UnityEngine.InputSystem.Gamepad.all[assignedControllerIndex];
+            player.playerIndex = 0;
+            player.GetComponent<PlayerEscapeUI>().playerIndex = 0;
 
             // Assign color
             PlayerColorAssigner colorAssigner = playerObj.GetComponentInChildren<PlayerColorAssigner>();
-            if (colorAssigner != null) colorAssigner.AssignColor(i);
+            if (colorAssigner != null) colorAssigner.AssignColor(0);
 
             // Assign face cam
             Camera faceCam = player.GetComponentInChildren<Camera>();
-            if (faceCam != null && i < playerFaceRenderTextures.Length)
-                faceCam.targetTexture = playerFaceRenderTextures[i];
+            if (faceCam != null && 0 < playerFaceRenderTextures.Length)
+                faceCam.targetTexture = playerFaceRenderTextures[0];
 
-            playerObjects[i] = playerObj;
+            playerObjects[0] = playerObj;
         }
     }
 
-    public IEnumerator StartTimer()
+    public IEnumerator StartTimer() // timer at beginning of round
     {
         timerText.text = "";
 
@@ -355,12 +373,14 @@ public class RoundManager : MonoBehaviour
         currRoundActive = true;
         StartCoroutine(RoundTimer());
         StartCoroutine(currRound.StartGoal());
+        StartCoroutine(EventManager.Instance.EventTimer());
     }
-    public IEnumerator RoundTimer()
+    public IEnumerator RoundTimer() // timer for the round
     {
         while (currRoundProgress < currRoundDurationInSecs)
         {
             currRoundProgress += Time.deltaTime;
+            currRoundProgressNormalized = currRoundProgress / currRoundDurationInSecs;
 
             if (timerText != null)
             {
@@ -372,6 +392,7 @@ public class RoundManager : MonoBehaviour
         }
 
         currRoundProgress = currRoundDurationInSecs;
+        currRoundProgressNormalized = 1f;
 
         // Round over, calculate winners
         currRoundScores = currRound.ScoreCount();
@@ -390,7 +411,7 @@ public class RoundManager : MonoBehaviour
             SceneManager.LoadSceneAsync(winSceneName);
         }
 
-        roundSelected = false;
+        //roundSelected = false;
         currRoundActive = false;
         currRound = null;
     }
@@ -399,5 +420,4 @@ public class RoundManager : MonoBehaviour
     {
         timerText = timer;
     }
-
 }

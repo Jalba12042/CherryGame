@@ -1,6 +1,7 @@
+using Assets.DuckType.Jiggle;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections;
 
 public class PlayerGrab : MonoBehaviour
 {
@@ -25,7 +26,12 @@ public class PlayerGrab : MonoBehaviour
     public GameObject stunCanvas;
     public TMPro.TMP_Text stunTimerText;
 
+    private Jiggle[] myJiggles;
 
+    [Header("Grab Audio")]
+    [SerializeField] private AudioSource grabSource;
+    [SerializeField] private AudioClip grabClip;
+    [SerializeField] private AudioClip dropClip;
 
     private void Awake()
     {
@@ -39,6 +45,7 @@ public class PlayerGrab : MonoBehaviour
         player = GetComponent<Playermovement>();
         myCollider = GetComponent<Collider>();
         animator = GetComponent<Animator>();
+        myJiggles = GetComponentsInChildren<Jiggle>();
 
         if (stunCanvas != null)
             stunCanvas.SetActive(false);
@@ -47,8 +54,9 @@ public class PlayerGrab : MonoBehaviour
 
     void Update()
     {
-        if (player.assignedGamepad == null) return;
-        gamepad = player.assignedGamepad;
+        //if (player.assignedGamepad == null) return;
+        if (!GameManager.Instance.isOnKeyboard)
+            gamepad = player.assignedGamepad;
 
         // Keep grabbed player at pickup target
         if (grabbedPlayer != null && pickupTarget != null)
@@ -59,12 +67,24 @@ public class PlayerGrab : MonoBehaviour
 
         if (grabEscapeCooldown) return;
 
-        if (gamepad.rightTrigger.wasPressedThisFrame)
-            TryGrab();
-        else if (gamepad.rightTrigger.wasReleasedThisFrame)
-            ReleaseGrab();
-        else if (gamepad.leftTrigger.wasReleasedThisFrame && grabbedPlayer != null)
-            ThrowGrabbedPlayer();
+        if (!GameManager.Instance.isOnKeyboard)
+        {
+            if (gamepad.rightTrigger.wasPressedThisFrame)
+                TryGrab();
+            else if (gamepad.rightTrigger.wasReleasedThisFrame)
+                ReleaseGrab();
+            else if (gamepad.leftTrigger.wasReleasedThisFrame && grabbedPlayer != null)
+                ThrowGrabbedPlayer();
+        }
+        else
+        {
+            if (Input.GetKeyDown(KeyCode.E))
+                TryGrab();
+            else if (Input.GetKeyUp(KeyCode.E))
+                ReleaseGrab();
+            else if (Input.GetKeyUp(KeyCode.Q) && grabbedPlayer != null)
+                ThrowGrabbedPlayer();
+        }
     }
 
 
@@ -77,6 +97,13 @@ public class PlayerGrab : MonoBehaviour
             return;
 
         grabbedPlayer = nearbyPlayer;
+
+        if (grabSource != null && grabClip != null)
+        {
+            grabSource.pitch = Random.Range(0.95f, 1.05f); // slight variation
+            grabSource.PlayOneShot(grabClip);
+        }
+
         grabbedRigidbody = grabbedPlayer.GetComponent<Rigidbody>();
         if (grabbedRigidbody != null)
             grabbedRigidbody.isKinematic = true;
@@ -106,6 +133,7 @@ public class PlayerGrab : MonoBehaviour
         if (animator != null)
             animator.SetBool("isPickingUp", true);
 
+        SetMyJiggle(false);
     }
 
 
@@ -113,6 +141,12 @@ public class PlayerGrab : MonoBehaviour
     public void ReleaseGrab()
     {
         if (grabbedPlayer == null) return;
+
+        if (grabSource != null && dropClip != null)
+        {
+            grabSource.pitch = Random.Range(0.9f, 1.0f);
+            grabSource.PlayOneShot(dropClip);
+        }
 
         if (grabbedRigidbody != null)
             grabbedRigidbody.isKinematic = false;
@@ -147,6 +181,7 @@ public class PlayerGrab : MonoBehaviour
                 animator.SetBool("isPickingUp", false);
 
         }
+        SetMyJiggle(true);
 
         grabbedPlayer = null;
         grabbedRigidbody = null;
@@ -271,5 +306,16 @@ public class PlayerGrab : MonoBehaviour
         grabEscapeCooldown = true;
         yield return new WaitForSeconds(escapeCooldownTime);
         grabEscapeCooldown = false;
+    }
+
+    void SetMyJiggle(bool enabled)
+    {
+        if (myJiggles == null) return;
+
+        foreach (var jiggle in myJiggles)
+        {
+            if (jiggle != null)
+                jiggle.enabled = enabled;
+        }
     }
 }
