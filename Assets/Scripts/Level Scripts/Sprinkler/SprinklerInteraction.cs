@@ -22,7 +22,7 @@ public class SprinklerInteraction : MonoBehaviour
         if (waterZone != null)
         {
             waterZone.enabled = false;
-            Debug.Log("Water zone found and disabled at start.");
+            //Debug.Log("Water zone found and disabled at start.");
         }
         else
         {
@@ -38,8 +38,8 @@ public class SprinklerInteraction : MonoBehaviour
         bool active = sprinkler.IsActive();
         waterZone.enabled = active;
 
-        if (active)
-            Debug.Log("Water zone ENABLED");
+        /*if (active)
+            Debug.Log("Water zone ENABLED");*/
     }
 
     private void OnTriggerEnter(Collider other)
@@ -79,15 +79,15 @@ public class SprinklerInteraction : MonoBehaviour
             Debug.LogWarning("Player has NO Rigidbody!");
         }
 
-        WASDtester pm = other.GetComponent<WASDtester>();
-        if (pm != null && !pm.IsSlowed)
+        Playermovement pm = other.GetComponent<Playermovement>();
+        if (pm != null && !pm.isSlowed)
         {
             Debug.Log("Applying slow effect");
             StartCoroutine(ApplySlow(pm));
         }
         else if (pm == null)
         {
-            Debug.LogWarning("Player has NO WASDtester script!");
+            Debug.LogWarning("Player has NO Movement script!");
         }
     }
 
@@ -99,14 +99,14 @@ public class SprinklerInteraction : MonoBehaviour
             Debug.Log(">>> PLAYER LEFT WATER ZONE <<<");
     }
 
-    private IEnumerator ApplySlow(WASDtester pm)
+    private IEnumerator ApplySlow(Playermovement pm)
     {
-        pm.IsSlowed = true;
+        pm.isSlowed = true;
         pm.moveSpeed *= slowMultiplier;
 
         yield return new WaitForSeconds(slowDuration);
 
         pm.moveSpeed /= slowMultiplier;
-        pm.IsSlowed = false;
+        pm.isSlowed = false;
     }
 }
