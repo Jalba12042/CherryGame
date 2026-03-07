@@ -15,6 +15,8 @@ public class SprinklerController : MonoBehaviour
     [SerializeField] private Vector2 idleTimeRange = new Vector2(2f, 4f);    // How long it's off (random)
     [SerializeField] private bool autoStart = true;
 
+    [SerializeField] private Collider waterTrigger;
+
     private Vector3 loweredPos;
     private Vector3 raisedPos;
     private bool isActive = false;
@@ -28,6 +30,9 @@ public class SprinklerController : MonoBehaviour
 
         if (autoStart)
             StartSprinklerCycle();
+
+        if (waterTrigger != null)
+            waterTrigger.enabled = false;
     }
 
     private void Update()
@@ -49,12 +54,22 @@ public class SprinklerController : MonoBehaviour
             if (isActive)
             {
                 if (!sprinklerParticles.isPlaying)
+                {
                     sprinklerParticles.Play();
+
+                    if (waterTrigger != null)
+                        waterTrigger.enabled = true;
+                }
             }
             else
             {
                 if (sprinklerParticles.isPlaying)
+                {
                     sprinklerParticles.Stop();
+
+                    if (waterTrigger != null)
+                        waterTrigger.enabled = false;
+                }
             }
         }
     }
