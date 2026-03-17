@@ -8,6 +8,7 @@ public class CherryPullArea : MonoBehaviour
     public float pullSpeed = 12f;      // Use speed instead of force
     public float snapDistance = 0.25f;
     public float maxMagnetTime = 2f;
+    public GameObject pullEffect;
 
     private HashSet<Rigidbody> activeCherries = new HashSet<Rigidbody>();
 
@@ -18,21 +19,21 @@ public class CherryPullArea : MonoBehaviour
         Rigidbody rb = other.GetComponent<Rigidbody>();
         if (rb == null) return;
 
-        // Prevent double magnet pulls
         if (activeCherries.Contains(rb)) return;
 
         activeCherries.Add(rb);
 
-        // IMPORTANT: Kill forward momentum immediately
+        // Enable shader effect
+        if (pullEffect != null)
+            pullEffect.SetActive(true);
+
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
 
-        // Use continuous collision for safety
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
         StartCoroutine(PullCherry(rb));
     }
-
     private IEnumerator PullCherry(Rigidbody rb)
     {
         float timer = 0f;
@@ -45,11 +46,14 @@ public class CherryPullArea : MonoBehaviour
             if (distance <= snapDistance)
             {
                 rb.linearVelocity = Vector3.zero;
-                //rb.isKinematic = true;
                 rb.position = snapPoint.position;
 
                 rb.angularVelocity = Vector3.zero;
                 rb.useGravity = true;
+
+                // Disable shader effect
+                if (pullEffect != null)
+                    pullEffect.SetActive(false);
 
                 activeCherries.Remove(rb);
                 yield break;
