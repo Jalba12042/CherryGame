@@ -79,7 +79,8 @@ public class Projectile : MonoBehaviour
 
         launchPoint.forward = owner.transform.forward;
 
-        float ltValue = gamepad.leftTrigger.ReadValue();
+        //float ltValue = gamepad.leftTrigger.ReadValue();
+        float rtValue = gamepad.rightTrigger.ReadValue();
 
         if (!isHoldingCherry)
         {
@@ -89,12 +90,12 @@ public class Projectile : MonoBehaviour
         }
 
         // HOLD LT
-        if (ltValue > 0.1f)
+        if (rtValue > 0.2f)
         {
             isAiming = true;
             owner.animator.SetBool("isAiming", true);
 
-            currentPower = Mathf.Lerp(currentPower, ltValue, Time.deltaTime * 8f);
+            currentPower = Mathf.Lerp(currentPower, rtValue, Time.deltaTime * 8f);
 
             //if (lineRenderer != null)
                 //lineRenderer.enabled = true;
@@ -102,7 +103,7 @@ public class Projectile : MonoBehaviour
             DrawTrajectory(currentPower);
         }
         // RELEASE LT
-        else if (isAiming && ltValue <= 0.1f)
+        else if (isAiming && rtValue <= 0.2f)
         {
             //if (lineRenderer != null)
                 //lineRenderer.enabled = false;

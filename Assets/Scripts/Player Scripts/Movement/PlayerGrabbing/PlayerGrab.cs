@@ -1,4 +1,4 @@
-using Assets.DuckType.Jiggle;
+﻿using Assets.DuckType.Jiggle;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -15,6 +15,7 @@ public class PlayerGrab : MonoBehaviour
     private Rigidbody grabbedRigidbody;
     private Collider myCollider, grabbedCollider;
     private bool canGrab = true;
+    private bool wasGrabPressedLastFrame = false;
 
     private GameObject nearbyPlayer;
     [HideInInspector] public bool isGrabbed = false; // new flag for grabbed state
@@ -67,7 +68,7 @@ public class PlayerGrab : MonoBehaviour
 
         if (grabEscapeCooldown) return;
 
-        if (!GameManager.Instance.isOnKeyboard)
+        /*if (!GameManager.Instance.isOnKeyboard)
         {
             if (gamepad.rightTrigger.wasPressedThisFrame)
                 TryGrab();
@@ -75,8 +76,43 @@ public class PlayerGrab : MonoBehaviour
                 ReleaseGrab();
             else if (gamepad.leftTrigger.wasReleasedThisFrame && grabbedPlayer != null)
                 ThrowGrabbedPlayer();
+        }*/
+        float rtValue = 0f;
+        bool isPressing = false;
+
+        if (!GameManager.Instance.isOnKeyboard)
+        {
+            if (gamepad == null) return;
+
+            rtValue = gamepad.rightTrigger.ReadValue();
+            isPressing = rtValue > 0.1f;
         }
         else
+        {
+            isPressing = Input.GetKey(KeyCode.E);
+        }
+
+        // ---- TAP DETECTION ----
+        if (isPressing && !wasGrabPressedLastFrame)
+        {
+            OnGrabPressed();
+        }
+
+        // ---- HOLD THROW ----
+        if (grabbedPlayer != null && rtValue > 0.2f)
+        {
+            // holding → do nothing yet (charging feel)
+        }
+
+        // ---- RELEASE AFTER HOLD → THROW ----
+        if (grabbedPlayer != null && wasGrabPressedLastFrame && rtValue <= 0.2f)
+        {
+            ThrowGrabbedPlayer();
+        }
+
+        // save state
+        wasGrabPressedLastFrame = isPressing;
+        /*else
         {
             if (Input.GetKeyDown(KeyCode.E))
                 TryGrab();
@@ -84,9 +120,20 @@ public class PlayerGrab : MonoBehaviour
                 ReleaseGrab();
             else if (Input.GetKeyUp(KeyCode.Q) && grabbedPlayer != null)
                 ThrowGrabbedPlayer();
-        }
+        }*/
     }
 
+    private void OnGrabPressed()
+    {
+        if (grabbedPlayer == null)
+        {
+            TryGrab();
+        }
+        else
+        {
+            ReleaseGrab();
+        }
+    }
 
     private void TryGrab()
     {
