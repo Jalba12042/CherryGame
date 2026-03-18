@@ -169,7 +169,7 @@ public class PlayerCherry : MonoBehaviour
         }
         else
         {
-            CancelAimAndDrop(); // or HandleDrop()
+            CancelAimAndDrop();
         }
     }
     private void CancelAimAndDrop()

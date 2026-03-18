@@ -15,7 +15,6 @@ public class PlayerGrab : MonoBehaviour
     private Rigidbody grabbedRigidbody;
     private Collider myCollider, grabbedCollider;
     private bool canGrab = true;
-    private bool wasGrabPressedLastFrame = false;
 
     private GameObject nearbyPlayer;
     [HideInInspector] public bool isGrabbed = false; // new flag for grabbed state
@@ -33,6 +32,10 @@ public class PlayerGrab : MonoBehaviour
     [SerializeField] private AudioSource grabSource;
     [SerializeField] private AudioClip grabClip;
     [SerializeField] private AudioClip dropClip;
+
+    [Header("Throw Settings")]
+    [SerializeField] private float throwForceForward = 25f;
+    [SerializeField] private float throwForceUp = 12f;
 
     private void Awake()
     {
@@ -55,7 +58,6 @@ public class PlayerGrab : MonoBehaviour
 
     void Update()
     {
-        //if (player.assignedGamepad == null) return;
         if (!GameManager.Instance.isOnKeyboard)
             gamepad = player.assignedGamepad;
 
@@ -68,70 +70,41 @@ public class PlayerGrab : MonoBehaviour
 
         if (grabEscapeCooldown) return;
 
-        /*if (!GameManager.Instance.isOnKeyboard)
-        {
-            if (gamepad.rightTrigger.wasPressedThisFrame)
-                TryGrab();
-            else if (gamepad.rightTrigger.wasReleasedThisFrame)
-                ReleaseGrab();
-            else if (gamepad.leftTrigger.wasReleasedThisFrame && grabbedPlayer != null)
-                ThrowGrabbedPlayer();
-        }*/
-        float rtValue = 0f;
-        bool isPressing = false;
-
         if (!GameManager.Instance.isOnKeyboard)
         {
             if (gamepad == null) return;
 
-            rtValue = gamepad.rightTrigger.ReadValue();
-            isPressing = rtValue > 0.1f;
-        }
-        else
-        {
-            isPressing = Input.GetKey(KeyCode.E);
-        }
+            // RT TAP → toggle grab/release
+            if (gamepad.rightTrigger.wasPressedThisFrame)
+            {
+                if (grabbedPlayer == null)
+                    TryGrab();
+                else
+                    ReleaseGrab();
+            }
 
-        // ---- TAP DETECTION ----
-        if (isPressing && !wasGrabPressedLastFrame)
-        {
-            OnGrabPressed();
-        }
-
-        // ---- HOLD THROW ----
-        if (grabbedPlayer != null && rtValue > 0.2f)
-        {
-            // holding → do nothing yet (charging feel)
-        }
-
-        // ---- RELEASE AFTER HOLD → THROW ----
-        if (grabbedPlayer != null && wasGrabPressedLastFrame && rtValue <= 0.2f)
-        {
-            ThrowGrabbedPlayer();
-        }
-
-        // save state
-        wasGrabPressedLastFrame = isPressing;
-        /*else
-        {
-            if (Input.GetKeyDown(KeyCode.E))
-                TryGrab();
-            else if (Input.GetKeyUp(KeyCode.E))
-                ReleaseGrab();
-            else if (Input.GetKeyUp(KeyCode.Q) && grabbedPlayer != null)
+            // LT RELEASE → throw (UNCHANGED)
+            if (gamepad.leftTrigger.wasReleasedThisFrame && grabbedPlayer != null)
+            {
                 ThrowGrabbedPlayer();
-        }*/
-    }
-
-    private void OnGrabPressed()
-    {
-        if (grabbedPlayer == null)
-        {
-            TryGrab();
+            }
         }
         else
         {
-            ReleaseGrab();
+            // Keyboard version (same logic)
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                if (grabbedPlayer == null)
+                    TryGrab();
+                else
+                    ReleaseGrab();
+            }
+
+            // Throw (UNCHANGED)
+            if (Input.GetKeyUp(KeyCode.Q) && grabbedPlayer != null)
+            {
+                ThrowGrabbedPlayer();
+            }
         }
     }
 
@@ -241,13 +214,11 @@ public class PlayerGrab : MonoBehaviour
     {
         if (grabbedPlayer == null || grabbedRigidbody == null) return;
 
-        // Store references locally before releasing
         GameObject thrownPlayer = grabbedPlayer;
         Rigidbody thrownRb = grabbedRigidbody;
         PlayerGrab thrownGrab = grabbedPlayer.GetComponent<PlayerGrab>();
         Playermovement thrownPm = grabbedPlayer.GetComponent<Playermovement>();
 
-        // Release the grab after storing references
         ReleaseGrab();
 
         if (animator != null)
@@ -257,17 +228,15 @@ public class PlayerGrab : MonoBehaviour
         if (thrownAnimator != null)
             thrownAnimator.SetBool("isGrabbed", false);
 
-        // Apply throw force
+        // Apply throw force using Inspector variables
         thrownRb.isKinematic = false;
-        thrownRb.linearVelocity = Vector3.zero;
+        thrownRb.linearVelocity = Vector3.zero; // reset any previous velocity
         Vector3 throwDir = transform.forward;
-        thrownRb.AddForce(throwDir * 10f + Vector3.up * 6f, ForceMode.Impulse);
+        thrownRb.AddForce(throwDir * throwForceForward + Vector3.up * throwForceUp, ForceMode.Impulse);
 
-        // Apply stun only to the thrown player
         if (thrownPm != null)
             StartCoroutine(thrownPm.GetComponent<PlayerGrab>().StunRoutine(3f));
 
-        // Re-enable thrown player's grab component
         if (thrownGrab != null)
             thrownGrab.enabled = true;
     }
