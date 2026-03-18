@@ -12,7 +12,7 @@ public class CherryPullArea : MonoBehaviour
 
     private HashSet<Rigidbody> activeCherries = new HashSet<Rigidbody>();
 
-    private void OnTriggerEnter(Collider other)
+    /*private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Cherry")) return;
 
@@ -33,7 +33,33 @@ public class CherryPullArea : MonoBehaviour
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
         StartCoroutine(PullCherry(rb));
+    }*/
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!other.CompareTag("Cherry")) return;
+
+        Rigidbody rb = other.GetComponent<Rigidbody>();
+        if (rb == null) return;
+
+        if (activeCherries.Contains(rb)) return;
+
+        // Only activate if cherry is moving fast enough
+        if (rb.linearVelocity.magnitude < 1f) return; // tweak 1f to your “throw speed” threshold
+
+        activeCherries.Add(rb);
+
+        // Enable shader effect
+        if (pullEffect != null)
+            pullEffect.SetActive(true);
+
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+        StartCoroutine(PullCherry(rb));
     }
+
     private IEnumerator PullCherry(Rigidbody rb)
     {
         float timer = 0f;
