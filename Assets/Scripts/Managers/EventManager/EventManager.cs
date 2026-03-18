@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using TMPro;
 
 public class EventManager : MonoBehaviour
 {
@@ -10,9 +11,13 @@ public class EventManager : MonoBehaviour
     [SerializeField] private List<GameEvent> eventsInRotation;
     public GameEvent currEvent;
     public Coroutine currEventRoutine;
+    public Coroutine UIRoutine;
 
     [Header("Event curve")]
     [SerializeField] private AnimationCurve eventCurve;
+
+    public GameObject eventTextObj;
+    public TMP_Text eventText;
 
     public bool eventRunning;
     public bool onCooldown;
@@ -33,9 +38,16 @@ public class EventManager : MonoBehaviour
 
     private void Update()
     {
+        if (eventTextObj != null && eventText == null)
+        {
+            eventText = eventTextObj.GetComponent<TMP_Text>();
+            eventTextObj.SetActive(false);
+        }
+
         if (!RoundManager.Instance.currRoundActive && currEventRoutine != null)
         {
             StopCoroutine(currEventRoutine);
+            StopCoroutine(UIRoutine);
             currEventRoutine = null;
 
             if (currEvent != null)
@@ -93,8 +105,24 @@ public class EventManager : MonoBehaviour
             {
                 Debug.Log("started");
                 currEvent = GetRandomEvent();
+                UIRoutine = StartCoroutine(UITimer(currEvent.eventName));
                 currEventRoutine = StartCoroutine(currEvent.Trigger());
                 eventRunning = true;
+            }
+        }
+    }
+
+    public IEnumerator UITimer(string eText)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (eventTextObj != null && eventText != null)
+            {
+                eventTextObj.SetActive(true);
+                eventText.text = eText;
+                yield return new WaitForSeconds(.5f);
+                eventTextObj.SetActive(false);
+                yield return new WaitForSeconds(.5f);
             }
         }
     }
