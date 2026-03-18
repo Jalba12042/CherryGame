@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public enum ZombieState {
@@ -9,6 +10,8 @@ public enum ZombieState {
 }
 public class Zombie : MonoBehaviour
 {
+    [SerializeField] private bool DEBUG_MODE = false;
+
     [Header("Zombie State")]
     [SerializeField] private ZombieState ZState;
 
@@ -25,18 +28,26 @@ public class Zombie : MonoBehaviour
     [SerializeField] private float detectionRange = 6f;
 
     [Header("Rising")]
-    [SerializeField] private float risingDist;
+    [SerializeField] private float groundY;
+    [SerializeField] private float riseWaitTime = 1f;
+
+    [Header("Digging")]
+    [SerializeField] private float digTotalTime = 2f;
 
     private Rigidbody rb;
     private Vector3 playerTarget;
     private float waitTimer;
-    public Vector3 wanderTarget;
+    private float riseTimer;
+    private float digTimer;
+    private Vector3 wanderTarget;
+
+    public ZombieEvent myEvent;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        wanderTarget = transform.position;
-        ChangeState(ZombieState.Wander);
+        rb.isKinematic = true;
+        ChangeState(ZombieState.Rising);
     }
     private void FixedUpdate()
     {
@@ -50,7 +61,7 @@ public class Zombie : MonoBehaviour
                 break;
 
             case ZombieState.Rising:
-                
+                Rise();
                 break;
 
             case ZombieState.Chasing:
@@ -59,15 +70,57 @@ public class Zombie : MonoBehaviour
                 break;
 
             case ZombieState.Attacking:
-                
+                // TODO
                 break;
 
             case ZombieState.Digging:
-                
+                Dig();
                 break;
         }
     }
 
+    void Rise()
+    {
+        if (rb.position.y < groundY)
+        {
+            float step = moveSpeed * Time.fixedDeltaTime;
+            float newY = Mathf.Min(rb.position.y + step, groundY);
+            rb.MovePosition(new Vector3(rb.position.x, newY, rb.position.z));
+        }
+        else
+        {
+            if (riseTimer <= 0f)
+            {
+                riseTimer = riseWaitTime; 
+            }
+
+            riseTimer -= Time.fixedDeltaTime;
+
+            if (riseTimer <= 0f)
+            {
+                wanderTarget = transform.position;
+                rb.isKinematic = false;
+                ChangeState(ZombieState.Wander);
+                StartCoroutine(LifeTimer());
+            }
+        }
+    }
+
+    void Dig()
+    {
+        rb.isKinematic = true;
+
+        float step = moveSpeed * Time.fixedDeltaTime;
+        float newY = rb.position.y - step;
+        rb.MovePosition(new Vector3(rb.position.x, newY, rb.position.z));
+
+        digTimer -= Time.fixedDeltaTime;
+
+        if (digTimer <= 0f)
+        {
+            Destroy(gameObject);
+        }
+    }
 
     void HandleWander()
     {
@@ -176,6 +229,13 @@ public class Zombie : MonoBehaviour
         }
     }
 
+    private IEnumerator LifeTimer()
+    {
+        //yield return new WaitForSeconds(myEvent.duration);
+        yield return new WaitForSeconds(10);
+        digTimer = digTotalTime;
+        ChangeState(ZombieState.Digging);
+    }
     void ChangeState(ZombieState newState)
     {
         ZState = newState;
@@ -183,7 +243,10 @@ public class Zombie : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, detectionRange);
+        if (DEBUG_MODE)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(transform.position, detectionRange);
+        }
     }
 }
