@@ -6,6 +6,7 @@ using UnityEngine;
 public class CherryEvent : GameEvent
 {
     [SerializeField] private GameObject cherryPrefab;
+
     public override IEnumerator Trigger()
     {
         isRunning = true;
