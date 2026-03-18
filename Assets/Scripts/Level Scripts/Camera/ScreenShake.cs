@@ -5,7 +5,7 @@ public class ScreenShake : MonoBehaviour
 {
     [Header("Shake Settings")]
     [SerializeField] private float defaultDuration = 0.3f;
-    [SerializeField] private float defaultMagnitude = 0.3f;
+    [SerializeField] private float defaultMagnitude = 1f;
 
     private Vector3 originalPos;
 

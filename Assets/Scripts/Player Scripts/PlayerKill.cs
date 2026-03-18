@@ -6,10 +6,12 @@ public class PlayerKill : MonoBehaviour
     public Renderer[] playerRenderers;
     public Playermovement pm;
     [SerializeField] private int respawnDuration;
+    public Scream ps;
 
     private void Awake()
     {
         pm = GetComponent<Playermovement>();
+        ps = GetComponentInChildren<Scream>();
         playerRenderers = GetComponentsInChildren<Renderer>();
     }
     public IEnumerator respawnTimer()
@@ -21,6 +23,7 @@ public class PlayerKill : MonoBehaviour
         {
             r.enabled = true;
         }
+        ps.enabled = true;
     }
 
     public void killPlayer()
@@ -33,6 +36,7 @@ public class PlayerKill : MonoBehaviour
 
         pm.canMove = false;
         transform.position = RoundManager.Instance.currPlayerSpawn.spawnPoints[pm.playerIndex].position;
+        ps.enabled = false;
         StartCoroutine(respawnTimer());
     }
 }
