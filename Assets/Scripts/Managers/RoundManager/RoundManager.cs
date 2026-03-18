@@ -280,6 +280,7 @@ public class RoundManager : MonoBehaviour
         //roundSelected = true;
         //currRoundActive = true;
         currRound.goalObjects = new List<GameObject>();
+        EventManager.Instance.eventTextObj = GameObject.FindWithTag("EventText");
 
         // Spawn players
         SpawnPlayers();
