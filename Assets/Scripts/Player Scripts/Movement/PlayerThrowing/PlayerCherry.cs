@@ -21,6 +21,7 @@ public class PlayerCherry : MonoBehaviour
     private GameObject nearbyCherry;
 
     private bool isThrowing = false;
+    private bool wasPickingLastFrame = false;
 
     private Jiggle[] jiggleParts;
 
@@ -60,7 +61,7 @@ public class PlayerCherry : MonoBehaviour
         }
     }*/
 
-    void Update()
+    /*void Update()
     {
         float rtValue = 0f;
         bool isPickingKey = false;
@@ -102,6 +103,34 @@ public class PlayerCherry : MonoBehaviour
             else
                 HandleDrop();
         }
+    }*/
+
+    void Update()
+    {
+        bool isPickingNow = false;
+
+        // ---- INPUT ----
+        if (!GameManager.Instance.isOnKeyboard)
+        {
+            if (player.assignedGamepad == null) return;
+            gamepad = player.assignedGamepad;
+
+            float rtValue = gamepad.rightTrigger.ReadValue();
+            isPickingNow = rtValue > 0.1f;
+        }
+        else
+        {
+            isPickingNow = Input.GetKey(KeyCode.E);
+        }
+
+        // ---- DETECT PRESS ----
+        if (isPickingNow && !wasPickingLastFrame)
+        {
+            OnPickupPressed();
+        }
+
+        // Save for next frame
+        wasPickingLastFrame = isPickingNow;
     }
 
     private void HandlePickup()
@@ -132,6 +161,17 @@ public class PlayerCherry : MonoBehaviour
         }
     }
 
+    private void OnPickupPressed()
+    {
+        if (heldCherry == null)
+        {
+            HandlePickup();
+        }
+        else
+        {
+            CancelAimAndDrop();
+        }
+    }
     private void CancelAimAndDrop()
     {
         if (heldCherry == null) return;
@@ -166,7 +206,7 @@ public class PlayerCherry : MonoBehaviour
         yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
     }
 
-    private void HandleDrop()
+    /*private void HandleDrop()
     {
         // If the Projectile reports aiming or a pending throw, DO NOT drop.
         if (projectileScript != null && (projectileScript.IsThrowPending() || isThrowing))
@@ -194,7 +234,7 @@ public class PlayerCherry : MonoBehaviour
             SetJiggle(true);
             heldCherry = null;
         }
-    }
+    }*/
 
 
     /*private void HandleDrop()

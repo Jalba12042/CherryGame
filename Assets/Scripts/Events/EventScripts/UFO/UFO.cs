@@ -45,6 +45,8 @@ public class UFO : MonoBehaviour
     {
         if (targetPlayer == null) return;
 
+        if (!RoundManager.Instance.currRoundActive) Destroy(gameObject);
+
         switch (currentState)
         {
             case UFOState.Approaching:

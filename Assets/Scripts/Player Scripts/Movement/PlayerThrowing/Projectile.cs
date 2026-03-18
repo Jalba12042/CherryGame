@@ -79,7 +79,9 @@ public class Projectile : MonoBehaviour
 
         launchPoint.forward = owner.transform.forward;
 
+
         float ltValue = gamepad.leftTrigger.ReadValue();
+        //float rtValue = gamepad.rightTrigger.ReadValue();
 
         if (!isHoldingCherry)
         {
@@ -89,7 +91,7 @@ public class Projectile : MonoBehaviour
         }
 
         // HOLD LT
-        if (ltValue > 0.1f)
+        if (ltValue > 0.2f)
         {
             isAiming = true;
             owner.animator.SetBool("isAiming", true);
@@ -102,7 +104,7 @@ public class Projectile : MonoBehaviour
             DrawTrajectory(currentPower);
         }
         // RELEASE LT
-        else if (isAiming && ltValue <= 0.1f)
+        else if (isAiming && ltValue <= 0.2f)
         {
             //if (lineRenderer != null)
                 //lineRenderer.enabled = false;
@@ -138,8 +140,8 @@ public class Projectile : MonoBehaviour
         Rigidbody rb = heldCherry.GetComponent<Rigidbody>();
         if (rb != null)
         {
-            rb.isKinematic = true;
             rb.linearVelocity = Vector3.zero;
+            rb.isKinematic = true;
         }
 
         heldCherry.transform.SetParent(launchPoint);
