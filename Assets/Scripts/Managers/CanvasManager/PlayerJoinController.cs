@@ -74,6 +74,15 @@ public class PlayerJoinController : MonoBehaviour
                 // Otherwise try to join
                 TryAssignController(c);
             }
+
+            if (pad.buttonEast.wasPressedThisFrame) // B button
+            {
+                int playerIndex = GetPlayerIndexFromController(c);
+                if (playerIndex != -1)
+                {
+                    HandleBackPress(playerIndex);
+                }
+            }
         }
     }
 
@@ -140,6 +149,33 @@ public class PlayerJoinController : MonoBehaviour
             isReady[player] = false;
             readyPanels[player].SetActive(false);
             Debug.Log($"Player {player + 1} is NOT ready");
+        }
+    }
+
+    void HandleBackPress(int player)
+    {
+        // If player is READY → unready them first
+        if (isReady[player])
+        {
+            isReady[player] = false;
+            readyPanels[player].SetActive(false);
+            Debug.Log($"Player {player + 1} is NOT ready");
+        }
+        else
+        {
+            // If already NOT ready → remove them completely
+            int controllerIndex = assignedControllers[player];
+
+            assignedControllers[player] = -1;
+
+            joinPanels[player].SetActive(true);
+            menuPanels[player].SetActive(false);
+            readyPanels[player].SetActive(false);
+
+            if (GameManager.Instance != null)
+                GameManager.Instance.controllerAssignments[player] = -1;
+
+            Debug.Log($"Player {player + 1} left (Controller {controllerIndex})");
         }
     }
 
