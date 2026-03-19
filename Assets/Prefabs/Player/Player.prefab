@@ -1749,8 +1749,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.029525846, y: 0.038526677, z: 0.017049514}
-  m_Center: {x: 0.00015988982, y: 0.0025508446, z: 0.0003740352}
+  m_Size: {x: 0.03975071, y: 0.038526677, z: 0.022545775}
+  m_Center: {x: 0.0005014048, y: 0.0025508443, z: 0.003122139}
 --- !u!1 &6716433042887093530
 GameObject:
   m_ObjectHideFlags: 0
@@ -2971,6 +2971,8 @@ MonoBehaviour:
   grabSource: {fileID: 7848962860271489827}
   grabClip: {fileID: 8300000, guid: 270772c070e108941b257f2a8951630e, type: 3}
   dropClip: {fileID: 8300000, guid: 10335e0f8a2462f4a9a65ae22f317080, type: 3}
+  throwForceForward: 200
+  throwForceUp: 12
 --- !u!114 &4125730429216698370
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3107,7 +3109,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02e8443c79cdb7749bc4fca72f6a1392, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerRenderer: {fileID: 3979331040377659482}
+  playerRenderers: []
   pm: {fileID: 0}
   respawnDuration: 5
 --- !u!120 &3304768506201026735
