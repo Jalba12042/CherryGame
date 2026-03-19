@@ -2961,7 +2961,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pickupTarget: {fileID: 6258700834323604888}
   pickupRange: 2
-  grabCooldownTime: 3
+  grabCooldownTime: 4
   player: {fileID: 0}
   isGrabbed: 0
   escapeCooldownTime: 1
@@ -2989,6 +2989,7 @@ MonoBehaviour:
   pickupSource: {fileID: 7848962860271489827}
   pickupClip: {fileID: 8300000, guid: 270772c070e108941b257f2a8951630e, type: 3}
   dropClip: {fileID: 8300000, guid: 10335e0f8a2462f4a9a65ae22f317080, type: 3}
+  pickupRadius: 3.48
 --- !u!114 &3896367980851795835
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3112,6 +3113,7 @@ MonoBehaviour:
   playerRenderers: []
   pm: {fileID: 0}
   respawnDuration: 5
+  ps: {fileID: 0}
 --- !u!120 &3304768506201026735
 LineRenderer:
   serializedVersion: 2
