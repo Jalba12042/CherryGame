@@ -22,6 +22,7 @@ public class PlayerCustomizationUI : MonoBehaviour
 
     private int currentColorIndex = 0;
 
+
     void Start()
     {
         UpdateCategoryHighlight();

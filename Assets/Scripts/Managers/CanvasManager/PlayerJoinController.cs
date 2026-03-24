@@ -172,19 +172,48 @@ public class PlayerJoinController : MonoBehaviour
                 if (Mathf.Abs(stick.y) < 0.2f)
                     slots[p].stickInUse = false;
 
-                // ===== RT / LT (COLOR SWITCHING) =====
+                // ===== RT / LT INPUT =====
                 int category = ui.GetCurrentCategoryIndex();
 
-                if (category == 0) // Color category
+                var customization = slots[p].spawnedModel.GetComponent<PlayerCustomization>();
+
+                if (pad.rightTrigger.wasPressedThisFrame)
                 {
-                    if (pad.rightTrigger.wasPressedThisFrame)
+                    if (category == 0)
                     {
                         ui.ChangeColor(1, slots[p].spawnedModel, p);
                     }
+                    else if (category == 1)
+                    {
+                        customization.ChangeHead(1);
+                    }
+                    else if (category == 2)
+                    {
+                        customization.ChangeTorso(1);
+                    }
+                    else if (category == 3)
+                    {
+                        customization.ChangeBottom(1);
+                    }
+                }
 
-                    if (pad.leftTrigger.wasPressedThisFrame)
+                if (pad.leftTrigger.wasPressedThisFrame)
+                {
+                    if (category == 0)
                     {
                         ui.ChangeColor(-1, slots[p].spawnedModel, p);
+                    }
+                    else if (category == 1)
+                    {
+                        customization.ChangeHead(-1);
+                    }
+                    else if (category == 2)
+                    {
+                        customization.ChangeTorso(-1);
+                    }
+                    else if (category == 3)
+                    {
+                        customization.ChangeBottom(-1);
                     }
                 }
             }
@@ -227,8 +256,14 @@ public class PlayerJoinController : MonoBehaviour
      playerModelPrefab,
      slots[player].modelSpawnPoint.position,
      slots[player].modelSpawnPoint.rotation,
-     slots[player].modelSpawnPoint
- );
+     slots[player].modelSpawnPoint);
+
+                var customization = slots[player].spawnedModel.GetComponent<PlayerCustomization>();
+
+                if (customization != null)
+                {
+                    customization.Initialize();
+                }
 
                 // Set default color per player
                 int defaultColorIndex = player;
