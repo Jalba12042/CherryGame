@@ -34,13 +34,19 @@ public class Zombie : MonoBehaviour
     [Header("Digging")]
     [SerializeField] private float digTotalTime = 2f;
 
+    [Header("Attacking")]
+    [SerializeField] private GameObject hitbox;
+    [SerializeField] private float attackMoveSpeed = 2.5f;
+
     private Rigidbody rb;
     private Vector3 playerTarget;
     private float waitTimer;
     private float riseTimer;
     private float digTimer;
     private Vector3 wanderTarget;
+    private bool isAttacking = false;
 
+    [Header("State")]
     public ZombieEvent myEvent;
 
     private void Awake()
@@ -49,6 +55,20 @@ public class Zombie : MonoBehaviour
         rb.isKinematic = true;
         ChangeState(ZombieState.Rising);
     }
+
+    void ChangeState(ZombieState newState)
+    {
+        ZState = newState;
+    }
+
+    private IEnumerator LifeTimer()
+    {
+        //yield return new WaitForSeconds(myEvent.duration);
+        yield return new WaitForSeconds(10);
+        digTimer = digTotalTime;
+        ChangeState(ZombieState.Digging);
+    }
+
     private void FixedUpdate()
     {
         //if (!RoundManager.Instance.currRoundActive) Destroy(gameObject);
@@ -70,7 +90,7 @@ public class Zombie : MonoBehaviour
                 break;
 
             case ZombieState.Attacking:
-                // TODO
+                HandleAttack();
                 break;
 
             case ZombieState.Digging:
@@ -104,6 +124,11 @@ public class Zombie : MonoBehaviour
                 StartCoroutine(LifeTimer());
             }
         }
+    }
+
+    void HandleAttack()
+    {
+
     }
 
     void Dig()
@@ -144,19 +169,6 @@ public class Zombie : MonoBehaviour
         }
     }
 
-    void PickNewWanderPoint()
-    {
-        Vector2 randPoint = Random.insideUnitCircle * wanderRadius;
-
-        wanderTarget = new Vector3(
-            rb.position.x + randPoint.x,
-            rb.position.y,
-            rb.position.z + randPoint.y
-        );
-
-        waitTimer = waitTimeAtPoint;
-    }
-
     void HandleChase()
     {
         Vector3 flatOffset = playerTarget - rb.position;
@@ -166,12 +178,19 @@ public class Zombie : MonoBehaviour
 
         if (distance > stoppingDist)
         {
-            MoveTowards(playerTarget);
+            if (!isAttacking) 
+                changeMoveSpeed(moveSpeed);
         }
         else
         {
-            // attack
+            if (!isAttacking)
+            {
+                isAttacking = true;
+                changeMoveSpeed(attackMoveSpeed);
+            }
         }
+
+        MoveTowards(playerTarget);
     }
 
     void MoveTowards(Vector3 point)
@@ -193,6 +212,24 @@ public class Zombie : MonoBehaviour
 
             transform.forward = direction;
         }
+    }
+
+    void PickNewWanderPoint()
+    {
+        Vector2 randPoint = Random.insideUnitCircle * wanderRadius;
+
+        wanderTarget = new Vector3(
+            rb.position.x + randPoint.x,
+            rb.position.y,
+            rb.position.z + randPoint.y
+        );
+
+        waitTimer = waitTimeAtPoint;
+    }
+
+    void changeMoveSpeed(float newMoveSpeed)
+    {
+        moveSpeed = newMoveSpeed;
     }
 
     private void CheckForPlayer()
@@ -229,16 +266,15 @@ public class Zombie : MonoBehaviour
         }
     }
 
-    private IEnumerator LifeTimer()
+    public void StartAttack()
     {
-        //yield return new WaitForSeconds(myEvent.duration);
-        yield return new WaitForSeconds(10);
-        digTimer = digTotalTime;
-        ChangeState(ZombieState.Digging);
+        hitbox.SetActive(true);
     }
-    void ChangeState(ZombieState newState)
+
+    public void EndAttack()
     {
-        ZState = newState;
+        hitbox.SetActive(false);
+        isAttacking = false;
     }
 
     private void OnDrawGizmos()
