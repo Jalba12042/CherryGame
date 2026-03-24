@@ -976,14 +976,14 @@ RectTransform:
   m_GameObject: {fileID: 1033598918}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2.3875673, y: 2.387567, z: 2.387567}
+  m_LocalScale: {x: 3.8435059, y: 3.8435054, z: 3.8435054}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5510297}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -138, y: -158}
+  m_AnchoredPosition: {x: -267, y: -267}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!95 &1033598920
@@ -1124,7 +1124,9 @@ MonoBehaviour:
   triggerName: Fade
   menuManager: {fileID: 910669656}
   menuController: {fileID: 910669658}
+  environmentObjects: []
   fadeOutWaitSeconds: 1
+  inputDelaySeconds: 2
   armInputOnStart: 0
 --- !u!1 &1100925524
 GameObject:
@@ -1327,8 +1329,8 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 9198869056092993592, guid: 54e82fe3da01e834fb158a66ea97067a, type: 2}
-  m_audioClip: {fileID: 8300000, guid: d408b7cb1403bed468828c4465dc7c44, type: 3}
-  m_Resource: {fileID: 8300000, guid: d408b7cb1403bed468828c4465dc7c44, type: 3}
+  m_audioClip: {fileID: 8300000, guid: e0dc94910aebe9943b865f4caad8d60a, type: 3}
+  m_Resource: {fileID: 8300000, guid: e0dc94910aebe9943b865f4caad8d60a, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 0.364
   m_Pitch: 1
@@ -1458,14 +1460,14 @@ RectTransform:
   m_GameObject: {fileID: 1378961919}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 6.0354, y: 6.0354, z: 6.0354}
+  m_LocalScale: {x: 10.918602, y: 10.918602, z: 10.918602}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5510297}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 480, y: 0}
+  m_AnchoredPosition: {x: 465, y: 15}
   m_SizeDelta: {x: -860, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1378961921
@@ -2042,8 +2044,15 @@ MonoBehaviour:
   triggerName: Fade
   menuManager: {fileID: 910669656}
   menuController: {fileID: 910669658}
-  fadeOutWaitSeconds: 1
-  armInputOnStart: 0
+  environmentObjects:
+  - {fileID: 172122138}
+  - {fileID: 1100925524}
+  - {fileID: 383966642}
+  - {fileID: 540432956}
+  - {fileID: 1953537441}
+  fadeOutWaitSeconds: 0
+  inputDelaySeconds: 2
+  armInputOnStart: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

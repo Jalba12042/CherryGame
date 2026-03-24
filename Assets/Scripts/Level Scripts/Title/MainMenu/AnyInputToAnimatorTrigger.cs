@@ -12,12 +12,15 @@ public class AnyInputToAnimatorTrigger : MonoBehaviour
     [Header("Menu Objects (shown AFTER fades)")]
     public GameObject menuManager;
     public MainMenuController menuController;
+    public GameObject[] environmentObjects;
 
     [Header("Timing")]
-    public float fadeOutWaitSeconds = 1.0f;   // ≈ fade length
+    public float fadeOutWaitSeconds = 1.0f;
+    // NEW: How many seconds to wait before the player is allowed to press a button
+    public float inputDelaySeconds = 2.0f;
 
     [Header("Arming input")]
-    public bool armInputOnStart = false;      // turn ON to skip the ArmInput() event requirement
+    public bool armInputOnStart = true; // Kept this true so it starts automatically
 
     private bool inputArmed = false;
     private bool fired = false;
@@ -27,22 +30,33 @@ public class AnyInputToAnimatorTrigger : MonoBehaviour
         if (menuManager) menuManager.SetActive(false);
         if (menuController) menuController.enabled = false;
 
+        if (environmentObjects != null)
+        {
+            foreach (GameObject obj in environmentObjects)
+            {
+                if (obj != null) obj.SetActive(false);
+            }
+        }
+
         if (armInputOnStart)
         {
-            inputArmed = true;
-            Debug.Log("[AnyInputToAnimatorTrigger] Input armed on Start.");
-        }
-        else
-        {
-            Debug.Log("[AnyInputToAnimatorTrigger] Waiting for ArmInput() Animation Event…");
+            // NEW: Instead of arming instantly, start the delay timer
+            StartCoroutine(ArmInputAfterDelay());
         }
     }
 
-    // Call this from your INTRO clip (last frame) when “PRESS ANY BUTTON” is visible
+    // NEW: The timer that waits before letting the player press a button
+    IEnumerator ArmInputAfterDelay()
+    {
+
+        yield return new WaitForSeconds(inputDelaySeconds);
+
+        inputArmed = true;
+    }
+
     public void ArmInput()
     {
         inputArmed = true;
-        Debug.Log("[AnyInputToAnimatorTrigger] Input armed via Animation Event.");
     }
 
     void Update()
@@ -52,7 +66,7 @@ public class AnyInputToAnimatorTrigger : MonoBehaviour
         if (AnyInput())
         {
             fired = true;
-            Debug.Log("[AnyInputToAnimatorTrigger] Any input detected → fading title/prompt.");
+
             if (titleAnimator) titleAnimator.SetTrigger(triggerName);
             if (promptAnimator) promptAnimator.SetTrigger(triggerName);
 
@@ -62,19 +76,25 @@ public class AnyInputToAnimatorTrigger : MonoBehaviour
 
     IEnumerator RevealAfterDelay()
     {
-        yield return new WaitForSeconds(fadeOutWaitSeconds);
+        yield return new WaitForSecondsRealtime(fadeOutWaitSeconds);
+
         RevealMenu();
     }
 
-    // (You can also call this from the end of your fade anim via Animation Event)
     public void RevealMenu()
     {
         if (menuManager) menuManager.SetActive(true);
+        if (menuController) menuController.enabled = true;
 
-        if (menuController)
+        if (environmentObjects != null)
         {
-            menuController.enabled = true;
-            Debug.Log("[AnyInputToAnimatorTrigger] MenuController enabled.");
+            foreach (GameObject obj in environmentObjects)
+            {
+                if (obj != null)
+                {
+                    obj.SetActive(true);
+                }
+            }
         }
 
         enabled = false;
