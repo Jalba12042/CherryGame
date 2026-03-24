@@ -21,7 +21,7 @@ public class SprinklerInteraction : MonoBehaviour
         if (waterZone != null)
         {
             waterZone.enabled = false;
-            Debug.Log("Water zone found and disabled at start.");
+            //Debug.Log("Water zone found and disabled at start.");
         }
         else
         {

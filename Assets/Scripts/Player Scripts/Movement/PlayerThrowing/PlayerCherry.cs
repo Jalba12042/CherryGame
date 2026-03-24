@@ -18,12 +18,14 @@ public class PlayerCherry : MonoBehaviour
     private Animator animator;
     private Projectile projectileScript;
     private GameObject heldCherry;
-    private GameObject nearbyCherry;
+    //private GameObject nearbyCherry;
 
     private bool isThrowing = false;
     private bool wasPickingLastFrame = false;
 
     private Jiggle[] jiggleParts;
+
+    [SerializeField] private float pickupRadius = 1.5f;
 
     void Start()
     {
@@ -135,6 +137,52 @@ public class PlayerCherry : MonoBehaviour
 
     private void HandlePickup()
     {
+        if (heldCherry != null) return;
+
+        Collider[] hits = Physics.OverlapSphere(transform.position, pickupRadius);
+
+        GameObject closestCherry = null;
+        float closestDist = Mathf.Infinity;
+
+        foreach (var hit in hits)
+        {
+            if (!hit.CompareTag("Cherry")) continue;
+
+            float dist = Vector3.Distance(transform.position, hit.transform.position);
+            if (dist < closestDist)
+            {
+                closestDist = dist;
+                closestCherry = hit.gameObject;
+            }
+        }
+
+        if (closestCherry == null) return;
+
+        heldCherry = closestCherry;
+
+        if (pickupSource != null && pickupClip != null)
+        {
+            pickupSource.pitch = Random.Range(0.95f, 1.05f);
+            pickupSource.PlayOneShot(pickupClip);
+        }
+
+        SetJiggle(false);
+
+        Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
+        if (rbCherry != null) rbCherry.isKinematic = true;
+
+        heldCherry.transform.SetParent(handHoldPoint);
+        SetCherryCollision(false);
+        heldCherry.transform.localPosition = Vector3.zero;
+
+        projectileScript?.PickUpCherry(heldCherry);
+
+        if (animator != null)
+            StartCoroutine(PlayPickupAnimation());
+    }
+
+    /*private void HandlePickup()
+    {
         if (heldCherry == null && nearbyCherry != null)
         {
             heldCherry = nearbyCherry;
@@ -159,7 +207,7 @@ public class PlayerCherry : MonoBehaviour
             if (animator != null)
                 StartCoroutine(PlayPickupAnimation());
         }
-    }
+    }*/
 
     private void OnPickupPressed()
     {
@@ -254,7 +302,7 @@ public class PlayerCherry : MonoBehaviour
         }
     }*/
 
-    private void OnTriggerEnter(Collider other)
+    /*private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Cherry"))
             nearbyCherry = other.gameObject;
@@ -264,7 +312,7 @@ public class PlayerCherry : MonoBehaviour
     {
         if (other.CompareTag("Cherry") && other.gameObject == nearbyCherry)
             nearbyCherry = null;
-    }
+    }*/
 
     public void NotifyThrowStarted()
     {
