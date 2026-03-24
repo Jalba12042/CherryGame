@@ -1,6 +1,7 @@
+﻿using Assets.DuckType.Jiggle;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections;
 
 public class PlayerGrab : MonoBehaviour
 {
@@ -25,7 +26,16 @@ public class PlayerGrab : MonoBehaviour
     public GameObject stunCanvas;
     public TMPro.TMP_Text stunTimerText;
 
+    private Jiggle[] myJiggles;
 
+    [Header("Grab Audio")]
+    [SerializeField] private AudioSource grabSource;
+    [SerializeField] private AudioClip grabClip;
+    [SerializeField] private AudioClip dropClip;
+
+    [Header("Throw Settings")]
+    [SerializeField] private float throwForceForward = 25f;
+    [SerializeField] private float throwForceUp = 12f;
 
     private void Awake()
     {
@@ -39,6 +49,7 @@ public class PlayerGrab : MonoBehaviour
         player = GetComponent<Playermovement>();
         myCollider = GetComponent<Collider>();
         animator = GetComponent<Animator>();
+        myJiggles = GetComponentsInChildren<Jiggle>();
 
         if (stunCanvas != null)
             stunCanvas.SetActive(false);
@@ -47,7 +58,6 @@ public class PlayerGrab : MonoBehaviour
 
     void Update()
     {
-        //if (player.assignedGamepad == null) return;
         if (!GameManager.Instance.isOnKeyboard)
             gamepad = player.assignedGamepad;
 
@@ -62,24 +72,41 @@ public class PlayerGrab : MonoBehaviour
 
         if (!GameManager.Instance.isOnKeyboard)
         {
+            if (gamepad == null) return;
+
+            // RT TAP → toggle grab/release
             if (gamepad.rightTrigger.wasPressedThisFrame)
-                TryGrab();
-            else if (gamepad.rightTrigger.wasReleasedThisFrame)
-                ReleaseGrab();
-            else if (gamepad.leftTrigger.wasReleasedThisFrame && grabbedPlayer != null)
+            {
+                if (grabbedPlayer == null)
+                    TryGrab();
+                else
+                    ReleaseGrab();
+            }
+
+            // LT RELEASE → throw (UNCHANGED)
+            if (gamepad.leftTrigger.wasReleasedThisFrame && grabbedPlayer != null)
+            {
                 ThrowGrabbedPlayer();
+            }
         }
         else
         {
+            // Keyboard version (same logic)
             if (Input.GetKeyDown(KeyCode.E))
-                TryGrab();
-            else if (Input.GetKeyUp(KeyCode.E))
-                ReleaseGrab();
-            else if (Input.GetKeyUp(KeyCode.Q) && grabbedPlayer != null)
+            {
+                if (grabbedPlayer == null)
+                    TryGrab();
+                else
+                    ReleaseGrab();
+            }
+
+            // Throw (UNCHANGED)
+            if (Input.GetKeyUp(KeyCode.Q) && grabbedPlayer != null)
+            {
                 ThrowGrabbedPlayer();
+            }
         }
     }
-
 
     private void TryGrab()
     {
@@ -90,6 +117,13 @@ public class PlayerGrab : MonoBehaviour
             return;
 
         grabbedPlayer = nearbyPlayer;
+
+        if (grabSource != null && grabClip != null)
+        {
+            grabSource.pitch = Random.Range(0.95f, 1.05f); // slight variation
+            grabSource.PlayOneShot(grabClip);
+        }
+
         grabbedRigidbody = grabbedPlayer.GetComponent<Rigidbody>();
         if (grabbedRigidbody != null)
             grabbedRigidbody.isKinematic = true;
@@ -119,6 +153,7 @@ public class PlayerGrab : MonoBehaviour
         if (animator != null)
             animator.SetBool("isPickingUp", true);
 
+        SetMyJiggle(false);
     }
 
 
@@ -126,6 +161,12 @@ public class PlayerGrab : MonoBehaviour
     public void ReleaseGrab()
     {
         if (grabbedPlayer == null) return;
+
+        if (grabSource != null && dropClip != null)
+        {
+            grabSource.pitch = Random.Range(0.9f, 1.0f);
+            grabSource.PlayOneShot(dropClip);
+        }
 
         if (grabbedRigidbody != null)
             grabbedRigidbody.isKinematic = false;
@@ -160,6 +201,7 @@ public class PlayerGrab : MonoBehaviour
                 animator.SetBool("isPickingUp", false);
 
         }
+        SetMyJiggle(true);
 
         grabbedPlayer = null;
         grabbedRigidbody = null;
@@ -172,13 +214,11 @@ public class PlayerGrab : MonoBehaviour
     {
         if (grabbedPlayer == null || grabbedRigidbody == null) return;
 
-        // Store references locally before releasing
         GameObject thrownPlayer = grabbedPlayer;
         Rigidbody thrownRb = grabbedRigidbody;
         PlayerGrab thrownGrab = grabbedPlayer.GetComponent<PlayerGrab>();
         Playermovement thrownPm = grabbedPlayer.GetComponent<Playermovement>();
 
-        // Release the grab after storing references
         ReleaseGrab();
 
         if (animator != null)
@@ -188,17 +228,15 @@ public class PlayerGrab : MonoBehaviour
         if (thrownAnimator != null)
             thrownAnimator.SetBool("isGrabbed", false);
 
-        // Apply throw force
+        // Apply throw force using Inspector variables
         thrownRb.isKinematic = false;
-        thrownRb.linearVelocity = Vector3.zero;
+        thrownRb.linearVelocity = Vector3.zero; // reset any previous velocity
         Vector3 throwDir = transform.forward;
-        thrownRb.AddForce(throwDir * 10f + Vector3.up * 6f, ForceMode.Impulse);
+        thrownRb.AddForce(throwDir * throwForceForward + Vector3.up * throwForceUp, ForceMode.Impulse);
 
-        // Apply stun only to the thrown player
         if (thrownPm != null)
             StartCoroutine(thrownPm.GetComponent<PlayerGrab>().StunRoutine(3f));
 
-        // Re-enable thrown player's grab component
         if (thrownGrab != null)
             thrownGrab.enabled = true;
     }
@@ -284,5 +322,16 @@ public class PlayerGrab : MonoBehaviour
         grabEscapeCooldown = true;
         yield return new WaitForSeconds(escapeCooldownTime);
         grabEscapeCooldown = false;
+    }
+
+    void SetMyJiggle(bool enabled)
+    {
+        if (myJiggles == null) return;
+
+        foreach (var jiggle in myJiggles)
+        {
+            if (jiggle != null)
+                jiggle.enabled = enabled;
+        }
     }
 }

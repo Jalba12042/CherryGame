@@ -16,21 +16,29 @@ public class WinScript : MonoBehaviour
 
     [SerializeField] private string shopSceneName;
 
-    // NEW: store the winning player
     public static List<int> winningPlayers;
+
+    // NEW: Add slots for your puppet animations
+    public GameObject redPuppetAnim;
+    public GameObject bluePuppetAnim;
 
     void Start()
     {
+        // NEW: Make sure both are hidden at the very start
+        if (redPuppetAnim != null) redPuppetAnim.SetActive(false);
+        if (bluePuppetAnim != null) bluePuppetAnim.SetActive(false);
+
         // Show winner text
         if (winnerText != null)
         {
             if (winningPlayers.Count != 1)
             {
+                // Tie logic
                 string winners = "Players ";
                 for (int i = 0; i < winningPlayers.Count; i++)
                 {
-                    winners += winningPlayers[i]+1;
-                    if (i == winningPlayers.Count-1)
+                    winners += winningPlayers[i] + 1;
+                    if (i == winningPlayers.Count - 1)
                     {
                         winners += " ";
                     }
@@ -45,7 +53,21 @@ public class WinScript : MonoBehaviour
             }
             else
             {
-                winnerText.text = $"Player {winningPlayers[0]+1} Wins!";
+                // Someone won!
+                winnerText.text = $"Player {winningPlayers[0] + 1} Wins!";
+
+                // NEW: Turn on the correct puppet based on who won
+                // winningPlayers[0] == 0 means Player 1 (Red)
+                // winningPlayers[0] == 1 means Player 2 (Blue)
+
+                if (winningPlayers[0] == 0)
+                {
+                    if (redPuppetAnim != null) redPuppetAnim.SetActive(true);
+                }
+                else if (winningPlayers[0] == 1)
+                {
+                    if (bluePuppetAnim != null) bluePuppetAnim.SetActive(true);
+                }
             }
         }
 
@@ -99,7 +121,6 @@ public class WinScript : MonoBehaviour
 
     public void GoToShop()
     {
-        // This assumes your shop scene is literally called "Shop"
         SceneManager.LoadScene(shopSceneName);
     }
 }

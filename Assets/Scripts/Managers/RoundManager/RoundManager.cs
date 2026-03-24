@@ -12,6 +12,7 @@ public class RoundManager : MonoBehaviour
     [Header("Current Round Information")]
     public float currRoundProgress;
     public float currRoundDurationInSecs;
+    public float currRoundProgressNormalized; // used in events
     public Round currRound;
     public bool currRoundActive;
     public int[] currRoundScores;
@@ -40,7 +41,7 @@ public class RoundManager : MonoBehaviour
 
     public GameObject[] playerObjects;
     public List<GameObject> powerupsInPlay;
-    private PlayerSpawn currPlayerSpawn;
+    public PlayerSpawn currPlayerSpawn;
     private int currRoundIndex;
 
     public RenderTexture[] playerFaceRenderTextures;
@@ -275,9 +276,11 @@ public class RoundManager : MonoBehaviour
         if (currRound == null || currRoundActive) return;
 
         currRoundProgress = 0;
+        currRoundProgressNormalized = 0;
         //roundSelected = true;
         //currRoundActive = true;
         currRound.goalObjects = new List<GameObject>();
+        EventManager.Instance.eventTextObj = GameObject.FindWithTag("EventText");
 
         // Spawn players
         SpawnPlayers();
@@ -348,7 +351,7 @@ public class RoundManager : MonoBehaviour
         }
     }
 
-    public IEnumerator StartTimer()
+    public IEnumerator StartTimer() // timer at beginning of round
     {
         timerText.text = "";
 
@@ -371,12 +374,14 @@ public class RoundManager : MonoBehaviour
         currRoundActive = true;
         StartCoroutine(RoundTimer());
         StartCoroutine(currRound.StartGoal());
+        StartCoroutine(EventManager.Instance.EventTimer());
     }
-    public IEnumerator RoundTimer()
+    public IEnumerator RoundTimer() // timer for the round
     {
         while (currRoundProgress < currRoundDurationInSecs)
         {
             currRoundProgress += Time.deltaTime;
+            currRoundProgressNormalized = currRoundProgress / currRoundDurationInSecs;
 
             if (timerText != null)
             {
@@ -388,6 +393,7 @@ public class RoundManager : MonoBehaviour
         }
 
         currRoundProgress = currRoundDurationInSecs;
+        currRoundProgressNormalized = 1f;
 
         // Round over, calculate winners
         currRoundScores = currRound.ScoreCount();
@@ -415,5 +421,4 @@ public class RoundManager : MonoBehaviour
     {
         timerText = timer;
     }
-
 }

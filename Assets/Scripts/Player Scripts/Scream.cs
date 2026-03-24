@@ -14,6 +14,19 @@ public class Scream : MonoBehaviour
     private Gamepad gp;
     [SerializeField] private Animator faceAnimator;
 
+    private Coroutine screamRoutine;
+
+    private bool currentlyScreaming;
+
+    private void TryScream()
+    {
+        // 1. If we are already screaming, ignore the button press entirely.
+        if (currentlyScreaming)
+            return;
+
+        // 2. Start the scream coroutine
+        screamRoutine = StartCoroutine(HandleScream());
+    }
     private void Awake()
     {
         if (aSource == null)
@@ -45,39 +58,42 @@ public class Scream : MonoBehaviour
         {
             if (gp != null && gp.buttonEast.wasPressedThisFrame)
             {
-                StartCoroutine(HandleScream());
+                TryScream();
             }
         }
         else
         {
             if (Input.GetKeyDown(KeyCode.R))
             {
-                StartCoroutine(HandleScream());
+                TryScream();
             }
         }
     }
 
     private IEnumerator HandleScream()
     {
-        faceAnimator.SetBool("IsScreaming", false);
-        // Stop any ongoing scream sound
-        aSource.Stop();
+        if (currentlyScreaming)
+            yield break;
 
-        // Pick random scream clip and pitch
+        currentlyScreaming = true;
+
         int rand = Random.Range(0, screamSFX.Count);
         float randPitch = Random.Range(minPitch, maxPitch);
+        AudioClip clip = screamSFX[rand];
+
         aSource.pitch = randPitch;
+        aSource.clip = clip;
+        aSource.Play();
 
-        // Play scream
-        aSource.PlayOneShot(screamSFX[rand]);
+        // Turn ON the screaming animation state
+        faceAnimator.SetBool("isScreaming", true);
 
-        // Trigger face animation
-        faceAnimator.SetBool("IsScreaming", true);
+        // wait for clip length adjusted by pitch
+        yield return new WaitForSeconds(clip.length / Mathf.Abs(randPitch));
 
-        // Wait for scream duration
-        yield return new WaitForSeconds(screamSFX[rand].length);
+        // Turn OFF the screaming animation state
+        faceAnimator.SetBool("isScreaming", false);
 
-        // Reset face animation
-        faceAnimator.SetBool("IsScreaming", false);
+        currentlyScreaming = false;
     }
 }

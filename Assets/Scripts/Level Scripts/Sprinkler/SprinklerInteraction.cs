@@ -5,23 +5,38 @@ using System.Collections;
 public class SprinklerInteraction : MonoBehaviour
 {
     [Header("Interaction Settings")]
-    public float pushForce = 5f;           // Impulse force applied away from sprinkler
-    public float slowMultiplier = 0.5f;    // Movement speed multiplier while slowed
-    public float slowDuration = 2f;        // How long player is slowed
+    public float pushForce = 5f;
+    public float disableDuration = 2f;
 
     private SprinklerController sprinkler;
+    [SerializeField] private Collider waterZone;
 
     private void Awake()
     {
         sprinkler = GetComponent<SprinklerController>();
+
+        if (waterZone == null)
+            waterZone = GetComponentInChildren<Collider>();
+
+        if (waterZone != null)
+        {
+            waterZone.enabled = false;
+            //Debug.Log("Water zone found and disabled at start.");
+        }
+        else
+        {
+            // this error crashes the game so i removed it for now:
+            //Debug.LogError("NO WATER ZONE FOUND!");
+        }
     }
 
-    private void OnTriggerStay(Collider other)
+
+    private void OnTriggerEnter(Collider other)
     {
-        if (!sprinkler.IsActive()) return;
         if (!other.CompareTag("Player")) return;
 
-        // --- PUSH FORCE (Impulse) ---
+        Debug.Log(">>> PLAYER ENTERED WATER ZONE <<<");
+
         Rigidbody rb = other.GetComponent<Rigidbody>();
         if (rb != null)
         {
@@ -29,22 +44,31 @@ public class SprinklerInteraction : MonoBehaviour
             rb.AddForce(pushDir * pushForce, ForceMode.Impulse);
         }
 
-        // --- SLOW EFFECT ON PlayerMovement ---
         Playermovement pm = other.GetComponent<Playermovement>();
-        if (pm != null && !pm.isSlowed)
+        if (pm != null)
         {
-            StartCoroutine(ApplySlow(pm));
+            pm.enabled = false;
+            StartCoroutine(ReenableMovement(pm));
         }
     }
 
-    private IEnumerator ApplySlow(Playermovement pm)
+    private void OnTriggerStay(Collider other)
     {
-        pm.isSlowed = true;
-        pm.moveSpeed *= slowMultiplier;
+        if (!sprinkler.IsActive()) return;
+        if (!other.CompareTag("Player")) return;
+    }
 
-        yield return new WaitForSeconds(slowDuration);
+    private void OnTriggerExit(Collider other)
+    {
+        //Debug.Log("Trigger EXIT by: " + other.name);
 
-        pm.moveSpeed /= slowMultiplier;
-        pm.isSlowed = false;
+        if (other.CompareTag("Player"))
+            Debug.Log(">>> PLAYER LEFT WATER ZONE <<<");
+    }
+
+    private IEnumerator ReenableMovement(Playermovement pm)
+    {
+        yield return new WaitForSeconds(2f);
+        pm.enabled = true;
     }
 }
