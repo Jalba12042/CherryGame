@@ -18,6 +18,7 @@ public class PlayerKill : MonoBehaviour
     {
         yield return new WaitForSeconds(respawnDuration);
         pm.canMove = true;
+        gameObject.layer = LayerMask.NameToLayer("Player");
         GetComponentInChildren<Animator>().enabled = true;
         foreach (var r in playerRenderers)
         {
@@ -35,6 +36,7 @@ public class PlayerKill : MonoBehaviour
         }
 
         pm.canMove = false;
+        gameObject.layer = LayerMask.NameToLayer("Default");
         transform.position = RoundManager.Instance.currPlayerSpawn.spawnPoints[pm.playerIndex].position;
         ps.enabled = false;
         StartCoroutine(respawnTimer());
