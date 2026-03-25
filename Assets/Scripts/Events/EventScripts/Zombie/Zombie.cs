@@ -15,6 +15,7 @@ public class Zombie : MonoBehaviour
     [SerializeField] private ZombieState ZState;
 
     [Header("Movement")]
+    [SerializeField] private float origMoveSpeed = 5f;
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float stoppingDist = 0.2f;
 
@@ -38,7 +39,8 @@ public class Zombie : MonoBehaviour
     [SerializeField] private float attackMoveSpeed = 2.5f;
     [SerializeField] private Animator anim;
     [SerializeField] private float attackCooldown = 2.5f;
-    
+    public bool wasPlayer = false;
+
     private Rigidbody rb;
     private Vector3 playerTarget;
     private float waitTimer;
@@ -53,9 +55,19 @@ public class Zombie : MonoBehaviour
 
     private void Awake()
     {
+        hitbox.SetActive(false);
         rb = GetComponent<Rigidbody>();
-        rb.isKinematic = true;
-        ChangeState(ZombieState.Rising);
+        
+        if (!wasPlayer)
+        {
+            rb.isKinematic = true;
+            ChangeState(ZombieState.Rising);
+        }
+        else
+        {
+            rb.isKinematic = false;
+            ChangeState(ZombieState.Wander);
+        }
     }
 
     void ChangeState(ZombieState newState)
@@ -65,15 +77,15 @@ public class Zombie : MonoBehaviour
 
     private IEnumerator LifeTimer()
     {
-        //yield return new WaitForSeconds(myEvent.duration);
-        yield return new WaitForSeconds(10);
+        yield return new WaitUntil(() => !myEvent.isRunning);
+        //yield return new WaitForSeconds(10000);
         digTimer = digTotalTime;
         ChangeState(ZombieState.Digging);
     }
 
     private void FixedUpdate()
     {
-        //if (!RoundManager.Instance.currRoundActive) Destroy(gameObject);
+        if (!RoundManager.Instance.currRoundActive) Destroy(gameObject);
 
         switch (ZState)
         {
@@ -152,6 +164,7 @@ public class Zombie : MonoBehaviour
 
         if (distance > stoppingDist)
         {
+            changeMoveSpeed(origMoveSpeed);
             MoveTowards(wanderTarget);
         }
         else
@@ -175,7 +188,7 @@ public class Zombie : MonoBehaviour
         if (distance > stoppingDist)
         {
             if (!isAttacking) 
-                changeMoveSpeed(moveSpeed);
+                changeMoveSpeed(origMoveSpeed);
         }
         else
         {
