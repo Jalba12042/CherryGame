@@ -5,7 +5,6 @@ public enum ZombieState {
     Wander,
     Rising,
     Chasing,
-    Attacking,
     Digging
 }
 public class Zombie : MonoBehaviour
@@ -38,7 +37,8 @@ public class Zombie : MonoBehaviour
     [SerializeField] private GameObject hitbox;
     [SerializeField] private float attackMoveSpeed = 2.5f;
     [SerializeField] private Animator anim;
-
+    [SerializeField] private float attackCooldown = 2.5f;
+    
     private Rigidbody rb;
     private Vector3 playerTarget;
     private float waitTimer;
@@ -46,6 +46,7 @@ public class Zombie : MonoBehaviour
     private float digTimer;
     private Vector3 wanderTarget;
     private bool isAttacking = false;
+    private bool canAttack = true;
 
     [Header("State")]
     public ZombieEvent myEvent;
@@ -90,10 +91,6 @@ public class Zombie : MonoBehaviour
                 CheckForPlayer();
                 break;
 
-            case ZombieState.Attacking:
-                HandleAttack();
-                break;
-
             case ZombieState.Digging:
                 Dig();
                 break;
@@ -127,13 +124,11 @@ public class Zombie : MonoBehaviour
         }
     }
 
-    void HandleAttack()
-    {
-
-    }
-
     void Dig()
     {
+        hitbox.SetActive(false);
+        anim.enabled = false; // change this to start digging animation
+
         rb.isKinematic = true;
 
         float step = moveSpeed * Time.fixedDeltaTime;
@@ -184,8 +179,9 @@ public class Zombie : MonoBehaviour
         }
         else
         {
-            if (!isAttacking)
+            if (!isAttacking && canAttack)
             {
+                canAttack = false;
                 isAttacking = true;
                 anim.SetTrigger("attack");
                 changeMoveSpeed(attackMoveSpeed);
@@ -277,8 +273,14 @@ public class Zombie : MonoBehaviour
     {
         hitbox.SetActive(false);
         isAttacking = false;
+        StartCoroutine(AttackCooldown());
     }
 
+    IEnumerator AttackCooldown()
+    {
+        yield return new WaitForSeconds(attackCooldown);
+        canAttack = true;
+    }
     private void OnDrawGizmos()
     {
         if (DEBUG_MODE)
