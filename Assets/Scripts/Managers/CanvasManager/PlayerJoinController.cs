@@ -175,7 +175,7 @@ public class PlayerJoinController : MonoBehaviour
                 // ===== RT / LT INPUT =====
                 int category = ui.GetCurrentCategoryIndex();
 
-                var customization = slots[p].spawnedModel.GetComponent<PlayerCustomization>();
+                var customization = slots[p].spawnedModel.GetComponentInChildren<PlayerCustomization>();
 
                 if (pad.rightTrigger.wasPressedThisFrame)
                 {
@@ -258,7 +258,7 @@ public class PlayerJoinController : MonoBehaviour
      slots[player].modelSpawnPoint.rotation,
      slots[player].modelSpawnPoint);
 
-                var customization = slots[player].spawnedModel.GetComponent<PlayerCustomization>();
+                var customization = slots[player].spawnedModel.GetComponentInChildren<PlayerCustomization>();
 
                 if (customization != null)
                 {
