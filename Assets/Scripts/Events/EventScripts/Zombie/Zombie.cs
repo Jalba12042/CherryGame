@@ -37,6 +37,7 @@ public class Zombie : MonoBehaviour
     [Header("Attacking")]
     [SerializeField] private GameObject hitbox;
     [SerializeField] private float attackMoveSpeed = 2.5f;
+    [SerializeField] private Animator anim;
 
     private Rigidbody rb;
     private Vector3 playerTarget;
@@ -186,6 +187,7 @@ public class Zombie : MonoBehaviour
             if (!isAttacking)
             {
                 isAttacking = true;
+                anim.SetTrigger("attack");
                 changeMoveSpeed(attackMoveSpeed);
             }
         }

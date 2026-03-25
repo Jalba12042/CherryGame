@@ -6,6 +6,7 @@ public class ZombieAttack : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            Debug.Log("YAH GRAH");
             other.GetComponent<PlayerKill>().killPlayer();
         }
     }
