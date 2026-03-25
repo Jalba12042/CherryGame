@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class PlayerCustomization : MonoBehaviour
 {
+    public Renderer bodyRenderer;
+
     public GameObject[] headOptions;
     public GameObject[] torsoOptions;
     public GameObject[] bottomOptions;
@@ -32,7 +34,8 @@ public class PlayerCustomization : MonoBehaviour
 
     void EnableOne(GameObject[] options, int index)
     {
-        if (options == null || index < 0 || index >= options.Length) return;
+        if (options == null) return;
+
         for (int i = 0; i < options.Length; i++)
         {
             if (options[i] != null)
@@ -40,11 +43,25 @@ public class PlayerCustomization : MonoBehaviour
         }
     }
 
+    public void ApplyBodyMaterial(Material mat)
+    {
+        if (bodyRenderer != null && mat != null)
+            bodyRenderer.material = mat;
+    }
+
     public void ChangeHead(int dir)
     {
         if (headOptions == null || headOptions.Length == 0) return;
 
-        currentHeadIndex = (currentHeadIndex + dir + headOptions.Length) % headOptions.Length;
+        int max = headOptions.Length - 1;
+
+        currentHeadIndex += dir;
+
+        if (currentHeadIndex > max)
+            currentHeadIndex = -1; // wrap to NONE
+        else if (currentHeadIndex < -1)
+            currentHeadIndex = max;
+
         EnableOne(headOptions, currentHeadIndex);
     }
 
@@ -52,7 +69,15 @@ public class PlayerCustomization : MonoBehaviour
     {
         if (torsoOptions == null || torsoOptions.Length == 0) return;
 
-        currentTorsoIndex = (currentTorsoIndex + dir + torsoOptions.Length) % torsoOptions.Length;
+        int max = torsoOptions.Length - 1;
+
+        currentTorsoIndex += dir;
+
+        if (currentTorsoIndex > max)
+            currentTorsoIndex = -1;
+        else if (currentTorsoIndex < -1)
+            currentTorsoIndex = max;
+
         EnableOne(torsoOptions, currentTorsoIndex);
     }
 
@@ -60,7 +85,15 @@ public class PlayerCustomization : MonoBehaviour
     {
         if (bottomOptions == null || bottomOptions.Length == 0) return;
 
-        currentBottomIndex = (currentBottomIndex + dir + bottomOptions.Length) % bottomOptions.Length;
+        int max = bottomOptions.Length - 1;
+
+        currentBottomIndex += dir;
+
+        if (currentBottomIndex > max)
+            currentBottomIndex = -1;
+        else if (currentBottomIndex < -1)
+            currentBottomIndex = max;
+
         EnableOne(bottomOptions, currentBottomIndex);
     }
 }
