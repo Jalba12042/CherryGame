@@ -2,19 +2,25 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using TMPro;
-using UnityEditor;
-
 
 public class FakeLoadingScreen : MonoBehaviour
 {
     [Header("UI Elements")]
     public GameObject loadingPanel;
-    public Image loadingBarFill;
+    public Image loadingBarFill; // We keep this so the boss's code doesn't break!
     public GameObject pressAButtonPrompt;
-    public TMP_Text tipsText;             // text box for rotating tips
-    public string[] tips;                 // list of tips to rotate through
-    public float tipInterval = 2f;        // time between switching tips
+    public TMP_Text tipsText;
+    public string[] tips;
+    public float tipInterval = 2f;
 
+    // NEW: Pac-Man Style Variables
+    [Header("Pac-Man Loading Elements")]
+    public Image playerIcon;        // The puppet moving across
+    public RectTransform startPoint; // Empty object on the left
+    public RectTransform endPoint;   // Empty object on the right
+    public GameObject[] cherries;    // Array for your 13 cherries
+    public Sprite runningSprite;     // The normal moving puppet image
+    public Sprite sittingSprite;     // The image to show when loading is done
 
     [Header("Timing")]
     public float loadDuration = 10f;
@@ -26,7 +32,6 @@ public class FakeLoadingScreen : MonoBehaviour
 
     private bool roundStarted = false;
 
-
     private void Start()
     {
         // Disable jump for all players during loading
@@ -35,10 +40,9 @@ public class FakeLoadingScreen : MonoBehaviour
             player.allowJumpInput = false;
         }
 
-
         loadingPanel.SetActive(true);
         pressAButtonPrompt.SetActive(false);
-        loadingBarFill.fillAmount = 0;
+        if (loadingBarFill != null) loadingBarFill.fillAmount = 0;
 
         timer = 0f;
         loadingComplete = false;
@@ -48,6 +52,18 @@ public class FakeLoadingScreen : MonoBehaviour
             tipsText.text = tips[0];
         }
 
+        // NEW: Reset the Pac-Man stuff when the scene loads
+        if (playerIcon != null && runningSprite != null)
+        {
+            playerIcon.sprite = runningSprite;
+        }
+        if (cherries != null)
+        {
+            foreach (GameObject cherry in cherries)
+            {
+                if (cherry != null) cherry.SetActive(true);
+            }
+        }
     }
 
     private void Update()
@@ -64,17 +80,46 @@ public class FakeLoadingScreen : MonoBehaviour
             }
         }
 
-
-        // STEP 1: Animate loading bar
+        // STEP 1: Animate loading bar AND the Pac-Man Puppet
         if (!loadingComplete)
         {
             timer += Time.deltaTime;
-            loadingBarFill.fillAmount = timer / loadDuration;
+
+            // This 'progress' number goes from 0.0 to 1.0
+            float progress = timer / loadDuration;
+
+            if (loadingBarFill != null) loadingBarFill.fillAmount = progress;
+
+            // NEW: Move the puppet and eat cherries
+            if (playerIcon != null && startPoint != null && endPoint != null)
+            {
+                // Slide across the screen
+                playerIcon.rectTransform.position = Vector3.Lerp(startPoint.position, endPoint.position, progress);
+
+                // Figure out how many cherries to turn off
+                if (cherries != null && cherries.Length > 0)
+                {
+                    int cherriesEaten = Mathf.FloorToInt(progress * cherries.Length);
+                    for (int i = 0; i < cherries.Length; i++)
+                    {
+                        if (i < cherriesEaten && cherries[i] != null)
+                        {
+                            cherries[i].SetActive(false);
+                        }
+                    }
+                }
+            }
 
             if (timer >= loadDuration)
             {
                 loadingComplete = true;
                 pressAButtonPrompt.SetActive(true);
+
+                // NEW: Change to the sitting sprite when finished!
+                if (playerIcon != null && sittingSprite != null)
+                {
+                    playerIcon.sprite = sittingSprite;
+                }
             }
             return;
         }
@@ -102,5 +147,4 @@ public class FakeLoadingScreen : MonoBehaviour
         loadingPanel.SetActive(false);
         this.enabled = false; // prevent duplicate calls
     }
-
 }
