@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+
 public class GameWinScript : MonoBehaviour
 {
     public TMP_Text winnerText; // assign in Inspector to display winner
@@ -15,11 +16,19 @@ public class GameWinScript : MonoBehaviour
 
     [SerializeField] private string localSceneName;
 
-    // NEW: store the winning player
     public static List<int> winningPlayers;
+
+    // NEW: Add slots for the victory animations
+    [Header("Victory Animations")]
+    public GameObject redVictoryAnim;
+    public GameObject blueVictoryAnim;
 
     void Start()
     {
+        // NEW: Make sure both are hidden at the very start so they don't overlap
+        if (redVictoryAnim != null) redVictoryAnim.SetActive(false);
+        if (blueVictoryAnim != null) blueVictoryAnim.SetActive(false);
+
         // Show winner text
         if (winnerText != null)
         {
@@ -45,6 +54,19 @@ public class GameWinScript : MonoBehaviour
             else
             {
                 winnerText.text = $"Player {winningPlayers[0] + 1} Wins the Game!";
+
+                // NEW: Turn on the correct puppet based on who won the whole game
+                // winningPlayers[0] == 0 means Player 1 (Red)
+                // winningPlayers[0] == 1 means Player 2 (Blue)
+
+                if (winningPlayers[0] == 0)
+                {
+                    if (redVictoryAnim != null) redVictoryAnim.SetActive(true);
+                }
+                else if (winningPlayers[0] == 1)
+                {
+                    if (blueVictoryAnim != null) blueVictoryAnim.SetActive(true);
+                }
             }
         }
 
@@ -98,8 +120,6 @@ public class GameWinScript : MonoBehaviour
 
     public void GoToLocal()
     {
-        // This assumes your shop scene is literally called "Shop"
         SceneManager.LoadScene(localSceneName);
     }
 }
-
