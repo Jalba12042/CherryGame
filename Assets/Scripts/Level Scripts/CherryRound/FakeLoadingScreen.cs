@@ -7,20 +7,22 @@ public class FakeLoadingScreen : MonoBehaviour
 {
     [Header("UI Elements")]
     public GameObject loadingPanel;
-    public Image loadingBarFill; // We keep this so the boss's code doesn't break!
+    public Image loadingBarFill;
     public GameObject pressAButtonPrompt;
     public TMP_Text tipsText;
     public string[] tips;
     public float tipInterval = 2f;
 
-    // NEW: Pac-Man Style Variables
     [Header("Pac-Man Loading Elements")]
-    public Image playerIcon;        // The puppet moving across
-    public RectTransform startPoint; // Empty object on the left
-    public RectTransform endPoint;   // Empty object on the right
-    public GameObject[] cherries;    // Array for your 13 cherries
-    public Sprite runningSprite;     // The normal moving puppet image
-    public Sprite sittingSprite;     // The image to show when loading is done
+    public Image playerIcon;
+    public RectTransform startPoint;
+    public RectTransform endPoint;
+    public GameObject[] cherries;
+    public Sprite runningSprite;
+    public Sprite sittingSprite;
+
+    public Vector3 runningScale = new Vector3(1f, 1f, 1f);
+    public Vector3 sittingScale = new Vector3(0.6f, 0.6f, 1f);
 
     [Header("Timing")]
     public float loadDuration = 10f;
@@ -34,7 +36,6 @@ public class FakeLoadingScreen : MonoBehaviour
 
     private void Start()
     {
-        // Disable jump for all players during loading
         foreach (var player in FindObjectsByType<Playermovement>(FindObjectsSortMode.None))
         {
             player.allowJumpInput = false;
@@ -52,11 +53,12 @@ public class FakeLoadingScreen : MonoBehaviour
             tipsText.text = tips[0];
         }
 
-        // NEW: Reset the Pac-Man stuff when the scene loads
         if (playerIcon != null && runningSprite != null)
         {
             playerIcon.sprite = runningSprite;
+            playerIcon.rectTransform.localScale = runningScale;
         }
+
         if (cherries != null)
         {
             foreach (GameObject cherry in cherries)
@@ -80,23 +82,19 @@ public class FakeLoadingScreen : MonoBehaviour
             }
         }
 
-        // STEP 1: Animate loading bar AND the Pac-Man Puppet
+        // Animate loading bar AND the Pac-Man Puppet
         if (!loadingComplete)
         {
             timer += Time.deltaTime;
-
-            // This 'progress' number goes from 0.0 to 1.0
             float progress = timer / loadDuration;
 
             if (loadingBarFill != null) loadingBarFill.fillAmount = progress;
 
-            // NEW: Move the puppet and eat cherries
+            // Move the puppet and eat cherries
             if (playerIcon != null && startPoint != null && endPoint != null)
             {
-                // Slide across the screen
                 playerIcon.rectTransform.position = Vector3.Lerp(startPoint.position, endPoint.position, progress);
 
-                // Figure out how many cherries to turn off
                 if (cherries != null && cherries.Length > 0)
                 {
                     int cherriesEaten = Mathf.FloorToInt(progress * cherries.Length);
@@ -115,16 +113,24 @@ public class FakeLoadingScreen : MonoBehaviour
                 loadingComplete = true;
                 pressAButtonPrompt.SetActive(true);
 
-                // NEW: Change to the sitting sprite when finished!
+                // Change to the sitting sprite AND shrink it when finished!
                 if (playerIcon != null && sittingSprite != null)
                 {
                     playerIcon.sprite = sittingSprite;
+                    playerIcon.rectTransform.localScale = sittingScale;
                 }
             }
             return;
         }
 
-        // STEP 2: Wait for "A" on ANY player's gamepad
+        // NEW: Check for Mouse Left Click to start
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            BeginRound();
+            return; // Stop checking controllers if mouse was clicked
+        }
+
+        // Wait for "A" on ANY player's gamepad
         foreach (var pad in UnityEngine.InputSystem.Gamepad.all)
         {
             if (pad.buttonSouth.wasPressedThisFrame)
@@ -145,6 +151,6 @@ public class FakeLoadingScreen : MonoBehaviour
 
         RoundManager.Instance.BeginRound();
         loadingPanel.SetActive(false);
-        this.enabled = false; // prevent duplicate calls
+        this.enabled = false;
     }
 }

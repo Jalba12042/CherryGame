@@ -20,6 +20,7 @@ public class EventManager : MonoBehaviour
     public GameObject meteorAnimatedUI;
     public GameObject cherryAnimatedUI;
     public GameObject ufoAnimatedUI;
+    public GameObject zombieAnimatedUI; // ADDED: Slot for the Zombie UI
 
     [Header("Text UI (Restored for RoundManager)")]
     public GameObject eventTextObj;
@@ -60,6 +61,12 @@ public class EventManager : MonoBehaviour
             GameObject foundObj = GameObject.Find("UFOImage");
             if (foundObj != null) { ufoAnimatedUI = foundObj; ufoAnimatedUI.SetActive(false); }
         }
+        // ADDED: Auto-find for the Zombie image
+        if (zombieAnimatedUI == null)
+        {
+            GameObject foundObj = GameObject.Find("ZombieAttackImage");
+            if (foundObj != null) { zombieAnimatedUI = foundObj; zombieAnimatedUI.SetActive(false); }
+        }
 
         // Keeps RoundManager happy
         if (eventTextObj != null && eventText == null)
@@ -84,6 +91,7 @@ public class EventManager : MonoBehaviour
             if (meteorAnimatedUI != null) meteorAnimatedUI.SetActive(false);
             if (cherryAnimatedUI != null) cherryAnimatedUI.SetActive(false);
             if (ufoAnimatedUI != null) ufoAnimatedUI.SetActive(false);
+            if (zombieAnimatedUI != null) zombieAnimatedUI.SetActive(false); // ADDED: Failsafe for zombies
             if (eventTextObj != null) eventTextObj.SetActive(false);
         }
 
@@ -147,13 +155,18 @@ public class EventManager : MonoBehaviour
         {
             activeUI = meteorAnimatedUI;
         }
-        else if (triggeredEvent.eventName == "Cherry Fever!") // FIXED: Now exactly matches the error log!
+        else if (triggeredEvent.eventName == "Cherry Fever!")
         {
             activeUI = cherryAnimatedUI;
         }
         else if (triggeredEvent.eventName == "Alien Invasion!")
         {
             activeUI = ufoAnimatedUI;
+        }
+        if (zombieAnimatedUI == null)
+        {
+            GameObject foundObj = GameObject.Find("ZombieImage");
+            if (foundObj != null) { zombieAnimatedUI = foundObj; zombieAnimatedUI.SetActive(false); }
         }
 
         if (activeUI != null)
