@@ -20,7 +20,9 @@ public class PlayerCustomizationUI : MonoBehaviour
     [Header("Color Customization")]
     public Material[] colorMaterials;
 
+
     private int currentColorIndex = 0;
+
 
     void Start()
     {
@@ -101,12 +103,10 @@ public class PlayerCustomizationUI : MonoBehaviour
 
     void ApplyColor(GameObject playerModel)
     {
-        Renderer renderer = playerModel.GetComponentInChildren<Renderer>();
+        var customization = playerModel.GetComponentInChildren<PlayerCustomization>();
+        if (customization == null) return;
 
-        if (renderer != null)
-        {
-            renderer.material = colorMaterials[currentColorIndex];
-        }
+        customization.ApplyBodyMaterial(colorMaterials[currentColorIndex]);
     }
 
     public void SetColorIndex(int index, GameObject playerModel)
