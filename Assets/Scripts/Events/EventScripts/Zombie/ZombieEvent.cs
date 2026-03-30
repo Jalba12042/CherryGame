@@ -12,14 +12,18 @@ public class ZombieEvent : GameEvent
     {
         isRunning = true;
         spawnLocation = GameObject.FindWithTag("BottomSpawn");
-        Bounds b = spawnLocation.GetComponent<Collider>().bounds;
-        for (int i = 0; i < amountOfZombies; i++)
+        if (spawnLocation != null)
         {
-            float randX = Random.Range(b.min.x, b.max.x);
-            float randZ = Random.Range(b.min.z, b.max.z);
-            Zombie zombie = Instantiate(zombiePrefab, new Vector3(randX, spawnLocation.transform.position.y, randZ), Quaternion.identity).GetComponent<Zombie>();
-            zombie.myEvent = this;
+            Bounds b = spawnLocation.GetComponent<Collider>().bounds;
+            for (int i = 0; i < amountOfZombies; i++)
+            {
+                float randX = Random.Range(b.min.x, b.max.x);
+                float randZ = Random.Range(b.min.z, b.max.z);
+                Zombie zombie = Instantiate(zombiePrefab, new Vector3(randX, spawnLocation.transform.position.y, randZ), Quaternion.identity).GetComponent<Zombie>();
+                zombie.myEvent = this;
+            }
         }
+        
 
         yield return new WaitForSeconds(duration);
         isRunning = false;

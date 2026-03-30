@@ -1,6 +1,10 @@
 ﻿using UnityEngine;
+using System.Collections;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using TMPro;
+using UnityEngine.SceneManagement;
+
 
 public class PlayerJoinController : MonoBehaviour
 {
@@ -26,6 +30,11 @@ public class PlayerJoinController : MonoBehaviour
 
     private Gamepad[] controllers;
     private int[] assignedControllers;   // -1 = empty, otherwise controller index
+
+    public GameObject countdownPanel;
+    public TextMeshProUGUI countdownText;
+
+    private bool countdownStarted = false;
 
     void Start()
     {
@@ -357,8 +366,81 @@ public class PlayerJoinController : MonoBehaviour
             isReady[player] = false;
             slots[player].readyPanel.SetActive(false);
         }
+
+        CheckStartCondition();
     }
 
+    void CheckStartCondition()
+    {
+        if (countdownStarted) return;
+
+        int readyCount = 0;
+
+        for (int i = 0; i < isReady.Length; i++)
+        {
+            if (isReady[i])
+                readyCount++;
+        }
+
+        if (readyCount >= 2)
+        {
+            StartCoroutine(StartCountdown());
+        }
+    }
+
+    IEnumerator StartCountdown()
+    {
+        countdownStarted = true;
+        countdownPanel.SetActive(true);
+
+        int timeLeft = 5;
+
+        while (timeLeft > 0)
+        {
+            if (GetReadyCount() < 2)
+            {
+                countdownPanel.SetActive(false);
+                countdownStarted = false;
+                yield break;
+            }
+
+            countdownText.text = timeLeft.ToString();
+            yield return new WaitForSeconds(1f);
+            timeLeft--;
+        }
+
+        //countdownText.text = "GO!";
+        //yield return new WaitForSeconds(0.5f);
+
+        StartGame();
+    }
+
+    int GetReadyCount()
+    {
+        int count = 0;
+        for (int i = 0; i < isReady.Length; i++)
+            if (isReady[i]) count++;
+        return count;
+
+    }
+
+    void StartGame()
+    {
+        if (GameManager.Instance == null) return;
+
+        GameManager.Instance.playerCount = slots.Length;
+
+        GameManager.Instance.controllerAssignments = new int[slots.Length];
+
+        for (int i = 0; i < slots.Length; i++)
+        {
+            GameManager.Instance.controllerAssignments[i] = assignedControllers[i];
+
+            Debug.Log($"Assigned Controller {assignedControllers[i]} to Player {i + 1}");
+        }
+
+        SceneManager.LoadScene(RoundManager.Instance.currRound.sceneName);
+    }
 
     /*void HandleReadyPress(int player)
     {

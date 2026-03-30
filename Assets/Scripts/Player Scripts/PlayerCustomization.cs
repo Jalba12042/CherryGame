@@ -12,7 +12,9 @@ public class PlayerCustomization : MonoBehaviour
     private int currentTorsoIndex = -1;
     private int currentBottomIndex = -1;
 
-
+    public int GetHeadIndex() => currentHeadIndex;
+    public int GetTorsoIndex() => currentTorsoIndex;
+    public int GetBottomIndex() => currentBottomIndex;
 
     public void Initialize()
     {

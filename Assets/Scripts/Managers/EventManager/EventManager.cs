@@ -20,6 +20,7 @@ public class EventManager : MonoBehaviour
     public GameObject meteorAnimatedUI;
     public GameObject cherryAnimatedUI;
     public GameObject ufoAnimatedUI;
+    public GameObject zombieAnimatedUI;
 
     [Header("Text UI (Restored for RoundManager)")]
     public GameObject eventTextObj;
@@ -44,22 +45,24 @@ public class EventManager : MonoBehaviour
 
     private void Update()
     {
-        // When the EventManager travels to a new scene, it will automatically search for your images!
-        if (meteorAnimatedUI == null)
+        // === THE BULLETPROOF X-RAY FINDER ===
+        // This finds your images even if they are greyed out/turned off!
+        if (meteorAnimatedUI == null || cherryAnimatedUI == null || ufoAnimatedUI == null || zombieAnimatedUI == null)
         {
-            GameObject foundObj = GameObject.Find("MeteorImage");
-            if (foundObj != null) { meteorAnimatedUI = foundObj; meteorAnimatedUI.SetActive(false); }
+            Canvas[] allCanvases = FindObjectsOfType<Canvas>();
+            foreach (Canvas canvas in allCanvases)
+            {
+                Transform[] allUIElements = canvas.GetComponentsInChildren<Transform>(true);
+                foreach (Transform uiElement in allUIElements)
+                {
+                    if (uiElement.name == "MeteorImage") { meteorAnimatedUI = uiElement.gameObject; meteorAnimatedUI.SetActive(false); }
+                    if (uiElement.name == "CherryImage") { cherryAnimatedUI = uiElement.gameObject; cherryAnimatedUI.SetActive(false); }
+                    if (uiElement.name == "UFOImage") { ufoAnimatedUI = uiElement.gameObject; ufoAnimatedUI.SetActive(false); }
+                    if (uiElement.name == "ZombieImage") { zombieAnimatedUI = uiElement.gameObject; zombieAnimatedUI.SetActive(false); }
+                }
+            }
         }
-        if (cherryAnimatedUI == null)
-        {
-            GameObject foundObj = GameObject.Find("CherryImage");
-            if (foundObj != null) { cherryAnimatedUI = foundObj; cherryAnimatedUI.SetActive(false); }
-        }
-        if (ufoAnimatedUI == null)
-        {
-            GameObject foundObj = GameObject.Find("UFOImage");
-            if (foundObj != null) { ufoAnimatedUI = foundObj; ufoAnimatedUI.SetActive(false); }
-        }
+        // =====================================
 
         // Keeps RoundManager happy
         if (eventTextObj != null && eventText == null)
@@ -84,6 +87,7 @@ public class EventManager : MonoBehaviour
             if (meteorAnimatedUI != null) meteorAnimatedUI.SetActive(false);
             if (cherryAnimatedUI != null) cherryAnimatedUI.SetActive(false);
             if (ufoAnimatedUI != null) ufoAnimatedUI.SetActive(false);
+            if (zombieAnimatedUI != null) zombieAnimatedUI.SetActive(false);
             if (eventTextObj != null) eventTextObj.SetActive(false);
         }
 
@@ -147,13 +151,18 @@ public class EventManager : MonoBehaviour
         {
             activeUI = meteorAnimatedUI;
         }
-        else if (triggeredEvent.eventName == "Cherry Fever!") // FIXED: Now exactly matches the error log!
+        else if (triggeredEvent.eventName == "Cherry Fever!")
         {
             activeUI = cherryAnimatedUI;
         }
         else if (triggeredEvent.eventName == "Alien Invasion!")
         {
             activeUI = ufoAnimatedUI;
+        }
+        // FIXED: Now says "Zombie Apocalypse!" to match your error log exactly
+        else if (triggeredEvent.eventName == "Zombie Apocalypse!")
+        {
+            activeUI = zombieAnimatedUI;
         }
 
         if (activeUI != null)
