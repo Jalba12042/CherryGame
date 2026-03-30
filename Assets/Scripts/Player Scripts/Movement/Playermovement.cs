@@ -14,6 +14,7 @@ public class Playermovement : MonoBehaviour
     public float fallMultiplier = 2.5f;
     public float lowJumpMultiplier = 2f;
     public bool allowJumpInput = true;
+    private bool isJumping = false;
 
 
     [Header("Ground Check")]
@@ -127,7 +128,10 @@ public class Playermovement : MonoBehaviour
             }
         }
 
-
+        if (isGrounded && isJumping)
+        {
+            isJumping = false;
+        }
 
 
         if (animator != null)
@@ -147,7 +151,10 @@ public class Playermovement : MonoBehaviour
                 smoothSpeed = Mathf.Lerp(currentSpeed, targetSpeed, Time.deltaTime * 10f);
             }
 
-            animator.SetFloat("Speed", smoothSpeed);
+            if (!isJumping)
+            {
+                animator.SetFloat("Speed", smoothSpeed);
+            }
             animator.SetBool("isGrounded", isGrounded);
 
         }
@@ -164,14 +171,18 @@ public class Playermovement : MonoBehaviour
         {
             if (allowJumpInput && isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame && canMove)
             {
+                DoJump();
                 animator.SetTrigger("Jump"); // fire animation immediately
+                isJumping = true;
             }
         }
         else
         {
             if (allowJumpInput && isGrounded && Input.GetKeyDown(KeyCode.Space) && canMove)
             {
+                DoJump();
                 animator.SetTrigger("Jump");
+                isJumping = true;
             }
         }
 
