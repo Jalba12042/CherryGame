@@ -40,6 +40,16 @@ public class Projectile : MonoBehaviour
 
     [SerializeField] private LayerMask groundLayer;
 
+    [Header("Throw Cooldown")]
+    [SerializeField] private float throwCooldown = 4f;
+
+    private float throwCooldownTimer = 0f;
+    private bool canThrow = true;
+
+    [Header("Cooldown UI")]
+    public GameObject cooldownBarObject;
+    public UnityEngine.UI.Image cooldownFillImage;
+
     private Playermovement owner;
     private GameObject heldCherry;
     private bool isHoldingCherry = false;
@@ -72,6 +82,26 @@ public class Projectile : MonoBehaviour
 
     void Update()
     {
+        
+        if (!canThrow)
+        {
+            throwCooldownTimer -= Time.deltaTime;
+            throwCooldownTimer = Mathf.Max(0, throwCooldownTimer);
+
+            if (cooldownFillImage != null)
+            {
+                cooldownFillImage.fillAmount = throwCooldownTimer / throwCooldown;
+            }
+
+            if (throwCooldownTimer <= 0)
+            {
+                canThrow = true;
+
+                if (cooldownBarObject != null)
+                    cooldownBarObject.SetActive(false);
+            }
+        }
+
         if (owner == null) return;
 
         var gamepad = owner.GetAssignedGamepad();
@@ -104,7 +134,7 @@ public class Projectile : MonoBehaviour
             DrawTrajectory(currentPower);
         }
         // RELEASE LT
-        else if (isAiming && ltValue <= 0.2f)
+        else if (isAiming && ltValue <= 0.2f && canThrow)
         {
             //if (lineRenderer != null)
                 //lineRenderer.enabled = false;
@@ -115,7 +145,14 @@ public class Projectile : MonoBehaviour
             float finalPower = Mathf.Max(currentPower, 0.25f);
 
             pendingThrow = true;
-            owner.GetComponent<PlayerCherry>()?.NotifyThrowStarted();
+            //owner.GetComponent<PlayerCherry>()?.NotifyThrowStarted();
+
+            // START COOLDOWN
+            canThrow = false;
+            throwCooldownTimer = throwCooldown;
+
+            if (cooldownBarObject != null)
+                cooldownBarObject.SetActive(true);
 
             owner.animator.SetTrigger("doThrow");
             owner.animator.SetBool("isAiming", false);
