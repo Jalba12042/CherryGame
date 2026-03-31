@@ -18,14 +18,14 @@ public class PlayerKill : MonoBehaviour
 
     }
 
-    private void Update()
+    /*private void Update()
     {
         // Press X on the keyboard to kill the player manually
         if (Input.GetKeyDown(KeyCode.X))
         {
             killPlayer();
         }
-    }
+    }*/
     public IEnumerator respawnTimer()
     {
         yield return new WaitForSeconds(respawnDuration);
