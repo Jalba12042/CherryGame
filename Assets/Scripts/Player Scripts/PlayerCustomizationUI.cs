@@ -23,10 +23,17 @@ public class PlayerCustomizationUI : MonoBehaviour
 
     private int currentColorIndex = 0;
 
+    [Header("Name Customization")]
+    public string[] playerNames;
+    public TMPro.TextMeshProUGUI nameText;
+
+    private int currentNameIndex = 0;
+
 
     void Start()
     {
         UpdateCategoryHighlight();
+        ApplyName();
     }
 
     public void Initialize()
@@ -121,5 +128,27 @@ public class PlayerCustomizationUI : MonoBehaviour
     public int GetCurrentColorIndex()
     {
         return currentColorIndex;
+    }
+
+
+    public void ChangeName(int direction)
+    {
+        if (playerNames.Length == 0 || nameText == null)
+            return;
+
+        currentNameIndex += direction;
+
+        if (currentNameIndex < 0)
+            currentNameIndex = playerNames.Length - 1;
+
+        if (currentNameIndex >= playerNames.Length)
+            currentNameIndex = 0;
+
+        ApplyName();
+    }
+
+    void ApplyName()
+    {
+        nameText.text = playerNames[currentNameIndex];
     }
 }
