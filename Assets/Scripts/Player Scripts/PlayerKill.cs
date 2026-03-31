@@ -7,16 +7,30 @@ public class PlayerKill : MonoBehaviour
     public Playermovement pm;
     [SerializeField] private int respawnDuration;
     public Scream ps;
+    private FaceCamStatic myFaceCamStatic;
 
     private void Awake()
     {
         pm = GetComponent<Playermovement>();
         ps = GetComponentInChildren<Scream>();
         playerRenderers = GetComponentsInChildren<Renderer>();
+        myFaceCamStatic = FaceCamManager.Instance.GetFaceCamStatic(pm.playerIndex);
+
+    }
+
+    private void Update()
+    {
+        // Press X on the keyboard to kill the player manually
+        if (Input.GetKeyDown(KeyCode.X))
+        {
+            killPlayer();
+        }
     }
     public IEnumerator respawnTimer()
     {
         yield return new WaitForSeconds(respawnDuration);
+        myFaceCamStatic?.Stop();
+
         pm.canMove = true;
         gameObject.layer = LayerMask.NameToLayer("Player");
         GetComponentInChildren<Animator>().enabled = true;
@@ -39,6 +53,8 @@ public class PlayerKill : MonoBehaviour
         gameObject.layer = LayerMask.NameToLayer("Default");
         transform.position = RoundManager.Instance.currPlayerSpawn.spawnPoints[pm.playerIndex].position;
         ps.enabled = false;
+        myFaceCamStatic?.Play();
+
         StartCoroutine(respawnTimer());
     }
 }
