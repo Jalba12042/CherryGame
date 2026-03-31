@@ -14240,17 +14240,9 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 5557269801837705383, guid: a4941385819267443921cc5940722af2, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 5896580224650156824, guid: a4941385819267443921cc5940722af2, type: 3}
       propertyPath: m_Name
       value: Player3.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6355076793487505258, guid: a4941385819267443921cc5940722af2, type: 3}
-      propertyPath: m_Enabled
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6529952096185074082, guid: a4941385819267443921cc5940722af2, type: 3}
       propertyPath: m_LocalPosition.x
@@ -14297,6 +14289,22 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a4941385819267443921cc5940722af2, type: 3}
+--- !u!114 &2394898814510857141 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7825270283048170634, guid: a4941385819267443921cc5940722af2, type: 3}
+  m_PrefabInstance: {fileID: 2394898814510857140}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!1 &2394898814510857142 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 675942118702846967, guid: a4941385819267443921cc5940722af2, type: 3}
+  m_PrefabInstance: {fileID: 2394898814510857140}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2403709654401361991
 GameObject:
   m_ObjectHideFlags: 0
@@ -14767,6 +14775,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8174720699937065005, guid: f34648869fc18c146bd4fd6ea244bd12, type: 3}
+      propertyPath: dashBarObject
+      value: 
+      objectReference: {fileID: 2394898814510857142}
+    - target: {fileID: 8174720699937065005, guid: f34648869fc18c146bd4fd6ea244bd12, type: 3}
+      propertyPath: dashFillImage
+      value: 
+      objectReference: {fileID: 2394898814510857141}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

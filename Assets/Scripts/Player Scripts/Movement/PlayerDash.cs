@@ -17,6 +17,12 @@ public class PlayerDash : MonoBehaviour
 
     private float dashTimer;
 
+    [Header("Dash UI")]
+    public GameObject dashBarObject; // whole UI object
+    public UnityEngine.UI.Image dashFillImage;
+
+    private float dashCooldownTimer = 0f;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -25,6 +31,17 @@ public class PlayerDash : MonoBehaviour
 
     void Update()
     {
+        if (!canDash)
+        {
+            dashCooldownTimer -= Time.deltaTime;
+            dashCooldownTimer = Mathf.Max(0, dashCooldownTimer);
+
+            if (dashFillImage != null)
+            {
+                dashFillImage.fillAmount = dashCooldownTimer / dashCooldown;
+            }
+        }
+
         if (!canDash || movement == null || !movement.canMove)
             return;
 
@@ -75,6 +92,11 @@ public class PlayerDash : MonoBehaviour
         movement.canMove = false;
         dashTimer = dashDuration;
 
+        dashCooldownTimer = dashCooldown;
+
+        if (dashBarObject != null)
+            dashBarObject.SetActive(true);
+
         Vector3 dashDirection = transform.forward;
 
         // Keep current vertical velocity (important for jumping)
@@ -89,5 +111,8 @@ public class PlayerDash : MonoBehaviour
     void ResetDash()
     {
         canDash = true;
+
+        if (dashBarObject != null)
+            dashBarObject.SetActive(false);
     }
 }
