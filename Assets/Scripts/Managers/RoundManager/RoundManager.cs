@@ -355,6 +355,8 @@ public class RoundManager : MonoBehaviour
     {
         timerText.text = "";
 
+        SetPlayersCanMove(false);
+
         // timer at round start
         float timer = 0;
         float maxTimer = 3;
@@ -370,6 +372,8 @@ public class RoundManager : MonoBehaviour
             }
             currRound.startTimerUI.SetActive(false);
         }
+
+        SetPlayersCanMove(true);
 
         currRoundActive = true;
         StartCoroutine(RoundTimer());
@@ -420,5 +424,19 @@ public class RoundManager : MonoBehaviour
     public void SetTimer(TextMeshProUGUI timer)
     {
         timerText = timer;
+    }
+
+    private void SetPlayersCanMove(bool value)
+    {
+        foreach (GameObject playerObj in playerObjects)
+        {
+            if (playerObj == null) continue;
+
+            Playermovement player = playerObj.GetComponentInChildren<Playermovement>();
+            if (player != null)
+            {
+                player.canMove = value;
+            }
+        }
     }
 }
