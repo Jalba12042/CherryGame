@@ -13,6 +13,9 @@ public class FakeLoadingScreen : MonoBehaviour
     public string[] tips;
     public float tipInterval = 2f;
 
+    // NEW: We added the slot for your Timer Manager right here!
+    public TimerUIManager timerManager;
+
     [Header("Pac-Man Loading Elements")]
     public Image playerIcon;
     public RectTransform startPoint;
@@ -123,7 +126,7 @@ public class FakeLoadingScreen : MonoBehaviour
             return;
         }
 
-        // NEW: Check for Mouse Left Click to start
+        // Check for Mouse Left Click to start
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
             BeginRound();
@@ -146,11 +149,29 @@ public class FakeLoadingScreen : MonoBehaviour
         if (roundStarted) return;
         roundStarted = true;
 
-        if (RoundManager.Instance.currRound.startTimerUI != null)
-            RoundManager.Instance.currRound.startTimerUI.SetActive(true);
+        // NEW: Tell the timer to reveal itself the exact second you press the button!
+        if (timerManager != null)
+        {
+            timerManager.RevealTimer();
+        }
 
-        RoundManager.Instance.BeginRound();
-        loadingPanel.SetActive(false);
+        // NEW: Safety checks so testing scenes directly doesn't crash Unity
+        if (RoundManager.Instance != null && RoundManager.Instance.currRound != null)
+        {
+            if (RoundManager.Instance.currRound.startTimerUI != null)
+                RoundManager.Instance.currRound.startTimerUI.SetActive(true);
+        }
+
+        if (RoundManager.Instance != null)
+        {
+            RoundManager.Instance.BeginRound();
+        }
+
+        if (loadingPanel != null)
+        {
+            loadingPanel.SetActive(false);
+        }
+
         this.enabled = false;
     }
 }
