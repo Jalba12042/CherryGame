@@ -29,7 +29,7 @@ public class Projectile : MonoBehaviour
     public float airSpeedMultiplier = 1f;
 
     [Header("Trajectory Visual")]
-    public LineRenderer lineRenderer;
+    //public LineRenderer lineRenderer;
     public GameObject landingMarkerPrefab;
 
     private GameObject landingMarkerInstance;
@@ -68,10 +68,10 @@ public class Projectile : MonoBehaviour
         //if (lineRenderer != null)
         //lineRenderer.positionCount = 0;
 
-        if (lineRenderer != null)
+        /*if (lineRenderer != null)
         {
             lineRenderer.enabled = false;
-        }
+        }*/
 
         if (landingMarkerPrefab != null)
         {
@@ -207,7 +207,7 @@ public class Projectile : MonoBehaviour
         Vector3 scaledVelocity = velocity * airSpeedMultiplier;
         Vector3 gravity = Physics.gravity * airSpeedMultiplier;
 
-        lineRenderer.positionCount = linePoints;
+        //lineRenderer.positionCount = linePoints;
 
         Vector3 previousPoint = origin;
 
@@ -220,7 +220,7 @@ public class Projectile : MonoBehaviour
                 scaledVelocity * t +
                 0.5f * gravity * t * t;
 
-            lineRenderer.SetPosition(i, point);
+            //lineRenderer.SetPosition(i, point);
 
             if (i > 0)
             {
@@ -230,8 +230,8 @@ public class Projectile : MonoBehaviour
                 if (Physics.Raycast(previousPoint, direction.normalized,
                     out RaycastHit hit, distance, groundLayer))
                 {
-                    lineRenderer.positionCount = i + 1;
-                    lineRenderer.SetPosition(i, hit.point);
+                    //lineRenderer.positionCount = i + 1;
+                    //lineRenderer.SetPosition(i, hit.point);
 
                     if (landingMarkerInstance != null)
                     {
