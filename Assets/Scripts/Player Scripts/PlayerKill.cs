@@ -14,8 +14,11 @@ public class PlayerKill : MonoBehaviour
         pm = GetComponent<Playermovement>();
         ps = GetComponentInChildren<Scream>();
         playerRenderers = GetComponentsInChildren<Renderer>();
-        myFaceCamStatic = FaceCamManager.Instance.GetFaceCamStatic(pm.playerIndex);
+    }
 
+    private void Start()
+    {
+        myFaceCamStatic = FaceCamManager.Instance.GetFaceCamStatic(pm.playerIndex);
     }
 
     /*private void Update()

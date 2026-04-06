@@ -50,10 +50,18 @@ public class PlayerPowerupHandler : MonoBehaviour
     void Update()
     {
         if (nearbyPowerup != null && player.assignedGamepad != null)
-        {
+        {            
             if (player.assignedGamepad.rightTrigger.wasPressedThisFrame)
             {
                 nearbyPowerup.Activate(this); // Pass handler instead of Playermovement
+                nearbyPowerup = null;
+            }      
+        }
+        else if (nearbyPowerup != null && GameManager.Instance.isOnKeyboard)
+        {
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                nearbyPowerup.Activate(this);
                 nearbyPowerup = null;
             }
         }
