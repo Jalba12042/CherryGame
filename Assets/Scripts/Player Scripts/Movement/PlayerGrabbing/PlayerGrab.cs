@@ -119,7 +119,6 @@ public class PlayerGrab : MonoBehaviour
         grabbedPlayer = nearbyPlayer;
 
         animator.SetBool("isGrabbing", true);
-        StartCoroutine(ResetGrabAnim());
 
         if (grabSource != null && grabClip != null)
         {
@@ -153,18 +152,10 @@ public class PlayerGrab : MonoBehaviour
             escapeUI.StartBeingGrabbed(this);
         }
 
-        if (animator != null)
-            animator.SetBool("isPickingUp", true);
 
         SetMyJiggle(false);
     }
 
-    private IEnumerator ResetGrabAnim()
-    {
-        // Wait for the length of your grab animation (adjust as needed)
-        yield return new WaitForSeconds(0.3f);
-        animator.SetBool("isGrabbing", false);
-    }
 
     public void ReleaseGrab()
     {
@@ -206,7 +197,8 @@ public class PlayerGrab : MonoBehaviour
                 grabbedAnimator.SetBool("isGrabbed", false);
 
             if (animator != null)
-                animator.SetBool("isPickingUp", false);
+                animator.SetBool("isGrabbing", false); // set false when released
+
 
         }
         SetMyJiggle(true);
