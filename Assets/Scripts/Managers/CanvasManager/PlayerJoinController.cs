@@ -1,6 +1,10 @@
 ﻿using UnityEngine;
+using System.Collections;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using TMPro;
+using UnityEngine.SceneManagement;
+
 
 public class PlayerJoinController : MonoBehaviour
 {
@@ -26,6 +30,11 @@ public class PlayerJoinController : MonoBehaviour
 
     private Gamepad[] controllers;
     private int[] assignedControllers;   // -1 = empty, otherwise controller index
+
+    public GameObject countdownPanel;
+    public TextMeshProUGUI countdownText;
+
+    private bool countdownStarted = false;
 
     void Start()
     {
@@ -172,19 +181,56 @@ public class PlayerJoinController : MonoBehaviour
                 if (Mathf.Abs(stick.y) < 0.2f)
                     slots[p].stickInUse = false;
 
-                // ===== RT / LT (COLOR SWITCHING) =====
+                // ===== RT / LT INPUT =====
                 int category = ui.GetCurrentCategoryIndex();
 
-                if (category == 0) // Color category
+                var customization = slots[p].spawnedModel.GetComponentInChildren<PlayerCustomization>();
+
+                if (pad.rightTrigger.wasPressedThisFrame)
                 {
-                    if (pad.rightTrigger.wasPressedThisFrame)
+                    if (category == 0)
+                    {
+                        ui.ChangeName(1);
+                    }
+                    else if (category == 1)
                     {
                         ui.ChangeColor(1, slots[p].spawnedModel, p);
                     }
+                    else if (category == 2)
+                    {
+                        customization.ChangeHead(1);
+                    }
+                    else if (category == 3)
+                    {
+                        customization.ChangeTorso(1);
+                    }
+                    else if (category == 4)
+                    {
+                        customization.ChangeBottom(1);
+                    }
+                }
 
-                    if (pad.leftTrigger.wasPressedThisFrame)
+                if (pad.leftTrigger.wasPressedThisFrame)
+                {
+                    if (category == 0)
+                    {
+                        ui.ChangeName(-1);
+                    }
+                    else if (category == 1)
                     {
                         ui.ChangeColor(-1, slots[p].spawnedModel, p);
+                    }
+                    else if (category == 2)
+                    {
+                        customization.ChangeHead(-1);
+                    }
+                    else if (category == 3)
+                    {
+                        customization.ChangeTorso(-1);
+                    }
+                    else if (category == 4)
+                    {
+                        customization.ChangeBottom(-1);
                     }
                 }
             }
@@ -227,8 +273,14 @@ public class PlayerJoinController : MonoBehaviour
      playerModelPrefab,
      slots[player].modelSpawnPoint.position,
      slots[player].modelSpawnPoint.rotation,
-     slots[player].modelSpawnPoint
- );
+     slots[player].modelSpawnPoint);
+
+                var customization = slots[player].spawnedModel.GetComponentInChildren<PlayerCustomization>();
+
+                if (customization != null)
+                {
+                    customization.Initialize();
+                }
 
                 // Set default color per player
                 int defaultColorIndex = player;
@@ -322,8 +374,81 @@ public class PlayerJoinController : MonoBehaviour
             isReady[player] = false;
             slots[player].readyPanel.SetActive(false);
         }
+
+        CheckStartCondition();
     }
 
+    void CheckStartCondition()
+    {
+        if (countdownStarted) return;
+
+        int readyCount = 0;
+
+        for (int i = 0; i < isReady.Length; i++)
+        {
+            if (isReady[i])
+                readyCount++;
+        }
+
+        if (readyCount >= 2)
+        {
+            StartCoroutine(StartCountdown());
+        }
+    }
+
+    IEnumerator StartCountdown()
+    {
+        countdownStarted = true;
+        countdownPanel.SetActive(true);
+
+        int timeLeft = 5;
+
+        while (timeLeft > 0)
+        {
+            if (GetReadyCount() < 2)
+            {
+                countdownPanel.SetActive(false);
+                countdownStarted = false;
+                yield break;
+            }
+
+            countdownText.text = timeLeft.ToString();
+            yield return new WaitForSeconds(1f);
+            timeLeft--;
+        }
+
+        //countdownText.text = "GO!";
+        //yield return new WaitForSeconds(0.5f);
+
+        StartGame();
+    }
+
+    int GetReadyCount()
+    {
+        int count = 0;
+        for (int i = 0; i < isReady.Length; i++)
+            if (isReady[i]) count++;
+        return count;
+
+    }
+
+    void StartGame()
+    {
+        if (GameManager.Instance == null) return;
+
+        GameManager.Instance.playerCount = slots.Length;
+
+        GameManager.Instance.controllerAssignments = new int[slots.Length];
+
+        for (int i = 0; i < slots.Length; i++)
+        {
+            GameManager.Instance.controllerAssignments[i] = assignedControllers[i];
+
+            Debug.Log($"Assigned Controller {assignedControllers[i]} to Player {i + 1}");
+        }
+
+        SceneManager.LoadScene(RoundManager.Instance.currRound.sceneName);
+    }
 
     /*void HandleReadyPress(int player)
     {

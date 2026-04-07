@@ -29,7 +29,7 @@ public class Projectile : MonoBehaviour
     public float airSpeedMultiplier = 1f;
 
     [Header("Trajectory Visual")]
-    public LineRenderer lineRenderer;
+    //public LineRenderer lineRenderer;
     public GameObject landingMarkerPrefab;
 
     private GameObject landingMarkerInstance;
@@ -39,6 +39,16 @@ public class Projectile : MonoBehaviour
     public float timeStep = 0.1f;
 
     [SerializeField] private LayerMask groundLayer;
+
+    [Header("Throw Cooldown")]
+    [SerializeField] private float throwCooldown = 4f;
+
+    private float throwCooldownTimer = 0f;
+    private bool canThrow = true;
+
+    [Header("Cooldown UI")]
+    public GameObject cooldownBarObject;
+    public UnityEngine.UI.Image cooldownFillImage;
 
     private Playermovement owner;
     private GameObject heldCherry;
@@ -58,10 +68,10 @@ public class Projectile : MonoBehaviour
         //if (lineRenderer != null)
         //lineRenderer.positionCount = 0;
 
-        if (lineRenderer != null)
+        /*if (lineRenderer != null)
         {
             lineRenderer.enabled = false;
-        }
+        }*/
 
         if (landingMarkerPrefab != null)
         {
@@ -72,6 +82,26 @@ public class Projectile : MonoBehaviour
 
     void Update()
     {
+        
+        if (!canThrow)
+        {
+            throwCooldownTimer -= Time.deltaTime;
+            throwCooldownTimer = Mathf.Max(0, throwCooldownTimer);
+
+            if (cooldownFillImage != null)
+            {
+                cooldownFillImage.fillAmount = throwCooldownTimer / throwCooldown;
+            }
+
+            if (throwCooldownTimer <= 0)
+            {
+                canThrow = true;
+
+                if (cooldownBarObject != null)
+                    cooldownBarObject.SetActive(false);
+            }
+        }
+
         if (owner == null) return;
 
         var gamepad = owner.GetAssignedGamepad();
@@ -104,7 +134,7 @@ public class Projectile : MonoBehaviour
             DrawTrajectory(currentPower);
         }
         // RELEASE LT
-        else if (isAiming && ltValue <= 0.2f)
+        else if (isAiming && ltValue <= 0.2f && canThrow)
         {
             //if (lineRenderer != null)
                 //lineRenderer.enabled = false;
@@ -115,7 +145,14 @@ public class Projectile : MonoBehaviour
             float finalPower = Mathf.Max(currentPower, 0.25f);
 
             pendingThrow = true;
-            owner.GetComponent<PlayerCherry>()?.NotifyThrowStarted();
+            //owner.GetComponent<PlayerCherry>()?.NotifyThrowStarted();
+
+            // START COOLDOWN
+            canThrow = false;
+            throwCooldownTimer = throwCooldown;
+
+            if (cooldownBarObject != null)
+                cooldownBarObject.SetActive(true);
 
             owner.animator.SetTrigger("doThrow");
             owner.animator.SetBool("isAiming", false);
@@ -170,7 +207,7 @@ public class Projectile : MonoBehaviour
         Vector3 scaledVelocity = velocity * airSpeedMultiplier;
         Vector3 gravity = Physics.gravity * airSpeedMultiplier;
 
-        lineRenderer.positionCount = linePoints;
+        //lineRenderer.positionCount = linePoints;
 
         Vector3 previousPoint = origin;
 
@@ -183,7 +220,7 @@ public class Projectile : MonoBehaviour
                 scaledVelocity * t +
                 0.5f * gravity * t * t;
 
-            lineRenderer.SetPosition(i, point);
+            //lineRenderer.SetPosition(i, point);
 
             if (i > 0)
             {
@@ -193,8 +230,8 @@ public class Projectile : MonoBehaviour
                 if (Physics.Raycast(previousPoint, direction.normalized,
                     out RaycastHit hit, distance, groundLayer))
                 {
-                    lineRenderer.positionCount = i + 1;
-                    lineRenderer.SetPosition(i, hit.point);
+                    //lineRenderer.positionCount = i + 1;
+                    //lineRenderer.SetPosition(i, hit.point);
 
                     if (landingMarkerInstance != null)
                     {

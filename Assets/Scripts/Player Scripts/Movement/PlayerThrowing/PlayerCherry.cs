@@ -35,77 +35,6 @@ public class PlayerCherry : MonoBehaviour
         jiggleParts = GetComponentsInChildren<Jiggle>();
     }
 
-    /*void Update()
-    {
-        if (!GameManager.Instance.isOnKeyboard)
-        {
-            if (player.assignedGamepad == null) return;
-            gamepad = player.assignedGamepad;
-
-
-            float rtValue = gamepad.rightTrigger.ReadValue();
-
-            if (rtValue > 0.1f)
-                HandlePickup();
-            else
-                HandleDrop();
-        }
-        else
-        {
-            if (Input.GetKey(KeyCode.E))
-            {
-                HandlePickup();
-            }
-            else if (Input.GetKeyUp(KeyCode.E))
-            {
-                HandleDrop();
-            } 
-        }
-    }*/
-
-    /*void Update()
-    {
-        float rtValue = 0f;
-        bool isPickingKey = false;
-
-        // ---- INPUT ----
-        if (!GameManager.Instance.isOnKeyboard)
-        {
-            if (player.assignedGamepad == null) return;
-            gamepad = player.assignedGamepad;
-
-            rtValue = gamepad.rightTrigger.ReadValue();
-            isPickingKey = rtValue > 0.1f;
-
-            // If holding cherry but RT released, cancel aim and drop
-            if (heldCherry != null && rtValue <= 0.1f)
-            {
-                CancelAimAndDrop();
-                return; // early exit so we don't pick up again
-            }
-
-            if (isPickingKey)
-                HandlePickup();
-            else
-                HandleDrop();
-        }
-        else
-        {
-            isPickingKey = Input.GetKey(KeyCode.E);
-
-            // If holding cherry but E released, cancel aim and drop
-            if (heldCherry != null && !isPickingKey)
-            {
-                CancelAimAndDrop();
-                return;
-            }
-
-            if (isPickingKey)
-                HandlePickup();
-            else
-                HandleDrop();
-        }
-    }*/
 
     void Update()
     {
@@ -181,34 +110,6 @@ public class PlayerCherry : MonoBehaviour
             StartCoroutine(PlayPickupAnimation());
     }
 
-    /*private void HandlePickup()
-    {
-        if (heldCherry == null && nearbyCherry != null)
-        {
-            heldCherry = nearbyCherry;
-
-            if (pickupSource != null && pickupClip != null)
-            {
-                pickupSource.pitch = Random.Range(0.95f, 1.05f); // slight variation (optional but nice)
-                pickupSource.PlayOneShot(pickupClip);
-            }
-
-            SetJiggle(false);
-
-            Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
-            if (rbCherry != null) rbCherry.isKinematic = true;
-
-            heldCherry.transform.SetParent(handHoldPoint);
-            SetCherryCollision(false);   // disable collisions
-            heldCherry.transform.localPosition = Vector3.zero;
-
-            projectileScript?.PickUpCherry(heldCherry);
-
-            if (animator != null)
-                StartCoroutine(PlayPickupAnimation());
-        }
-    }*/
-
     private void OnPickupPressed()
     {
         if (heldCherry == null)
@@ -253,66 +154,6 @@ public class PlayerCherry : MonoBehaviour
         animator.SetBool("isPickingUp", true);
         yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
     }
-
-    /*private void HandleDrop()
-    {
-        // If the Projectile reports aiming or a pending throw, DO NOT drop.
-        if (projectileScript != null && (projectileScript.IsThrowPending() || isThrowing))
-            return;
-
-        if (heldCherry != null)
-        {
-            if (pickupSource != null && dropClip != null)
-            {
-                pickupSource.pitch = Random.Range(0.9f, 1.0f); // slightly lower pitch for drop
-                pickupSource.PlayOneShot(dropClip);
-            }
-
-            Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
-            heldCherry.transform.SetParent(null);
-            if (rbCherry != null) rbCherry.isKinematic = false;
-
-            projectileScript?.CancelAim();
-            if (animator != null)
-                animator.SetBool("isPickingUp", false);
-
-           SetCherryCollision(true);    // re-enable collisions
-
-
-            SetJiggle(true);
-            heldCherry = null;
-        }
-    }*/
-
-
-    /*private void HandleDrop()
-    {
-        if (projectileScript.IsAiming())
-            return;
-
-        if (heldCherry != null)
-        {
-            Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
-            heldCherry.transform.SetParent(null);
-            if (rbCherry != null) rbCherry.isKinematic = false;
-            projectileScript?.CancelAim();
-            if (animator != null)
-                animator.SetBool("isPickingUp", false);
-            heldCherry = null;
-        }
-    }*/
-
-    /*private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Cherry"))
-            nearbyCherry = other.gameObject;
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Cherry") && other.gameObject == nearbyCherry)
-            nearbyCherry = null;
-    }*/
 
     public void NotifyThrowStarted()
     {

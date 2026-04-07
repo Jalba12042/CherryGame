@@ -20,11 +20,20 @@ public class PlayerCustomizationUI : MonoBehaviour
     [Header("Color Customization")]
     public Material[] colorMaterials;
 
+
     private int currentColorIndex = 0;
+
+    [Header("Name Customization")]
+    public string[] playerNames;
+    public TMPro.TextMeshProUGUI nameText;
+
+    private int currentNameIndex = 0;
+
 
     void Start()
     {
         UpdateCategoryHighlight();
+        ApplyName();
     }
 
     public void Initialize()
@@ -101,12 +110,10 @@ public class PlayerCustomizationUI : MonoBehaviour
 
     void ApplyColor(GameObject playerModel)
     {
-        Renderer renderer = playerModel.GetComponentInChildren<Renderer>();
+        var customization = playerModel.GetComponentInChildren<PlayerCustomization>();
+        if (customization == null) return;
 
-        if (renderer != null)
-        {
-            renderer.material = colorMaterials[currentColorIndex];
-        }
+        customization.ApplyBodyMaterial(colorMaterials[currentColorIndex]);
     }
 
     public void SetColorIndex(int index, GameObject playerModel)
@@ -121,5 +128,27 @@ public class PlayerCustomizationUI : MonoBehaviour
     public int GetCurrentColorIndex()
     {
         return currentColorIndex;
+    }
+
+
+    public void ChangeName(int direction)
+    {
+        if (playerNames.Length == 0 || nameText == null)
+            return;
+
+        currentNameIndex += direction;
+
+        if (currentNameIndex < 0)
+            currentNameIndex = playerNames.Length - 1;
+
+        if (currentNameIndex >= playerNames.Length)
+            currentNameIndex = 0;
+
+        ApplyName();
+    }
+
+    void ApplyName()
+    {
+        nameText.text = playerNames[currentNameIndex];
     }
 }

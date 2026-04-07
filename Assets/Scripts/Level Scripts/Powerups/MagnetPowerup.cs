@@ -4,9 +4,9 @@ using System.Collections;
 public class MagnetPowerup : Powerup
 {
     [Header("Magnet Settings")]
-    [SerializeField] private float magnetRadius = 10f;
-    [SerializeField] private float pullForce = 25f;
-    [SerializeField] private string targetTag = "Pickup";
+    public string targetTag = "Collectible";
+    public float pullRadius = 5f;
+    public float pullForce = 10f;
 
     private Coroutine magnetRoutine;
 
@@ -14,44 +14,45 @@ public class MagnetPowerup : Powerup
     {
         base.powerUpEffect();
 
-        magnetRoutine = StartCoroutine(MagnetLoop());
-    }
-
-    private IEnumerator MagnetLoop()
-    {
-        while (true)
-        {
-            PullObjects();
-            yield return null;
-        }
-    }
-
-    private void PullObjects()
-    {
-        if (playerModel == null) return;
-
-        Collider[] hits = Physics.OverlapSphere(playerModel.transform.position, magnetRadius);
-
-        foreach (Collider hit in hits)
-        {
-            if (!hit.CompareTag(targetTag)) continue;
-
-            Rigidbody rb = hit.GetComponent<Rigidbody>();
-            if (rb == null) continue;
-
-            Vector3 direction = (playerModel.transform.position - hit.transform.position).normalized;
-            rb.AddForce(direction * pullForce, ForceMode.Force);
-        }
+        // Start magnet effect
+        magnetRoutine = StartCoroutine(MagnetRoutine());
     }
 
     protected override void powerUpEnd()
     {
+        base.powerUpEnd();
+
+        // Stop magnet effect when powerup ends
         if (magnetRoutine != null)
         {
             StopCoroutine(magnetRoutine);
-            magnetRoutine = null;
         }
+    }
 
-        base.powerUpEnd();
+    IEnumerator MagnetRoutine()
+    {
+        while (true)
+        {
+            // Find nearby objects
+            Collider[] hits = Physics.OverlapSphere(playerModel.transform.position, pullRadius);
+
+            foreach (Collider hit in hits)
+            {
+                if (hit.CompareTag(targetTag))
+                {
+                    Rigidbody rb = hit.GetComponent<Rigidbody>();
+
+                    if (rb != null)
+                    {
+                        Vector3 direction = (playerModel.transform.position - hit.transform.position).normalized;
+
+                        // Apply pull force
+                        rb.AddForce(direction * pullForce, ForceMode.Acceleration);
+                    }
+                }
+            }
+
+            yield return null; // every frame
+        }
     }
 }
