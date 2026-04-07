@@ -47,8 +47,8 @@ public class Scream : MonoBehaviour
         //aSource = GetComponentInParent<AudioSource>();
        // if (aSource == null)
        //     aSource = GetComponentInParent<AudioSource>();
-        
-        gp = player.assignedGamepad;
+        if (player != null)
+            gp = player.assignedGamepad;
         //faceAnimator = GetComponent<Animator>();
     }
 

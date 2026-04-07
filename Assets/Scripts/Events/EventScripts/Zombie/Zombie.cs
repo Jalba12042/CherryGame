@@ -42,7 +42,7 @@ public class Zombie : MonoBehaviour
     public bool wasPlayer = false;
 
     private Rigidbody rb;
-    private Vector3 playerTarget;
+    private Transform playerTarget;
     private float waitTimer;
     private float riseTimer;
     private float digTimer;
@@ -67,6 +67,7 @@ public class Zombie : MonoBehaviour
         {
             rb.isKinematic = false;
             ChangeState(ZombieState.Wander);
+            StartCoroutine(LifeTimer());
         }
     }
 
@@ -180,14 +181,23 @@ public class Zombie : MonoBehaviour
 
     void HandleChase()
     {
-        Vector3 flatOffset = playerTarget - rb.position;
-        flatOffset.y = 0f;
+        // Guard: if target lost or dead, go back to wandering
+        if (playerTarget == null)
+        {
+            ChangeState(ZombieState.Wander);
+            return;
+        }
 
+        // Update position every frame from the live Transform
+        Vector3 playerTargetPosition = playerTarget.position;
+
+        Vector3 flatOffset = playerTargetPosition - rb.position;
+        flatOffset.y = 0f;
         float distance = flatOffset.magnitude;
 
         if (distance > stoppingDist)
         {
-            if (!isAttacking) 
+            if (!isAttacking)
                 changeMoveSpeed(origMoveSpeed);
         }
         else
@@ -201,7 +211,7 @@ public class Zombie : MonoBehaviour
             }
         }
 
-        MoveTowards(playerTarget);
+        MoveTowards(playerTargetPosition);
     }
 
     void MoveTowards(Vector3 point)
@@ -254,6 +264,9 @@ public class Zombie : MonoBehaviour
 
             foreach (Collider hit in hits)
             {
+                PlayerKill pk = hit.GetComponentInParent<PlayerKill>();
+                if (pk != null && pk.currDead) continue;
+
                 Vector3 offset = hit.transform.position - transform.position;
                 offset.y = 0f; // ignore vertical difference
                 float dist = offset.sqrMagnitude;
@@ -267,12 +280,18 @@ public class Zombie : MonoBehaviour
 
             if (closest != null)
             {
-                playerTarget = closest.position;
+                playerTarget = closest;
                 ChangeState(ZombieState.Chasing);
+            }
+            else
+            {
+                playerTarget = null;
+                ChangeState(ZombieState.Wander);
             }
         }
         else if (ZState == ZombieState.Chasing)
         {
+            playerTarget = null;
             ChangeState(ZombieState.Wander);
         }
     }

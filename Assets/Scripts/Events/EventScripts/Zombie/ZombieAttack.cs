@@ -7,9 +7,14 @@ public class ZombieAttack : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            other.GetComponent<PlayerKill>().killPlayer();
-            Zombie newZombie = Instantiate(zombiePrefab, transform.position, Quaternion.identity).GetComponent<Zombie>();
-            newZombie.wasPlayer = true;
+            PlayerKill pk = other.GetComponent<PlayerKill>();
+            if (!pk.currDead)
+            {
+                pk.killPlayer();
+
+                Zombie newZombie = Instantiate(zombiePrefab, transform.position, Quaternion.identity).GetComponent<Zombie>();
+                newZombie.wasPlayer = true;
+            }
         }
     }
 }

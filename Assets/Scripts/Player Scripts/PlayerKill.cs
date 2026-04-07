@@ -4,6 +4,7 @@ using UnityEngine;
 public class PlayerKill : MonoBehaviour
 {
     public Renderer[] playerRenderers;
+    public bool currDead = false;
     public Playermovement pm;
     [SerializeField] private int respawnDuration;
     public Scream ps;
@@ -42,6 +43,7 @@ public class PlayerKill : MonoBehaviour
             r.enabled = true;
         }
         ps.enabled = true;
+        currDead = false;
     }
 
     public void killPlayer()
@@ -57,6 +59,7 @@ public class PlayerKill : MonoBehaviour
         transform.position = RoundManager.Instance.currPlayerSpawn.spawnPoints[pm.playerIndex].position;
         ps.enabled = false;
         myFaceCamStatic?.Play();
+        currDead = true;
 
         StartCoroutine(respawnTimer());
     }
