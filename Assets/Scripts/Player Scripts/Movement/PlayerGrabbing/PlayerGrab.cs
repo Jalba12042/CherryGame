@@ -118,6 +118,9 @@ public class PlayerGrab : MonoBehaviour
 
         grabbedPlayer = nearbyPlayer;
 
+        animator.SetBool("isGrabbing", true);
+        StartCoroutine(ResetGrabAnim());
+
         if (grabSource != null && grabClip != null)
         {
             grabSource.pitch = Random.Range(0.95f, 1.05f); // slight variation
@@ -156,7 +159,12 @@ public class PlayerGrab : MonoBehaviour
         SetMyJiggle(false);
     }
 
-
+    private IEnumerator ResetGrabAnim()
+    {
+        // Wait for the length of your grab animation (adjust as needed)
+        yield return new WaitForSeconds(0.3f);
+        animator.SetBool("isGrabbing", false);
+    }
 
     public void ReleaseGrab()
     {
@@ -244,7 +252,10 @@ public class PlayerGrab : MonoBehaviour
 
     public IEnumerator StunRoutine(float duration)
     {
+
         player.canMove = false;
+
+        animator.SetBool("isStunned", true);
 
         // Freeze random blinking
         RandomFaceChanger rfc = GetComponentInChildren<RandomFaceChanger>();
@@ -282,6 +293,8 @@ public class PlayerGrab : MonoBehaviour
             stunCanvas.SetActive(false);
 
         player.canMove = true;
+
+        animator.SetBool("isStunned", false);
     }
 
 
