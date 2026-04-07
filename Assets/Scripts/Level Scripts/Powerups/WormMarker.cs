@@ -28,7 +28,7 @@ public class WormMarker : MonoBehaviour
 
     IEnumerator WormRoutine(float delay)
     {
-        // VISUAL IDEA: change color to green
+        // infected is green
         Renderer rend = GetComponent<Renderer>();
         if (rend != null)
         {
@@ -52,7 +52,7 @@ public class WormMarker : MonoBehaviour
 
             foreach (Collider col in nearby)
             {
-                if (col.CompareTag("Collectible"))
+                if (col.CompareTag("Cherry"))
                 {
                     WormMarker other = col.GetComponent<WormMarker>();
 
@@ -62,7 +62,7 @@ public class WormMarker : MonoBehaviour
                         other.StartCountdown(3f, spreadRadius, spreadDelay, maxInfections);
 
                         currentInfections++;
-                        break; // infect one at a time (feels better)
+                        break;
                     }
                 }
             }

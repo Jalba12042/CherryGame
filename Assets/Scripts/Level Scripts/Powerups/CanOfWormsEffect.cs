@@ -3,7 +3,7 @@ using System.Collections;
 
 public class CanOfWormsEffect : Powerup
 {
-    public string targetTag = "Collectible";
+    public string targetTag = "Cherry";
     public float destroyDelay = 3f;
 
     public float spreadRadius = 2f;
@@ -16,13 +16,13 @@ public class CanOfWormsEffect : Powerup
 
         ActivateWorms();
 
-        // Immediately end the power-up since it's instant-use
+        // single use end
         powerUpEnd();
     }
 
     protected override IEnumerator StartTimer()
     {
-        yield break; // disables duration system
+        yield break; // durantion
     }
 
     void ActivateWorms()
