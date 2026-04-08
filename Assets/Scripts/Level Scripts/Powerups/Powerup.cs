@@ -5,6 +5,7 @@ public class Powerup : MonoBehaviour
 {
     [SerializeField] protected float duration;
     [SerializeField] protected string puName;
+    [SerializeField] protected int despawnTimerInSecs = 7;
 
     public int powerUpID; 
 
@@ -12,11 +13,28 @@ public class Powerup : MonoBehaviour
     protected PlayerPowerupHandler powerupHandler;
     protected GameObject playerModel;
     protected PlayerEffects pe;
+    protected bool canDespawn = true;
 
     private Coroutine activeTimer;
     private bool isActive;
+
+    private void Awake()
+    {
+        StartCoroutine(despawnTimer());
+    }
+
+    private IEnumerator despawnTimer()
+    {
+        yield return new WaitForSeconds(despawnTimerInSecs);
+        if (canDespawn)
+        {
+            RoundManager.Instance.powerupsInPlay.Remove(gameObject);
+            Destroy(gameObject);
+        }
+    }
     public void Activate(PlayerPowerupHandler handler)
     {
+        canDespawn = false;
         powerupHandler = handler;
         pc = handler.GetComponent<Playermovement>();
         pe = handler.GetComponent<PlayerEffects>();

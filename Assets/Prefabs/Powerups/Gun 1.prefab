@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1189059810702370111
+--- !u!1 &8692160619302079
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,50 +8,50 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 4911797762099103430}
-  - component: {fileID: 7023081848310336759}
-  - component: {fileID: 4037465220500970250}
-  - component: {fileID: 5920534799946819086}
-  - component: {fileID: 4035976181538396917}
-  - component: {fileID: 217509356163953315}
-  - component: {fileID: 5224635105938822437}
+  - component: {fileID: 5043316366991218367}
+  - component: {fileID: 1697565560488865304}
+  - component: {fileID: 4116026220636860600}
+  - component: {fileID: 6852552650498465089}
+  - component: {fileID: 594909699241705400}
+  - component: {fileID: 2770182657071881897}
+  - component: {fileID: -8913649353276749272}
   m_Layer: 0
-  m_Name: CanOWorms
+  m_Name: Gun 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4911797762099103430
+--- !u!4 &5043316366991218367
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1189059810702370111}
+  m_GameObject: {fileID: 8692160619302079}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.7588895, y: 45.38367, z: 95.91204}
-  m_LocalScale: {x: 0.5, y: 1, z: 0.5}
+  m_LocalPosition: {x: 3.6637, y: 0.25399607, z: -0.58545005}
+  m_LocalScale: {x: 1, y: 0.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &7023081848310336759
+--- !u!33 &1697565560488865304
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1189059810702370111}
+  m_GameObject: {fileID: 8692160619302079}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &4037465220500970250
+--- !u!23 &4116026220636860600
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1189059810702370111}
+  m_GameObject: {fileID: 8692160619302079}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -90,13 +90,13 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &5920534799946819086
+--- !u!65 &6852552650498465089
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1189059810702370111}
+  m_GameObject: {fileID: 8692160619302079}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -111,34 +111,34 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &4035976181538396917
+--- !u!114 &594909699241705400
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1189059810702370111}
+  m_GameObject: {fileID: 8692160619302079}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 85975c5fc7fa15546aeea944be30a8ee, type: 3}
+  m_Script: {fileID: 11500000, guid: fc65ac2602cb8044ea0deedc1f9f6636, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  duration: 0
-  puName: Can Of Worms
-  despawnTimerInSecs: 7
-  powerUpID: 6
-  targetTag: Cherry
-  destroyDelay: 3
-  spreadRadius: 2
-  spreadDelay: 1
-  maxInfections: 5
---- !u!114 &217509356163953315
+  duration: 5
+  puName: Gun
+  powerUpID: 5
+  barrel: {fileID: 0}
+  range: 50
+  fireRate: 0.5
+  hitLayers:
+    serializedVersion: 2
+    m_Bits: 1024
+--- !u!114 &2770182657071881897
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1189059810702370111}
+  m_GameObject: {fileID: 8692160619302079}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 400424a60f824984bbe82ddd26112298, type: 3}
@@ -148,15 +148,15 @@ MonoBehaviour:
   groundCheckDistance: 0
   groundLayer:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 0
   groundCheckOffset: {x: 0, y: 0.1, z: 0}
---- !u!54 &5224635105938822437
+--- !u!54 &-8913649353276749272
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1189059810702370111}
+  m_GameObject: {fileID: 8692160619302079}
   serializedVersion: 4
   m_Mass: 1
   m_Drag: 0
