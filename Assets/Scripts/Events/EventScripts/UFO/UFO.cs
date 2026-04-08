@@ -15,6 +15,7 @@ public class UFO : MonoBehaviour
     public GameObject targetPlayer;
     public Playermovement playerMove;
     public PlayerKill playerKill;
+    public CollisionBroadcaster playerBroadcaster;
 
     private UFOState currentState;
 
@@ -37,8 +38,31 @@ public class UFO : MonoBehaviour
         targetPlayer = players[randPlayer];
         playerMove = targetPlayer.GetComponentInChildren<Playermovement>();
         playerKill = targetPlayer.GetComponentInChildren<PlayerKill>();
+        playerBroadcaster = targetPlayer.GetComponentInChildren<CollisionBroadcaster>();
 
         ChangeState(UFOState.Approaching);
+    }
+
+    void OnEnable()
+    {
+        playerBroadcaster.OnCollisionEntered += HandleCollision;
+    }
+
+    void OnDisable()
+    {
+        playerBroadcaster.OnCollisionEntered -= HandleCollision;
+    }
+
+    // check if play collides with another player
+    void HandleCollision(Collision collision)
+    {
+        if (collision.gameObject.tag == "Player")
+        {
+            targetPlayer = collision.gameObject;
+            playerMove = targetPlayer.GetComponentInChildren<Playermovement>();
+            playerKill = targetPlayer.GetComponentInChildren<PlayerKill>();
+            playerBroadcaster = targetPlayer.GetComponentInChildren<CollisionBroadcaster>();
+        }
     }
 
     private void Update()
@@ -78,7 +102,6 @@ public class UFO : MonoBehaviour
             ChangeState(UFOState.Hovering);
         }
     }
-
     private void HandleHover()
     {
         stateTimer += Time.deltaTime;
