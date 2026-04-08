@@ -41,6 +41,9 @@ public class Zombie : MonoBehaviour
     [SerializeField] private float attackCooldown = 2.5f;
     public bool wasPlayer = false;
 
+    [Header("Spawning")]
+    public float spawnRadius;
+
     private Rigidbody rb;
     private Transform playerTarget;
     private float waitTimer;
