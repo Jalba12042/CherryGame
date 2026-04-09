@@ -6,16 +6,18 @@ using UnityEngine.InputSystem;
 public class Scream : MonoBehaviour
 {
     [SerializeField] private List<AudioClip> screamSFX;
-    public float minPitch;
-    public float maxPitch;
-    
+
+    [Header("Audio Settings")]
+    public float minPitch = 0.8f;
+    public float maxPitch = 1.2f;
+    [Range(0f, 1f)] public float screamVolume = 1f; // NEW: Volume slider so you can make it loud!
+
     private Playermovement player;
     public AudioSource aSource;
     private Gamepad gp;
     [SerializeField] private Animator faceAnimator;
 
     private Coroutine screamRoutine;
-
     private bool currentlyScreaming;
 
     private void TryScream()
@@ -27,10 +29,18 @@ public class Scream : MonoBehaviour
         // 2. Start the scream coroutine
         screamRoutine = StartCoroutine(HandleScream());
     }
+
     private void Awake()
     {
         if (aSource == null)
             aSource = GetComponentInChildren<AudioSource>() ?? GetComponentInParent<AudioSource>();
+
+        // NEW: Foolproof check. If it STILL can't find one, make one!
+        if (aSource == null)
+        {
+            aSource = gameObject.AddComponent<AudioSource>();
+            aSource.playOnAwake = false;
+        }
 
         if (player == null)
             player = GetComponentInParent<Playermovement>();
@@ -39,23 +49,19 @@ public class Scream : MonoBehaviour
             faceAnimator = GetComponent<Animator>();
     }
 
-
     private void Start()
     {
-       // player = GetComponentInParent<Playermovement>();
-        //aSource = GetComponent<AudioSource>();
-        //aSource = GetComponentInParent<AudioSource>();
-       // if (aSource == null)
-       //     aSource = GetComponentInParent<AudioSource>();
         if (player != null)
+        {
             gp = player.assignedGamepad;
-        //faceAnimator = GetComponent<Animator>();
+        }
     }
 
     private void Update()
     {
         if (!GameManager.Instance.isOnKeyboard)
         {
+            // buttonEast is the 'B' button on Xbox / Circle on PlayStation!
             if (gp != null && gp.buttonEast.wasPressedThisFrame)
             {
                 TryScream();
@@ -72,7 +78,7 @@ public class Scream : MonoBehaviour
 
     private IEnumerator HandleScream()
     {
-        if (currentlyScreaming)
+        if (currentlyScreaming || screamSFX.Count == 0)
             yield break;
 
         currentlyScreaming = true;
@@ -82,17 +88,18 @@ public class Scream : MonoBehaviour
         AudioClip clip = screamSFX[rand];
 
         aSource.pitch = randPitch;
+        aSource.volume = screamVolume; // NEW: Sets it to your loud volume
         aSource.clip = clip;
         aSource.Play();
 
         // Turn ON the screaming animation state
-        faceAnimator.SetBool("isScreaming", true);
+        if (faceAnimator != null) faceAnimator.SetBool("isScreaming", true);
 
         // wait for clip length adjusted by pitch
         yield return new WaitForSeconds(clip.length / Mathf.Abs(randPitch));
 
         // Turn OFF the screaming animation state
-        faceAnimator.SetBool("isScreaming", false);
+        if (faceAnimator != null) faceAnimator.SetBool("isScreaming", false);
 
         currentlyScreaming = false;
     }

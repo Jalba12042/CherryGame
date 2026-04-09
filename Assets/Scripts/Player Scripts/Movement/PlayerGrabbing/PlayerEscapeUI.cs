@@ -62,6 +62,16 @@ public class PlayerEscapeUI : MonoBehaviour
         fillAmount = 0f;
         grabbedBy = grabber;
 
+        if (assignedGamepad == null && GameManager.Instance != null)
+        {
+            int controllerIndex = GameManager.Instance.controllerAssignments[playerIndex];
+
+            if (controllerIndex >= 0 && controllerIndex < Gamepad.all.Count)
+            {
+                assignedGamepad = Gamepad.all[controllerIndex];
+            }
+        }
+
         // Enable this player's world-space UI
         panelRoot.SetActive(true);
 
@@ -138,8 +148,8 @@ public class PlayerEscapeUI : MonoBehaviour
         if (!isBeingGrabbed)
             return;
 
-        if (assignedGamepad == null && Gamepad.all.Count > playerIndex)
-            assignedGamepad = Gamepad.all[playerIndex];
+        /*if (assignedGamepad == null && Gamepad.all.Count > playerIndex)
+            assignedGamepad = Gamepad.all[playerIndex];*/
 
         if (assignedGamepad == null)
             return;
