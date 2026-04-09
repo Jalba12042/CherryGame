@@ -83,6 +83,7 @@ AudioMixerController:
     - c0d5d6473fa4cf6408c8b68ee5fcfd8e
     - a7c0bbd9f8e3803418b2528a0e4e31ef
     - 8ce665f09a76f96478678a433a79d6b0
+    - 6578e5a3b8c41624786e887e491370d7
     name: View
   m_CurrentViewIndex: 0
   m_TargetSnapshot: {fileID: 24500006}
@@ -99,6 +100,7 @@ AudioMixerGroupController:
   - {fileID: 9198869056092993592}
   - {fileID: -6528223651065312789}
   - {fileID: 5929294501029441076}
+  - {fileID: 4913995471313953567}
   m_Volume: 822733cd298557c469c85a41080b8ab2
   m_Pitch: 32dfaac54bb50124989fd9d5f461cece
   m_Send: 00000000000000000000000000000000
@@ -132,9 +134,30 @@ AudioMixerSnapshotController:
   m_AudioMixer: {fileID: 24100000}
   m_SnapshotID: 05d0fe1c95832294d84240682072c74a
   m_FloatValues:
+    8d953dd8802ed9546b5d5770877e9255: -16.03595
     ae3309f8ae10ea64caa0cfe76d1766f9: -9.833286
+    e24f72dc0072aa342a7c7969a07298f7: -10.867779
     89f66cafc934d454c8a62fdfb94199e2: -9
   m_TransitionOverrides: {}
+--- !u!243 &4913995471313953567
+AudioMixerGroupController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Scream
+  m_AudioMixer: {fileID: 24100000}
+  m_GroupID: 6578e5a3b8c41624786e887e491370d7
+  m_Children: []
+  m_Volume: e24f72dc0072aa342a7c7969a07298f7
+  m_Pitch: 1c509e5722a49a54f96d2f1cf710d961
+  m_Send: 00000000000000000000000000000000
+  m_Effects:
+  - {fileID: 6456773901304114686}
+  m_UserColorIndex: 0
+  m_Mute: 0
+  m_Solo: 0
+  m_BypassEffects: 0
 --- !u!243 &5929294501029441076
 AudioMixerGroupController:
   m_ObjectHideFlags: 0
@@ -154,6 +177,20 @@ AudioMixerGroupController:
   m_Mute: 0
   m_Solo: 0
   m_BypassEffects: 0
+--- !u!244 &6456773901304114686
+AudioMixerEffectController:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_EffectID: 4bf9d1bba361fd541b19a750b0512172
+  m_EffectName: Attenuation
+  m_MixLevel: 05f325618266dfb4ba5b71333f4ba7fc
+  m_Parameters: []
+  m_SendTarget: {fileID: 0}
+  m_EnableWetMix: 0
+  m_Bypass: 0
 --- !u!243 &9198869056092993592
 AudioMixerGroupController:
   m_ObjectHideFlags: 0

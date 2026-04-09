@@ -1,14 +1,9 @@
 using System.Collections;
 using UnityEngine;
 
-public enum UFOState
-{
-    Approaching,
-    Hovering,
-    Abducting,
-    Leaving
-}
+public enum UFOState { Approaching, Hovering, Abducting, Leaving }
 
+[RequireComponent(typeof(AudioSource))]
 public class UFO : MonoBehaviour
 {
     public GameObject[] players;
@@ -27,10 +22,16 @@ public class UFO : MonoBehaviour
 
     public UFOEvent myEvent;
 
+    [Header("Audio")]
+    public AudioClip hoverSound;
+    public AudioClip abductSound;
+    private AudioSource audioSource; // NEW
+
     private void Awake()
     {
-        players = GameObject.FindGameObjectsWithTag("Player");
+        audioSource = GetComponent<AudioSource>(); // NEW
 
+        players = GameObject.FindGameObjectsWithTag("Player");
         if (players.Length == 0) return;
 
         int randPlayer = Random.Range(0, players.Length);
@@ -44,34 +45,20 @@ public class UFO : MonoBehaviour
     private void Update()
     {
         if (targetPlayer == null) return;
-
         if (!RoundManager.Instance.currRoundActive) Destroy(gameObject);
 
         switch (currentState)
         {
-            case UFOState.Approaching:
-                HandleApproach();
-                break;
-
-            case UFOState.Hovering:
-                HandleHover();
-                break;
-
-            case UFOState.Abducting:
-                HandleAbduct();
-                break;
+            case UFOState.Approaching: HandleApproach(); break;
+            case UFOState.Hovering: HandleHover(); break;
+            case UFOState.Abducting: HandleAbduct(); break;
         }
     }
 
     private void HandleApproach()
     {
         Vector3 targetPosition = targetPlayer.transform.position + Vector3.up * hoverHeight;
-
-        transform.position = Vector3.MoveTowards(
-            transform.position,
-            targetPosition,
-            moveSpeed * Time.deltaTime
-        );
+        transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
 
         if (Vector3.Distance(transform.position, targetPosition) < 0.1f)
         {
@@ -82,7 +69,6 @@ public class UFO : MonoBehaviour
     private void HandleHover()
     {
         stateTimer += Time.deltaTime;
-
         Vector3 targetPosition = targetPlayer.transform.position + Vector3.up * hoverHeight;
         transform.position = Vector3.Lerp(transform.position, targetPosition, 5f * Time.deltaTime);
 
@@ -97,12 +83,7 @@ public class UFO : MonoBehaviour
         Vector3 liftDirection = Vector3.up;
         playerMove.canMove = false;
         targetPlayer.transform.position += liftDirection * abductSpeed * Time.deltaTime;
-
-        transform.position = Vector3.Lerp(
-            transform.position,
-            targetPlayer.transform.position + Vector3.up * hoverHeight,
-            5f * Time.deltaTime
-        );
+        transform.position = Vector3.Lerp(transform.position, targetPlayer.transform.position + Vector3.up * hoverHeight, 5f * Time.deltaTime);
 
         stateTimer += Time.deltaTime;
 
@@ -118,5 +99,18 @@ public class UFO : MonoBehaviour
     {
         currentState = nextState;
         stateTimer = 0f;
+
+        // NEW: Audio Logic for State Changes
+        if (currentState == UFOState.Approaching)
+        {
+            audioSource.clip = hoverSound;
+            audioSource.loop = true;
+            audioSource.Play();
+        }
+        else if (currentState == UFOState.Abducting)
+        {
+            audioSource.Stop(); // Stop the hover hum
+            audioSource.PlayOneShot(abductSound); // Play the abduction beam
+        }
     }
 }

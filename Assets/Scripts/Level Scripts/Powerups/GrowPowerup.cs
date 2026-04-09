@@ -16,52 +16,81 @@ public class GrowPowerup : Powerup
     private Vector3 originalSize;
     private PlayerEffects playerEffects;
 
+    [Header("Audio")]
+    public AudioClip growSound;
+    private AudioSource fxSource; // A dedicated source for the powerup sound
+
     protected override void powerUpEffect()
     {
         base.powerUpEffect();
 
         playerEffects = playerModel.GetComponent<PlayerEffects>();
-
-        //screamScript = playerModel.GetComponent<Scream>();
         screamScript = playerModel.GetComponentInChildren<Scream>();
 
+        // NEW: Create an AudioSource just for the growing sound
+        fxSource = gameObject.AddComponent<AudioSource>();
+        fxSource.playOnAwake = false;
 
-        // record original values for speed, size, and scream pitches
+        // Auto-route to the same mixer as the player's scream (SFX)
+        if (screamScript != null && screamScript.aSource != null)
+        {
+            fxSource.outputAudioMixerGroup = screamScript.aSource.outputAudioMixerGroup;
+        }
+
+        // Play the grow sound
+        if (growSound != null)
+        {
+            fxSource.clip = growSound;
+            fxSource.Play();
+        }
+
         originalSpeed = pc.moveSpeed;
         originalSize = playerModel.transform.localScale;
-        ogMinPitch = screamScript.minPitch;
-        ogMaxPitch = screamScript.maxPitch;
 
-        // change scream pitches, speed and start changing size
-        screamScript.minPitch = grownMinPitch;
-        screamScript.maxPitch = grownMaxPitch;
+        if (screamScript != null)
+        {
+            ogMinPitch = screamScript.minPitch;
+            ogMaxPitch = screamScript.maxPitch;
+
+            screamScript.minPitch = grownMinPitch;
+            screamScript.maxPitch = grownMaxPitch;
+        }
+
         pc.moveSpeed *= speedMultiplier;
         StartCoroutine(Grow());
     }
 
-    // smoothly grow and change pitch
     private IEnumerator Grow()
     {
         Vector3 targetSize = originalSize * scaleMultiplier;
         float elapsed = 0;
 
         float randPitch = Random.Range(grownMinPitch, grownMaxPitch);
+
         while (elapsed < growthTime)
         {
-            Debug.Log(playerModel);
             playerModel.transform.localScale = Vector3.Lerp(originalSize, targetSize, elapsed / growthTime);
-            screamScript.aSource.pitch = Mathf.Lerp(screamScript.aSource.pitch, randPitch, elapsed / pitchTime);
+
+            if (screamScript != null && screamScript.aSource != null)
+            {
+                screamScript.aSource.pitch = Mathf.Lerp(screamScript.aSource.pitch, randPitch, elapsed / pitchTime);
+            }
+
+            // NEW: Pitch bend the grow sound DOWN as they get bigger!
+            // It starts at 1.2 (slightly high) and bends down to 0.5 (deep and heavy)
+            if (fxSource != null && fxSource.isPlaying)
+            {
+                fxSource.pitch = Mathf.Lerp(1.2f, 0.5f, elapsed / growthTime);
+            }
+
             elapsed += Time.deltaTime;
             yield return null;
         }
 
         playerModel.transform.localScale = targetSize;
-        //pc.isBig = true;
-        if (playerEffects != null)
-            playerEffects.isBig = true;
+        if (playerEffects != null) playerEffects.isBig = true;
     }
 
-    // smoothly shrink and change pitch
     private IEnumerator Shrink()
     {
         Vector3 startSize = playerModel.transform.localScale;
@@ -71,27 +100,34 @@ public class GrowPowerup : Powerup
         while (elapsed < growthTime)
         {
             playerModel.transform.localScale = Vector3.Lerp(startSize, originalSize, elapsed / growthTime);
-            screamScript.aSource.pitch = Mathf.Lerp(screamScript.aSource.pitch, randPitch, elapsed / pitchTime);
+
+            if (screamScript != null && screamScript.aSource != null)
+            {
+                screamScript.aSource.pitch = Mathf.Lerp(screamScript.aSource.pitch, randPitch, elapsed / pitchTime);
+            }
+
             elapsed += Time.deltaTime;
             yield return null;
         }
 
         playerModel.transform.localScale = originalSize;
-        //pc.isBig = false;
-        if (playerEffects != null)
-            playerEffects.isBig = false;
+        if (playerEffects != null) playerEffects.isBig = false;
         Destroy(gameObject);
     }
 
-    // set values to original
     protected override void powerUpEnd()
     {
-        //screamScript = playerModel.GetComponent<Scream>();
         screamScript = playerModel.GetComponentInChildren<Scream>();
         base.powerUpEnd();
+
         pc.moveSpeed = originalSpeed;
-        screamScript.minPitch = ogMinPitch;
-        screamScript.maxPitch = ogMaxPitch;
+
+        if (screamScript != null)
+        {
+            screamScript.minPitch = ogMinPitch;
+            screamScript.maxPitch = ogMaxPitch;
+        }
+
         StartCoroutine(Shrink());
     }
 
