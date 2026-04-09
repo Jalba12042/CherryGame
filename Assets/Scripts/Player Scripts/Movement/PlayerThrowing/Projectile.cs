@@ -177,7 +177,7 @@ public class Projectile : MonoBehaviour
         Rigidbody rb = heldCherry.GetComponent<Rigidbody>();
         if (rb != null)
         {
-            rb.linearVelocity = Vector3.zero;
+            //rb.linearVelocity = Vector3.zero;
             rb.isKinematic = true;
         }
 
