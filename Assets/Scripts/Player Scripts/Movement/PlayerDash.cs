@@ -14,19 +14,29 @@ public class PlayerDash : MonoBehaviour
     private Playermovement movement;
     private bool isDashing = false;
     private bool canDash = true;
-
     private float dashTimer;
 
     [Header("Dash UI")]
     public GameObject dashBarObject; // whole UI object
     public UnityEngine.UI.Image dashFillImage;
-
     private float dashCooldownTimer = 0f;
+
+    [Header("Audio")]
+    public AudioClip dashSound;
+    private AudioSource audioSource; // NEW: Dedicated audio source
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         movement = GetComponent<Playermovement>();
+
+        // NEW: Foolproof AudioSource grabber
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+        }
     }
 
     void Update()
@@ -52,7 +62,6 @@ public class PlayerDash : MonoBehaviour
             if (movement.assignedGamepad != null &&
                 movement.assignedGamepad.buttonWest.wasPressedThisFrame) // X on Xbox
             {
-                Debug.Log("Dash Button Pressed");
                 dashPressed = true;
             }
         }
@@ -91,11 +100,16 @@ public class PlayerDash : MonoBehaviour
         canDash = false;
         movement.canMove = false;
         dashTimer = dashDuration;
-
         dashCooldownTimer = dashCooldown;
 
         if (dashBarObject != null)
             dashBarObject.SetActive(true);
+
+        // NEW: Play the dash sound!
+        if (dashSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(dashSound);
+        }
 
         Vector3 dashDirection = transform.forward;
 
