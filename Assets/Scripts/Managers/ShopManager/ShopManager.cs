@@ -70,76 +70,72 @@ public class ShopManager : MonoBehaviour
 
     private void HandleControllerInput()
     {
-        int playerCount = Mathf.Min(GameManager.Instance.playerCount, Gamepad.all.Count);
+        int playerCount = GameManager.Instance.playerCount;
 
         for (int i = 0; i < playerCount; i++)
         {
-            var gamepad = Gamepad.all[i];
+            int controllerIndex = GameManager.Instance.controllerAssignments[i];
+            if (controllerIndex < 0 || controllerIndex >= Gamepad.all.Count)
+                continue; // Skip if controller is unassigned or disconnected
+
+            var gamepad = Gamepad.all[controllerIndex];
             Vector2 move = gamepad.leftStick.ReadValue();
 
+            // Movement
             if (canMove[i])
             {
-                // UP
                 if (move.y > 0.5f)
                 {
                     if (currentIndexes[i] - 2 >= 0)
-                        currentIndexes[i] -= 2; // Move up one row
+                        currentIndexes[i] -= 2;
                     canMove[i] = false;
                     HighlightButtons();
                 }
-                // DOWN
                 else if (move.y < -0.5f)
                 {
                     if (currentIndexes[i] + 2 < shopButtons.Length)
-                        currentIndexes[i] += 2; // Move down one row
+                        currentIndexes[i] += 2;
                     canMove[i] = false;
                     HighlightButtons();
                 }
-                // LEFT
                 else if (move.x < -0.5f)
                 {
                     if (currentIndexes[i] % 2 != 0)
-                        currentIndexes[i] -= 1; // Move left
+                        currentIndexes[i] -= 1;
                     canMove[i] = false;
                     HighlightButtons();
                 }
-                // RIGHT
                 else if (move.x > 0.5f)
                 {
                     if (currentIndexes[i] % 2 == 0 && currentIndexes[i] + 1 < shopButtons.Length)
-                        currentIndexes[i] += 1; // Move right
+                        currentIndexes[i] += 1;
                     canMove[i] = false;
                     HighlightButtons();
                 }
             }
 
-            // Reset movement gating (prevents rapid flicking)
+            // Reset movement gating
             if (Mathf.Abs(move.y) < 0.2f && Mathf.Abs(move.x) < 0.2f)
                 canMove[i] = true;
 
-
+            // Voting / selecting
             if (gamepad.buttonSouth.wasPressedThisFrame)
             {
                 int chosenButton = currentIndexes[i];
 
-                // Remove old vote if there was one
                 int oldVote = playerVotes[i];
                 if (oldVote != -1 && chosenButton < amtOfButtons)
                 {
                     buttonVotes[oldVote]--;
                 }
 
-                // Add new vote
                 if (chosenButton < amtOfButtons)
                 {
                     buttonVotes[chosenButton]++;
                     playerVotes[i] = chosenButton;
-                    Debug.Log($"Player {i + 1} (Color {playerColors[i]}) voted for button {chosenButton + 1}. Total votes: {buttonVotes[chosenButton]}");
+                    vim.changeVote(i, chosenButton);
                 }
-
-                vim.changeVote(i, chosenButton);
             }
-
         }
     }
 
