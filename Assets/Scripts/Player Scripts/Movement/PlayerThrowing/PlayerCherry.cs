@@ -13,6 +13,8 @@ public class PlayerCherry : MonoBehaviour
     [SerializeField] private AudioClip pickupClip;
     [SerializeField] private AudioClip dropClip;
 
+    [SerializeField] private LayerMask cherryLayer;
+
     private Playermovement player;
     private Gamepad gamepad;
     private Animator animator;
@@ -25,7 +27,7 @@ public class PlayerCherry : MonoBehaviour
 
     private Jiggle[] jiggleParts;
 
-    [SerializeField] private float pickupRadius = 1.5f;
+    [SerializeField] private float pickupRadius = 50f;
 
     void Start()
     {
@@ -68,7 +70,9 @@ public class PlayerCherry : MonoBehaviour
     {
         if (heldCherry != null) return;
 
-        Collider[] hits = Physics.OverlapSphere(transform.position, pickupRadius);
+        //Collider[] hits = Physics.OverlapSphere(transform.position, pickupRadius);
+
+        Collider[] hits = Physics.OverlapSphere(transform.position, pickupRadius, cherryLayer);
 
         GameObject closestCherry = null;
         float closestDist = Mathf.Infinity;
@@ -77,7 +81,7 @@ public class PlayerCherry : MonoBehaviour
         {
             if (!hit.CompareTag("Cherry")) continue;
 
-            float dist = Vector3.Distance(transform.position, hit.transform.position);
+            float dist = Vector3.Distance(transform.position, hit.ClosestPoint(transform.position));
             if (dist < closestDist)
             {
                 closestDist = dist;
@@ -114,6 +118,13 @@ public class PlayerCherry : MonoBehaviour
     {
         if (heldCherry == null)
         {
+            PlayerGrab grab = GetComponent<PlayerGrab>();
+
+            if (grab != null && grab.TryGrab())
+            {
+                return;
+            }
+
             HandlePickup();
         }
         else

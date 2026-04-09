@@ -1022,8 +1022,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.03975071, y: 0.038526677, z: 0.022545775}
-  m_Center: {x: 0.0005014048, y: 0.0025508443, z: 0.003122139}
+  m_Size: {x: 0.03975071, y: 0.038526677, z: 0.02106128}
+  m_Center: {x: 0.00050140574, y: 0.0025508443, z: 0.0023798672}
 --- !u!1 &2749196654933933932
 GameObject:
   m_ObjectHideFlags: 0
@@ -3432,7 +3432,10 @@ MonoBehaviour:
   pickupSource: {fileID: 2881747651821587375}
   pickupClip: {fileID: 8300000, guid: 270772c070e108941b257f2a8951630e, type: 3}
   dropClip: {fileID: 8300000, guid: 10335e0f8a2462f4a9a65ae22f317080, type: 3}
-  pickupRadius: 3.48
+  cherryLayer:
+    serializedVersion: 2
+    m_Bits: 16384
+  pickupRadius: 6
 --- !u!114 &3618199223766623653
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3446,7 +3449,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isBig: 0
-  itemJumpForce: 7
+  itemJumpForce: 20
   taseForce: 15
   stunDuration: 3
   isTasing: 0
