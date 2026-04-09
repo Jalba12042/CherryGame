@@ -72,9 +72,9 @@ public class ShopManager : MonoBehaviour
 
     private void HandleControllerInput()
     {
-        int playerCount = Mathf.Min(GameManager.Instance.playerCount, Gamepad.all.Count);
+        int playerCount = GameManager.Instance.playerCount;
 
-        // Quick Keyboard testing for Player 1 (Press 1, 2, 3, or 4 to vote)
+        // Quick Keyboard testing for Player 1
         if (Keyboard.current != null)
         {
             int kVote = -1;
@@ -92,11 +92,19 @@ public class ShopManager : MonoBehaviour
             }
         }
 
+        // Loop through all active players
         for (int i = 0; i < playerCount; i++)
         {
-            var gamepad = Gamepad.all[i];
+            int controllerIndex = GameManager.Instance.controllerAssignments[i];
+
+            // Skip if controller is unassigned or disconnected
+            if (controllerIndex < 0 || controllerIndex >= Gamepad.all.Count)
+                continue;
+
+            var gamepad = Gamepad.all[controllerIndex];
             Vector2 move = gamepad.leftStick.ReadValue();
 
+            // Movement
             if (canMove[i])
             {
                 if (move.y > 0.5f)
@@ -121,8 +129,10 @@ public class ShopManager : MonoBehaviour
                 }
             }
 
+            // Reset movement gating
             if (Mathf.Abs(move.y) < 0.2f && Mathf.Abs(move.x) < 0.2f) canMove[i] = true;
 
+            // Selection / voting
             if (gamepad.buttonSouth.wasPressedThisFrame)
             {
                 int chosenItem = currentIndexes[i];
