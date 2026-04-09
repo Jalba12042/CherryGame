@@ -108,13 +108,14 @@ public class PlayerGrab : MonoBehaviour
         }
     }
 
-    private void TryGrab()
+    public bool TryGrab()
     {
-        if (!canGrab || grabbedPlayer != null || nearbyPlayer == null || isGrabbed) return;
+        if (!canGrab || grabbedPlayer != null || nearbyPlayer == null || isGrabbed)
+            return false;
 
         PlayerEffects pe = nearbyPlayer.GetComponent<PlayerEffects>();
         if (pe != null && pe.isBig)
-            return;
+            return false;
 
         grabbedPlayer = nearbyPlayer;
 
@@ -152,8 +153,9 @@ public class PlayerGrab : MonoBehaviour
             escapeUI.StartBeingGrabbed(this);
         }
 
-
+        
         SetMyJiggle(false);
+        return true;
     }
 
 

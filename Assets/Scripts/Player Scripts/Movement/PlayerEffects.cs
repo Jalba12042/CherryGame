@@ -6,7 +6,7 @@ public class PlayerEffects : MonoBehaviour
 {
     [Header("Big Impact Settings")]
     public bool isBig = false;
-    public float itemJumpForce = 7f;
+    public float itemJumpForce = 100f;
     private bool wasGroundedLastFrame;
     private Playermovement player;
     private ScreenShake screenShake;
@@ -32,7 +32,7 @@ public class PlayerEffects : MonoBehaviour
         wasGroundedLastFrame = player.isGrounded;
     }
 
-    private void TriggerBigImpact()
+    /*private void TriggerBigImpact()
     {
         screenShake?.Shake();
 
@@ -54,6 +54,42 @@ public class PlayerEffects : MonoBehaviour
                 }
             }
         }
+    }*/
+
+    private void TriggerBigImpact()
+    {
+        screenShake?.Shake();
+
+        int cherryLayer = LayerMask.NameToLayer("Cherry");
+
+        Rigidbody[] allRigidbodies = GameObject.FindObjectsByType<Rigidbody>(FindObjectsSortMode.None);
+        foreach (var rb in allRigidbodies)
+        {
+            if (rb.gameObject.layer == cherryLayer)
+            {
+                rb.isKinematic = false;
+                rb.WakeUp();
+
+                float upForce = itemJumpForce;        // vertical force
+                float horizontalRange = 2f;           // horizontal scatter
+                Vector3 force = new Vector3(
+                    Random.Range(-horizontalRange, horizontalRange),
+                    upForce,
+                    Random.Range(-horizontalRange, horizontalRange)
+                );
+
+                rb.AddForce(force, ForceMode.Impulse);
+
+                // Tell the cherry to ignore basket pull for a short time
+                Cherry cherry = rb.GetComponent<Cherry>();
+                if (cherry != null)
+                    StartCoroutine(cherry.TemporarilyIgnoreBasket(1f));
+            }
+        }
+
+        RoundManager rm = RoundManager.Instance;
+        ApplyJumpToObjects(rm.powerupsInPlay);
+        ApplyJumpToObjects(new List<GameObject>(rm.playerObjects));
     }
 
     private void ApplyJumpToObjects(List<GameObject> list)
