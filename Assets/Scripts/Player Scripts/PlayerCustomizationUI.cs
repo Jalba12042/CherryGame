@@ -19,16 +19,12 @@ public class PlayerCustomizationUI : MonoBehaviour
 
     [Header("Color Customization")]
     public Material[] colorMaterials;
-
-
     private int currentColorIndex = 0;
 
     [Header("Name Customization")]
     public string[] playerNames;
     public TMPro.TextMeshProUGUI nameText;
-
     private int currentNameIndex = 0;
-
 
     void Start()
     {
@@ -41,7 +37,6 @@ public class PlayerCustomizationUI : MonoBehaviour
         currentIndex = 0;
         UpdateCategoryHighlight();
     }
-
 
     public void MoveSelection(int direction)
     {
@@ -59,11 +54,9 @@ public class PlayerCustomizationUI : MonoBehaviour
         {
             bool active = (i == currentIndex);
 
-            // Arrows ALWAYS stay on
             categories[i].leftArrow.SetActive(true);
             categories[i].rightArrow.SetActive(true);
 
-            // ONLY toggle RT / LT images
             if (categories[i].LTImage != null)
                 categories[i].LTImage.SetActive(active);
 
@@ -77,26 +70,22 @@ public class PlayerCustomizationUI : MonoBehaviour
         return currentIndex;
     }
 
+    // --- COLOR LOGIC ---
     public void ChangeColor(int direction, GameObject playerModel, int playerIndex)
     {
         if (colorMaterials.Length == 0 || playerModel == null)
             return;
 
         PlayerJoinController joinController = FindFirstObjectByType<PlayerJoinController>();
-
         int nextIndex = currentColorIndex;
 
         for (int i = 0; i < colorMaterials.Length; i++)
         {
             nextIndex += direction;
 
-            if (nextIndex < 0)
-                nextIndex = colorMaterials.Length - 1;
+            if (nextIndex < 0) nextIndex = colorMaterials.Length - 1;
+            if (nextIndex >= colorMaterials.Length) nextIndex = 0;
 
-            if (nextIndex >= colorMaterials.Length)
-                nextIndex = 0;
-
-            // Skip taken colors
             if (!joinController.IsColorTaken(nextIndex, playerIndex))
             {
                 currentColorIndex = nextIndex;
@@ -104,8 +93,6 @@ public class PlayerCustomizationUI : MonoBehaviour
                 return;
             }
         }
-
-        // If ALL colors are taken, do nothing
     }
 
     void ApplyColor(GameObject playerModel)
@@ -118,9 +105,7 @@ public class PlayerCustomizationUI : MonoBehaviour
 
     public void SetColorIndex(int index, GameObject playerModel)
     {
-        if (colorMaterials.Length == 0)
-            return;
-
+        if (colorMaterials.Length == 0) return;
         currentColorIndex = Mathf.Clamp(index, 0, colorMaterials.Length - 1);
         ApplyColor(playerModel);
     }
@@ -130,25 +115,43 @@ public class PlayerCustomizationUI : MonoBehaviour
         return currentColorIndex;
     }
 
-
-    public void ChangeName(int direction)
+    // --- NEW: NAME LOGIC ---
+    public void ChangeName(int direction, int playerIndex) // Added playerIndex here!
     {
         if (playerNames.Length == 0 || nameText == null)
             return;
 
-        currentNameIndex += direction;
+        PlayerJoinController joinController = FindFirstObjectByType<PlayerJoinController>();
+        int nextIndex = currentNameIndex;
 
-        if (currentNameIndex < 0)
-            currentNameIndex = playerNames.Length - 1;
+        // Loop through the names until we find one that ISN'T taken
+        for (int i = 0; i < playerNames.Length; i++)
+        {
+            nextIndex += direction;
 
-        if (currentNameIndex >= playerNames.Length)
-            currentNameIndex = 0;
+            if (nextIndex < 0) nextIndex = playerNames.Length - 1;
+            if (nextIndex >= playerNames.Length) nextIndex = 0;
 
-        ApplyName();
+            // Check if the name is taken (just like the color check!)
+            if (joinController != null && !joinController.IsNameTaken(nextIndex, playerIndex))
+            {
+                currentNameIndex = nextIndex;
+                ApplyName();
+                return;
+            }
+        }
     }
 
     void ApplyName()
     {
-        nameText.text = playerNames[currentNameIndex];
+        if (nameText != null && playerNames.Length > 0)
+        {
+            nameText.text = playerNames[currentNameIndex];
+        }
+    }
+
+    public int GetCurrentNameIndex()
+    {
+        return currentNameIndex;
     }
 }

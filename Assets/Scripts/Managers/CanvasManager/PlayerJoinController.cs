@@ -8,23 +8,8 @@ using UnityEngine.SceneManagement;
 
 public class PlayerJoinController : MonoBehaviour
 {
-    /*[Header("UI Panels")]
-    public GameObject[] joinPanels;   // Drag P1, P2, P3, P4 join panels
-    public GameObject[] menuPanels;   // Drag P1, P2, P3, P4 menu panels
-
-    [Header("Ready UI")]
-    public GameObject[] readyPanels;   // Drag P1Ready, P2Ready, etc.
-
-    [Header("Player Preview Cameras")]
-    public Camera[] previewCameras; // Drag PlayerPreviewCam1, Cam2, etc.
-
-    [Header("Player Preview UI")]
-    public RawImage[] previewImages; // Drag PreviewRawImage1, RawImage2, etc.*/
-
     public PlayerSlots[] slots;
-    public GameObject playerModelPrefab; // add this too
-
-
+    public GameObject playerModelPrefab;
 
     private bool[] isReady;
 
@@ -80,45 +65,6 @@ public class PlayerJoinController : MonoBehaviour
         }
     }
 
-
-    /*void Start()
-    {
-        controllers = Gamepad.all.ToArray();
-        assignedControllers = new int[joinPanels.Length];
-
-        controllers = Gamepad.all.ToArray();
-        Debug.Log("Detected controllers: " + controllers.Length);
-
-        for (int i = 0; i < controllers.Length; i++)
-            Debug.Log($"Controller {i}: {controllers[i].displayName}");
-
-        for (int i = 0; i < assignedControllers.Length; i++)
-        {
-            assignedControllers[i] = -1;
-            joinPanels[i].SetActive(true);
-            menuPanels[i].SetActive(false);
-        }
-
-
-        // Make sure GameManager's array matches this screen
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.controllerAssignments = new int[joinPanels.Length];
-            for (int i = 0; i < joinPanels.Length; i++)
-                GameManager.Instance.controllerAssignments[i] = -1;
-        }
-
-        isReady = new bool[joinPanels.Length];
-
-        for (int i = 0; i < isReady.Length; i++)
-        {
-            isReady[i] = false;
-            readyPanels[i].SetActive(false);
-        }
-
-    }*/
-
-
     void Update()
     {
         for (int c = 0; c < controllers.Length; c++)
@@ -141,7 +87,6 @@ public class PlayerJoinController : MonoBehaviour
                 // Otherwise try to join
                 TryAssignController(c);
             }
-
 
             if (pad.buttonEast.wasPressedThisFrame) // B button
             {
@@ -190,7 +135,8 @@ public class PlayerJoinController : MonoBehaviour
                 {
                     if (category == 0)
                     {
-                        ui.ChangeName(1);
+                        // UPDATED: Now passes the player index 'p' so we know who is asking!
+                        ui.ChangeName(1, p);
                     }
                     else if (category == 1)
                     {
@@ -214,7 +160,8 @@ public class PlayerJoinController : MonoBehaviour
                 {
                     if (category == 0)
                     {
-                        ui.ChangeName(-1);
+                        // UPDATED: Now passes the player index 'p'
+                        ui.ChangeName(-1, p);
                     }
                     else if (category == 1)
                     {
@@ -270,10 +217,10 @@ public class PlayerJoinController : MonoBehaviour
 
                 // Spawn model
                 slots[player].spawnedModel = Instantiate(
-     playerModelPrefab,
-     slots[player].modelSpawnPoint.position,
-     slots[player].modelSpawnPoint.rotation,
-     slots[player].modelSpawnPoint);
+                    playerModelPrefab,
+                    slots[player].modelSpawnPoint.position,
+                    slots[player].modelSpawnPoint.rotation,
+                    slots[player].modelSpawnPoint);
 
                 var customization = slots[player].spawnedModel.GetComponentInChildren<PlayerCustomization>();
 
@@ -284,16 +231,12 @@ public class PlayerJoinController : MonoBehaviour
 
                 // Set default color per player
                 int defaultColorIndex = player;
-                // Player 0 → index 0 (Blue)
-                // Player 1 → index 1 (Red)
 
                 slots[player].customizationUI.SetColorIndex(defaultColorIndex, slots[player].spawnedModel);
 
                 var movement = slots[player].spawnedModel.GetComponent<Playermovement>();
                 if (movement != null)
                     movement.enabled = false;
-
-
 
                 // Save controller assignment
                 if (GameManager.Instance != null)
@@ -304,47 +247,6 @@ public class PlayerJoinController : MonoBehaviour
             }
         }
     }
-
-
-    /*void TryAssignController(int controllerIndex)
-    {
-        for (int i = 0; i < assignedControllers.Length; i++)
-        {
-            if (assignedControllers[i] == controllerIndex)
-                return;
-        }
-
-        for (int player = 0; player < assignedControllers.Length; player++)
-        {
-            if (player >= joinPanels.Length || player >= menuPanels.Length)
-                return;
-
-            if (assignedControllers[player] == -1)
-            {
-                assignedControllers[player] = controllerIndex;
-
-                // Hide join UI
-                joinPanels[player].SetActive(false);
-
-                // Show menu UI
-                menuPanels[player].SetActive(true);
-
-                // Enable preview camera feed
-                if (previewImages[player] != null && previewCameras[player] != null)
-                {
-                    previewImages[player].texture = previewCameras[player].targetTexture;
-                    previewImages[player].gameObject.SetActive(true);
-                    previewCameras[player].gameObject.SetActive(true);
-                }
-
-                if (GameManager.Instance != null)
-                    GameManager.Instance.controllerAssignments[player] = controllerIndex;
-
-                Debug.Log($"Controller {controllerIndex} joined as Player {player + 1}");
-                return;
-            }
-        }
-    }*/
 
 
     int GetPlayerIndexFromController(int controllerIndex)
@@ -417,9 +319,6 @@ public class PlayerJoinController : MonoBehaviour
             timeLeft--;
         }
 
-        //countdownText.text = "GO!";
-        //yield return new WaitForSeconds(0.5f);
-
         StartGame();
     }
 
@@ -443,33 +342,11 @@ public class PlayerJoinController : MonoBehaviour
         for (int i = 0; i < slots.Length; i++)
         {
             GameManager.Instance.controllerAssignments[i] = assignedControllers[i];
-
             Debug.Log($"Assigned Controller {assignedControllers[i]} to Player {i + 1}");
         }
 
         SceneManager.LoadScene(RoundManager.Instance.currRound.sceneName);
     }
-
-    /*void HandleReadyPress(int player)
-    {
-        // Only allow ready if menu panel is active
-        if (!menuPanels[player].activeSelf)
-            return;
-
-        if (!isReady[player])
-        {
-            isReady[player] = true;
-            readyPanels[player].SetActive(true);
-            Debug.Log($"Player {player + 1} is READY");
-        }
-        else
-        {
-            // Optional: allow un-ready
-            isReady[player] = false;
-            readyPanels[player].SetActive(false);
-            Debug.Log($"Player {player + 1} is NOT ready");
-        }
-    }*/
 
     void HandleBackPress(int player)
     {
@@ -512,6 +389,9 @@ public class PlayerJoinController : MonoBehaviour
         {
             if (i == requestingPlayer) continue;
 
+            // Only check slots that actually have a player assigned!
+            if (assignedControllers[i] == -1) continue;
+
             var ui = slots[i].customizationUI;
             if (ui == null) continue;
 
@@ -522,34 +402,23 @@ public class PlayerJoinController : MonoBehaviour
         return false;
     }
 
-    /*void HandleBackPress(int player)
+    // NEW: Checks if another active player has this name locked in
+    public bool IsNameTaken(int nameIndex, int requestingPlayer)
     {
-        if (isReady[player])
+        for (int i = 0; i < slots.Length; i++)
         {
-            isReady[player] = false;
-            readyPanels[player].SetActive(false);
-            return;
+            if (i == requestingPlayer) continue;
+
+            // Only check slots that actually have a player assigned!
+            if (assignedControllers[i] == -1) continue;
+
+            var ui = slots[i].customizationUI;
+            if (ui == null) continue;
+
+            if (ui.GetCurrentNameIndex() == nameIndex)
+                return true;
         }
 
-        // Turn off preview
-        if (previewImages[player] != null)
-            previewImages[player].gameObject.SetActive(false);
-
-        if (previewCameras[player] != null)
-            previewCameras[player].gameObject.SetActive(false);
-
-        assignedControllers[player] = -1;
-
-        joinPanels[player].SetActive(true);
-        menuPanels[player].SetActive(false);
-        readyPanels[player].SetActive(false);
-
-        if (GameManager.Instance != null)
-            GameManager.Instance.controllerAssignments[player] = -1;
-
-        Debug.Log($"Player {player + 1} left");
-    }*/
-
-
-
+        return false;
+    }
 }
