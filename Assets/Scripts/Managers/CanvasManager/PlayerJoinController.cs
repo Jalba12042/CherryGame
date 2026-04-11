@@ -5,32 +5,30 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 
-
 public class PlayerJoinController : MonoBehaviour
 {
     public PlayerSlots[] slots;
     public GameObject playerModelPrefab;
 
     private bool[] isReady;
-
     private Gamepad[] controllers;
-    private int[] assignedControllers;   // -1 = empty, otherwise controller index
+    private int[] assignedControllers;
 
     public GameObject countdownPanel;
     public TextMeshProUGUI countdownText;
 
     private bool countdownStarted = false;
 
+    [Header("Intro Animation Settings")]
+    public float introDelay = 2.0f; // Wait 120 frames (2 seconds)
+    public float fadeDuration = 0.5f; // Fade in over 0.5 seconds
+    private bool canInteract = false; // Locks the controllers during the intro
+
     void Start()
     {
-        // Detect controllers
         controllers = Gamepad.all.ToArray();
         Debug.Log("Detected controllers: " + controllers.Length);
 
-        for (int i = 0; i < controllers.Length; i++)
-            Debug.Log($"Controller {i}: {controllers[i].displayName}");
-
-        // Setup controller assignment array
         assignedControllers = new int[slots.Length];
         isReady = new bool[slots.Length];
 
@@ -39,34 +37,76 @@ public class PlayerJoinController : MonoBehaviour
             assignedControllers[i] = -1;
             isReady[i] = false;
 
-            // UI defaults
             slots[i].joinPanel.SetActive(true);
             slots[i].menuPanel.SetActive(false);
             slots[i].readyPanel.SetActive(false);
 
-            // Preview defaults
-            if (slots[i].previewCamera != null)
-                slots[i].previewCamera.gameObject.SetActive(false);
-
-            if (slots[i].previewImage != null)
-                slots[i].previewImage.gameObject.SetActive(false);
-
-            // No model spawned yet
+            if (slots[i].previewCamera != null) slots[i].previewCamera.gameObject.SetActive(false);
+            if (slots[i].previewImage != null) slots[i].previewImage.gameObject.SetActive(false);
             slots[i].spawnedModel = null;
         }
 
-        // Sync with GameManager
         if (GameManager.Instance != null)
         {
             GameManager.Instance.controllerAssignments = new int[slots.Length];
-
             for (int i = 0; i < slots.Length; i++)
                 GameManager.Instance.controllerAssignments[i] = -1;
         }
+
+        // Start the Intro Sequence!
+        StartCoroutine(IntroSequence());
+    }
+
+    private IEnumerator IntroSequence()
+    {
+        canInteract = false; // Controllers OFF
+
+        CanvasGroup[] joinGroups = new CanvasGroup[slots.Length];
+
+        // Give every Join Panel a CanvasGroup and make it invisible (Alpha = 0)
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (slots[i].joinPanel != null)
+            {
+                joinGroups[i] = slots[i].joinPanel.GetComponent<CanvasGroup>();
+                if (joinGroups[i] == null)
+                {
+                    joinGroups[i] = slots[i].joinPanel.AddComponent<CanvasGroup>();
+                }
+                joinGroups[i].alpha = 0f;
+            }
+        }
+
+        // Wait for 120 frames (2 seconds)
+        yield return new WaitForSeconds(introDelay);
+
+        // Fade the "A Join" text in smoothly!
+        float elapsed = 0f;
+        while (elapsed < fadeDuration)
+        {
+            elapsed += Time.deltaTime;
+            float currentAlpha = Mathf.Lerp(0f, 1f, elapsed / fadeDuration);
+
+            for (int i = 0; i < joinGroups.Length; i++)
+            {
+                if (joinGroups[i] != null) joinGroups[i].alpha = currentAlpha;
+            }
+            yield return null;
+        }
+
+        for (int i = 0; i < joinGroups.Length; i++)
+        {
+            if (joinGroups[i] != null) joinGroups[i].alpha = 1f;
+        }
+
+        canInteract = true; // Controllers ON!
     }
 
     void Update()
     {
+        // If the intro isn't finished, ignore ALL controller input
+        if (!canInteract) return;
+
         for (int c = 0; c < controllers.Length; c++)
         {
             Gamepad pad = controllers[c];
@@ -74,21 +114,16 @@ public class PlayerJoinController : MonoBehaviour
 
             if (pad.buttonSouth.wasPressedThisFrame)
             {
-                Debug.Log($"A pressed on controller index {c}");
-
-                // If this controller already belongs to a player, check ready
                 int playerIndex = GetPlayerIndexFromController(c);
                 if (playerIndex != -1)
                 {
                     HandleReadyPress(playerIndex);
                     continue;
                 }
-
-                // Otherwise try to join
                 TryAssignController(c);
             }
 
-            if (pad.buttonEast.wasPressedThisFrame) // B button
+            if (pad.buttonEast.wasPressedThisFrame)
             {
                 int playerIndex = GetPlayerIndexFromController(c);
                 if (playerIndex != -1)
@@ -100,98 +135,55 @@ public class PlayerJoinController : MonoBehaviour
             // CUSTOMIZATION NAVIGATION
             for (int p = 0; p < slots.Length; p++)
             {
-                if (assignedControllers[p] != c)
-                    continue; // this controller does not control this slot
+                if (assignedControllers[p] != c) continue;
 
                 var ui = slots[p].customizationUI;
-                if (ui == null)
-                    continue;
+                if (ui == null) continue;
 
                 Vector2 stick = pad.leftStick.ReadValue();
 
-                // Move UP
                 if (stick.y > 0.5f && !slots[p].stickInUse)
                 {
                     ui.MoveSelection(-1);
                     slots[p].stickInUse = true;
                 }
-                // Move DOWN
                 else if (stick.y < -0.5f && !slots[p].stickInUse)
                 {
                     ui.MoveSelection(1);
                     slots[p].stickInUse = true;
                 }
 
-                // Reset stick lock
-                if (Mathf.Abs(stick.y) < 0.2f)
-                    slots[p].stickInUse = false;
+                if (Mathf.Abs(stick.y) < 0.2f) slots[p].stickInUse = false;
 
-                // ===== RT / LT INPUT =====
                 int category = ui.GetCurrentCategoryIndex();
-
                 var customization = slots[p].spawnedModel.GetComponentInChildren<PlayerCustomization>();
 
                 if (pad.rightTrigger.wasPressedThisFrame)
                 {
-                    if (category == 0)
-                    {
-                        // UPDATED: Now passes the player index 'p' so we know who is asking!
-                        ui.ChangeName(1, p);
-                    }
-                    else if (category == 1)
-                    {
-                        ui.ChangeColor(1, slots[p].spawnedModel, p);
-                    }
-                    else if (category == 2)
-                    {
-                        customization.ChangeHead(1);
-                    }
-                    else if (category == 3)
-                    {
-                        customization.ChangeTorso(1);
-                    }
-                    else if (category == 4)
-                    {
-                        customization.ChangeBottom(1);
-                    }
+                    if (category == 0) ui.ChangeName(1, p);
+                    else if (category == 1) ui.ChangeColor(1, slots[p].spawnedModel, p);
+                    else if (category == 2) customization.ChangeHead(1);
+                    else if (category == 3) customization.ChangeTorso(1);
+                    else if (category == 4) customization.ChangeBottom(1);
                 }
 
                 if (pad.leftTrigger.wasPressedThisFrame)
                 {
-                    if (category == 0)
-                    {
-                        // UPDATED: Now passes the player index 'p'
-                        ui.ChangeName(-1, p);
-                    }
-                    else if (category == 1)
-                    {
-                        ui.ChangeColor(-1, slots[p].spawnedModel, p);
-                    }
-                    else if (category == 2)
-                    {
-                        customization.ChangeHead(-1);
-                    }
-                    else if (category == 3)
-                    {
-                        customization.ChangeTorso(-1);
-                    }
-                    else if (category == 4)
-                    {
-                        customization.ChangeBottom(-1);
-                    }
+                    if (category == 0) ui.ChangeName(-1, p);
+                    else if (category == 1) ui.ChangeColor(-1, slots[p].spawnedModel, p);
+                    else if (category == 2) customization.ChangeHead(-1);
+                    else if (category == 3) customization.ChangeTorso(-1);
+                    else if (category == 4) customization.ChangeBottom(-1);
                 }
             }
         }
     }
 
-
     void TryAssignController(int controllerIndex)
     {
-        // Prevent duplicate joins
         for (int i = 0; i < assignedControllers.Length; i++)
         {
-            if (assignedControllers[i] == controllerIndex)
-                return;
+            if (assignedControllers[i] == controllerIndex) return;
         }
 
         for (int player = 0; player < assignedControllers.Length; player++)
@@ -200,22 +192,16 @@ public class PlayerJoinController : MonoBehaviour
             {
                 assignedControllers[player] = controllerIndex;
 
-                // UI
                 slots[player].joinPanel.SetActive(false);
                 slots[player].menuPanel.SetActive(true);
                 slots[player].customizationUI.gameObject.SetActive(true);
 
-                if (slots[player].customizationUI != null)
-                {
-                    slots[player].customizationUI.Initialize();
-                }
+                if (slots[player].customizationUI != null) slots[player].customizationUI.Initialize();
 
-                // Preview camera
                 slots[player].previewCamera.gameObject.SetActive(true);
                 slots[player].previewImage.texture = slots[player].previewCamera.targetTexture;
                 slots[player].previewImage.gameObject.SetActive(true);
 
-                // Spawn model
                 slots[player].spawnedModel = Instantiate(
                     playerModelPrefab,
                     slots[player].modelSpawnPoint.position,
@@ -223,53 +209,39 @@ public class PlayerJoinController : MonoBehaviour
                     slots[player].modelSpawnPoint);
 
                 var customization = slots[player].spawnedModel.GetComponentInChildren<PlayerCustomization>();
+                if (customization != null) customization.Initialize();
 
-                if (customization != null)
-                {
-                    customization.Initialize();
-                }
-
-                // Set default color per player
                 int defaultColorIndex = player;
-
                 slots[player].customizationUI.SetColorIndex(defaultColorIndex, slots[player].spawnedModel);
 
                 var movement = slots[player].spawnedModel.GetComponent<Playermovement>();
-                if (movement != null)
-                    movement.enabled = false;
+                if (movement != null) movement.enabled = false;
 
-                // Save controller assignment
                 if (GameManager.Instance != null)
                     GameManager.Instance.controllerAssignments[player] = controllerIndex;
 
-                Debug.Log($"Controller {controllerIndex} joined as Player {player + 1}");
                 return;
             }
         }
     }
 
-
     int GetPlayerIndexFromController(int controllerIndex)
     {
         for (int i = 0; i < assignedControllers.Length; i++)
         {
-            if (assignedControllers[i] == controllerIndex)
-                return i;
+            if (assignedControllers[i] == controllerIndex) return i;
         }
         return -1;
     }
 
     void HandleReadyPress(int player)
     {
-        if (!slots[player].menuPanel.activeSelf)
-            return;
+        if (!slots[player].menuPanel.activeSelf) return;
 
         if (!isReady[player])
         {
             isReady[player] = true;
             slots[player].readyPanel.SetActive(true);
-
-            // Save customization here later
         }
         else
         {
@@ -285,11 +257,9 @@ public class PlayerJoinController : MonoBehaviour
         if (countdownStarted) return;
 
         int readyCount = 0;
-
         for (int i = 0; i < isReady.Length; i++)
         {
-            if (isReady[i])
-                readyCount++;
+            if (isReady[i]) readyCount++;
         }
 
         if (readyCount >= slots.Length)
@@ -328,7 +298,6 @@ public class PlayerJoinController : MonoBehaviour
         for (int i = 0; i < isReady.Length; i++)
             if (isReady[i]) count++;
         return count;
-
     }
 
     void StartGame()
@@ -336,13 +305,11 @@ public class PlayerJoinController : MonoBehaviour
         if (GameManager.Instance == null) return;
 
         GameManager.Instance.playerCount = slots.Length;
-
         GameManager.Instance.controllerAssignments = new int[slots.Length];
 
         for (int i = 0; i < slots.Length; i++)
         {
             GameManager.Instance.controllerAssignments[i] = assignedControllers[i];
-            Debug.Log($"Assigned Controller {assignedControllers[i]} to Player {i + 1}");
         }
 
         SceneManager.LoadScene(RoundManager.Instance.currRound.sceneName);
@@ -350,7 +317,7 @@ public class PlayerJoinController : MonoBehaviour
 
     void HandleBackPress(int player)
     {
-        // If ready → unready
+        // If ready, just un-ready
         if (isReady[player])
         {
             isReady[player] = false;
@@ -358,20 +325,23 @@ public class PlayerJoinController : MonoBehaviour
             return;
         }
 
-        // Remove player completely
+        // --- INSTANT CLEANUP (NO ANIMATION) ---
         int controllerIndex = assignedControllers[player];
         assignedControllers[player] = -1;
 
-        // UI reset
+        // Turn the Join Panel back on
         slots[player].joinPanel.SetActive(true);
+
+        // Force the alpha to be 1 so it's fully visible instantly
+        CanvasGroup cg = slots[player].joinPanel.GetComponent<CanvasGroup>();
+        if (cg != null) cg.alpha = 1f;
+
         slots[player].menuPanel.SetActive(false);
         slots[player].readyPanel.SetActive(false);
 
-        // Turn off preview
         slots[player].previewCamera.gameObject.SetActive(false);
         slots[player].previewImage.gameObject.SetActive(false);
 
-        // Destroy model
         if (slots[player].spawnedModel != null)
             Destroy(slots[player].spawnedModel);
 
@@ -379,8 +349,6 @@ public class PlayerJoinController : MonoBehaviour
 
         if (GameManager.Instance != null)
             GameManager.Instance.controllerAssignments[player] = -1;
-
-        Debug.Log($"Player {player + 1} left (Controller {controllerIndex})");
     }
 
     public bool IsColorTaken(int colorIndex, int requestingPlayer)
@@ -388,37 +356,28 @@ public class PlayerJoinController : MonoBehaviour
         for (int i = 0; i < slots.Length; i++)
         {
             if (i == requestingPlayer) continue;
-
-            // Only check slots that actually have a player assigned!
             if (assignedControllers[i] == -1) continue;
 
             var ui = slots[i].customizationUI;
             if (ui == null) continue;
 
-            if (ui.GetCurrentColorIndex() == colorIndex)
-                return true;
+            if (ui.GetCurrentColorIndex() == colorIndex) return true;
         }
-
         return false;
     }
 
-    // NEW: Checks if another active player has this name locked in
     public bool IsNameTaken(int nameIndex, int requestingPlayer)
     {
         for (int i = 0; i < slots.Length; i++)
         {
             if (i == requestingPlayer) continue;
-
-            // Only check slots that actually have a player assigned!
             if (assignedControllers[i] == -1) continue;
 
             var ui = slots[i].customizationUI;
             if (ui == null) continue;
 
-            if (ui.GetCurrentNameIndex() == nameIndex)
-                return true;
+            if (ui.GetCurrentNameIndex() == nameIndex) return true;
         }
-
         return false;
     }
 }
