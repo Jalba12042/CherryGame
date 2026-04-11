@@ -6,5 +6,7 @@ public class ItemData : ScriptableObject
     public string itemName;
     public string desc;
     public GameObject powerup;
-    //public bool added;
+
+    // NEW: This is the slot for your custom drawn pictures!
+    public Sprite itemIcon;
 }

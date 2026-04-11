@@ -390,7 +390,7 @@ public class PlayerJoinController : MonoBehaviour
                 readyCount++;
         }
 
-        if (readyCount >= 2)
+        if (readyCount >= slots.Length)
         {
             StartCoroutine(StartCountdown());
         }
@@ -405,7 +405,7 @@ public class PlayerJoinController : MonoBehaviour
 
         while (timeLeft > 0)
         {
-            if (GetReadyCount() < 2)
+            if (GetReadyCount() < slots.Length)
             {
                 countdownPanel.SetActive(false);
                 countdownStarted = false;

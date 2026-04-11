@@ -5,6 +5,7 @@ public class Powerup : MonoBehaviour
 {
     [SerializeField] protected float duration;
     [SerializeField] protected string puName;
+    [SerializeField] protected int despawnTimerInSecs = 7;
 
     public int powerUpID; 
 
@@ -12,11 +13,28 @@ public class Powerup : MonoBehaviour
     protected PlayerPowerupHandler powerupHandler;
     protected GameObject playerModel;
     protected PlayerEffects pe;
+    protected bool canDespawn = true;
 
     private Coroutine activeTimer;
     private bool isActive;
+
+    private void Awake()
+    {
+        StartCoroutine(despawnTimer());
+    }
+
+    private IEnumerator despawnTimer()
+    {
+        yield return new WaitForSeconds(despawnTimerInSecs);
+        if (canDespawn)
+        {
+            RoundManager.Instance.powerupsInPlay.Remove(gameObject);
+            Destroy(gameObject);
+        }
+    }
     public void Activate(PlayerPowerupHandler handler)
     {
+        canDespawn = false;
         powerupHandler = handler;
         pc = handler.GetComponent<Playermovement>();
         pe = handler.GetComponent<PlayerEffects>();
@@ -43,7 +61,7 @@ public class Powerup : MonoBehaviour
             StopCoroutine(activeTimer);
         }
 
-        if (powerupHandler.currPowerups[powerUpID])
+        /*if (powerupHandler.currPowerups[powerUpID])
         {
             // Find and stop the old powerup instance
             Powerup oldPowerup = powerupHandler.activePowerupInstances[powerUpID];
@@ -53,6 +71,16 @@ public class Powerup : MonoBehaviour
                 oldPowerup.ForceStop();
             }
             Debug.Log($"{puName} timer reset for {pc.name}");
+        }*/
+        if (powerupHandler.currPowerups[powerUpID])
+        {
+            Powerup oldPowerup = powerupHandler.activePowerupInstances[powerUpID];
+            if (oldPowerup != null)
+            {
+                oldPowerup.ResetTimer(duration);
+                Destroy(gameObject); // destroy the new pickup
+                return;
+            }
         }
         else
         {
@@ -86,6 +114,16 @@ public class Powerup : MonoBehaviour
         powerUpEnd();
         isActive = false;
         activeTimer = null;
+    }
+
+    public void ResetTimer(float newDuration)
+    {
+        if (activeTimer != null)
+        {
+            StopCoroutine(activeTimer);
+        }
+
+        activeTimer = StartCoroutine(StartTimer());
     }
 
     public void ForceStop()

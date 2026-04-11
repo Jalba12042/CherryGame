@@ -1,12 +1,16 @@
 using System.Collections;
 using UnityEngine;
 
-public enum ZombieState {
+public enum ZombieState
+{
     Wander,
     Rising,
     Chasing,
     Digging
 }
+
+// NEW: Forces Unity to add an AudioSource so you don't forget!
+[RequireComponent(typeof(AudioSource))]
 public class Zombie : MonoBehaviour
 {
     [SerializeField] private bool DEBUG_MODE = false;
@@ -20,7 +24,7 @@ public class Zombie : MonoBehaviour
     [SerializeField] private float stoppingDist = 0.2f;
 
     [Header("Wandering")]
-    [SerializeField] private float wanderRadius = 5f; 
+    [SerializeField] private float wanderRadius = 5f;
     [SerializeField] private float waitTimeAtPoint = 2f;
 
     [Header("Chasing")]
@@ -41,6 +45,14 @@ public class Zombie : MonoBehaviour
     [SerializeField] private float attackCooldown = 2.5f;
     public bool wasPlayer = false;
 
+    [Header("Audio")] // NEW audio additions
+    public AudioClip riseSound;
+    public AudioClip[] moanSounds; // Multiple moans
+    public float minMoanTime = 3f;
+    public float maxMoanTime = 8f;
+    private float moanTimer;
+    private AudioSource audioSource;
+
     private Rigidbody rb;
     private Transform playerTarget;
     private float waitTimer;
@@ -57,16 +69,28 @@ public class Zombie : MonoBehaviour
     {
         hitbox.SetActive(false);
         rb = GetComponent<Rigidbody>();
-        
+        audioSource = GetComponent<AudioSource>(); // NEW audio
+
+        // NEW: audio setup
+        if (audioSource != null)
+            audioSource.playOnAwake = false;
+
         if (!wasPlayer)
         {
             rb.isKinematic = true;
             ChangeState(ZombieState.Rising);
+
+            // NEW: play rise sound
+            if (riseSound != null && audioSource != null)
+                audioSource.PlayOneShot(riseSound);
         }
         else
         {
             rb.isKinematic = false;
             ChangeState(ZombieState.Wander);
+
+            // NEW: moan timer setup
+            moanTimer = Random.Range(minMoanTime, maxMoanTime);
             StartCoroutine(LifeTimer());
         }
     }
@@ -79,7 +103,6 @@ public class Zombie : MonoBehaviour
     private IEnumerator LifeTimer()
     {
         yield return new WaitUntil(() => !myEvent.isRunning);
-        //yield return new WaitForSeconds(10000);
         digTimer = digTotalTime;
         ChangeState(ZombieState.Digging);
     }
@@ -87,6 +110,18 @@ public class Zombie : MonoBehaviour
     private void FixedUpdate()
     {
         if (!RoundManager.Instance.currRoundActive) Destroy(gameObject);
+
+        // NEW: Random moaning logic
+        if ((ZState == ZombieState.Wander || ZState == ZombieState.Chasing) && moanSounds.Length > 0)
+        {
+            moanTimer -= Time.fixedDeltaTime;
+            if (moanTimer <= 0f)
+            {
+                int randomMoan = Random.Range(0, moanSounds.Length);
+                audioSource.PlayOneShot(moanSounds[randomMoan]);
+                moanTimer = Random.Range(minMoanTime, maxMoanTime);
+            }
+        }
 
         switch (ZState)
         {
@@ -121,9 +156,7 @@ public class Zombie : MonoBehaviour
         else
         {
             if (riseTimer <= 0f)
-            {
-                riseTimer = riseWaitTime; 
-            }
+                riseTimer = riseWaitTime;
 
             riseTimer -= Time.fixedDeltaTime;
 
@@ -132,6 +165,10 @@ public class Zombie : MonoBehaviour
                 wanderTarget = transform.position;
                 rb.isKinematic = false;
                 ChangeState(ZombieState.Wander);
+
+                // NEW: start moaning after rising
+                moanTimer = Random.Range(minMoanTime, maxMoanTime);
+
                 StartCoroutine(LifeTimer());
             }
         }
@@ -140,7 +177,7 @@ public class Zombie : MonoBehaviour
     void Dig()
     {
         hitbox.SetActive(false);
-        anim.enabled = false; // change this to start digging animation
+        anim.enabled = false; // keep your digging animation logic
 
         rb.isKinematic = true;
 
@@ -151,9 +188,7 @@ public class Zombie : MonoBehaviour
         digTimer -= Time.fixedDeltaTime;
 
         if (digTimer <= 0f)
-        {
             Destroy(gameObject);
-        }
     }
 
     void HandleWander()
@@ -173,24 +208,19 @@ public class Zombie : MonoBehaviour
             waitTimer -= Time.fixedDeltaTime;
 
             if (waitTimer <= 0f)
-            {
                 PickNewWanderPoint();
-            }
         }
     }
 
     void HandleChase()
     {
-        // Guard: if target lost or dead, go back to wandering
         if (playerTarget == null)
         {
             ChangeState(ZombieState.Wander);
             return;
         }
 
-        // Update position every frame from the live Transform
         Vector3 playerTargetPosition = playerTarget.position;
-
         Vector3 flatOffset = playerTargetPosition - rb.position;
         flatOffset.y = 0f;
         float distance = flatOffset.magnitude;
@@ -224,7 +254,6 @@ public class Zombie : MonoBehaviour
         if (distance > 0.001f)
         {
             Vector3 direction = offset / distance;
-
             float step = moveSpeed * Time.fixedDeltaTime;
             float clampedStep = Mathf.Min(step, distance);
 
@@ -268,7 +297,7 @@ public class Zombie : MonoBehaviour
                 if (pk != null && pk.currDead) continue;
 
                 Vector3 offset = hit.transform.position - transform.position;
-                offset.y = 0f; // ignore vertical difference
+                offset.y = 0f;
                 float dist = offset.sqrMagnitude;
 
                 if (dist < closestDist)
@@ -313,6 +342,7 @@ public class Zombie : MonoBehaviour
         yield return new WaitForSeconds(attackCooldown);
         canAttack = true;
     }
+
     private void OnDrawGizmos()
     {
         if (DEBUG_MODE)
