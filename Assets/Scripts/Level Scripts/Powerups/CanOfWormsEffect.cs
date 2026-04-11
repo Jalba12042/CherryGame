@@ -3,26 +3,33 @@ using System.Collections;
 
 public class CanOfWormsEffect : Powerup
 {
+    [Header("Targeting")]
     public string targetTag = "Cherry";
-    public float destroyDelay = 3f;
 
+    [Header("Infection Settings")]
+    public float destroyDelay = 3f;
     public float spreadRadius = 2f;
     public float spreadDelay = 1f;
     public int maxInfections = 5;
 
     protected override void powerUpEffect()
     {
-        base.powerUpEffect();
-
         ActivateWorms();
 
-        // single use end
-        powerUpEnd();
+        // instant-use cleanup
+        powerupHandler.currPowerups[powerUpID] = false;
+
+        if (powerupHandler.activePowerupInstances[powerUpID] == this)
+        {
+            powerupHandler.activePowerupInstances[powerUpID] = null;
+        }
+
+        Destroy(gameObject);
     }
 
     protected override IEnumerator StartTimer()
     {
-        yield break; // durantion
+        yield break;
     }
 
     void ActivateWorms()
@@ -31,21 +38,94 @@ public class CanOfWormsEffect : Powerup
 
         if (targets.Length == 0)
         {
-            Debug.Log("CanOfWorms: No valid targets found.");
+            Debug.Log("No valid targets found.");
             return;
         }
 
         GameObject chosenTarget = targets[Random.Range(0, targets.Length)];
 
-        Debug.Log("CanOfWorms selected: " + chosenTarget.name);
+        Debug.Log("Infecting: " + chosenTarget.name);
 
-        WormMarker marker = chosenTarget.GetComponent<WormMarker>();
+        StartInfection(chosenTarget);
+    }
 
-        if (marker == null)
+    void StartInfection(GameObject target)
+    {
+        // Prevent double infection
+        if (target.GetComponent<Infection>() != null) return;
+
+        Infection infection = target.AddComponent<Infection>();
+        infection.Init(destroyDelay, spreadRadius, spreadDelay, maxInfections, targetTag);
+    }
+}
+
+//INTERNAL infection behavior (replaces WormMarker)
+public class Infection : MonoBehaviour
+{
+    bool active = false;
+
+    float destroyDelay;
+    float spreadRadius;
+    float spreadDelay;
+    int maxInfections;
+    int currentInfections = 0;
+    string targetTag;
+
+    public void Init(float delay, float radius, float spreadDelay, int maxInfections, string tag)
+    {
+        if (active) return;
+
+        active = true;
+
+        this.destroyDelay = delay;
+        this.spreadRadius = radius;
+        this.spreadDelay = spreadDelay;
+        this.maxInfections = maxInfections;
+        this.targetTag = tag;
+
+        Debug.Log("Infected: " + gameObject.name);
+
+        StartCoroutine(WormRoutine());
+        StartCoroutine(SpreadRoutine());
+    }
+
+    IEnumerator WormRoutine()
+    {
+        // visual feedback
+        Renderer rend = GetComponent<Renderer>();
+        if (rend != null)
         {
-            marker = chosenTarget.AddComponent<WormMarker>();
+            rend.material.color = Color.green;
         }
 
-        marker.StartCountdown(destroyDelay, spreadRadius, spreadDelay, maxInfections);
+        yield return new WaitForSeconds(destroyDelay);
+
+        Debug.Log("Destroyed: " + gameObject.name);
+        Destroy(gameObject);
+    }
+
+    IEnumerator SpreadRoutine()
+    {
+        while (currentInfections < maxInfections)
+        {
+            yield return new WaitForSeconds(spreadDelay);
+
+            Collider[] nearby = Physics.OverlapSphere(transform.position, spreadRadius);
+
+            foreach (Collider col in nearby)
+            {
+                if (col.CompareTag(targetTag))
+                {
+                    if (col.GetComponent<Infection>() == null)
+                    {
+                        Infection newInf = col.gameObject.AddComponent<Infection>();
+                        newInf.Init(destroyDelay, spreadRadius, spreadDelay, maxInfections, targetTag);
+
+                        currentInfections++;
+                        break; // infect one at a time
+                    }
+                }
+            }
+        }
     }
 }

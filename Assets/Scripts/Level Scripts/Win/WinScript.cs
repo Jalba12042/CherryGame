@@ -74,7 +74,7 @@ public class WinScript : MonoBehaviour
         HighlightButton();
     }
 
-    void Update()
+    /*void Update()
     {
         if (Gamepad.all.Count == 0) return;
         var gamepad = Gamepad.all[0];
@@ -106,6 +106,47 @@ public class WinScript : MonoBehaviour
         if (gamepad.buttonSouth.wasPressedThisFrame)
         {
             menuButtons[currentIndex].onClick.Invoke();
+        }
+    }*/
+
+    void Update()
+    {
+        if (GameManager.Instance == null) return;
+
+        for (int i = 0; i < GameManager.Instance.playerCount; i++)
+        {
+            int assignedControllerIndex = GameManager.Instance.controllerAssignments[i];
+            if (assignedControllerIndex < 0 || assignedControllerIndex >= Gamepad.all.Count)
+                continue; // Skip unassigned or disconnected controllers
+
+            var gamepad = Gamepad.all[assignedControllerIndex];
+            Vector2 move = gamepad.leftStick.ReadValue();
+
+            // Navigation
+            if (canMove)
+            {
+                if (move.y > deadzone)
+                {
+                    currentIndex = Mathf.Max(0, currentIndex - 1);
+                    HighlightButton();
+                    canMove = false;
+                }
+                else if (move.y < -deadzone)
+                {
+                    currentIndex = Mathf.Min(menuButtons.Length - 1, currentIndex + 1);
+                    HighlightButton();
+                    canMove = false;
+                }
+            }
+
+            if (Mathf.Abs(move.y) < 0.2f)
+                canMove = true;
+
+            // Confirm selection
+            if (gamepad.buttonSouth.wasPressedThisFrame)
+            {
+                menuButtons[currentIndex].onClick.Invoke();
+            }
         }
     }
 
