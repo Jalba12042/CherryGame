@@ -12,8 +12,10 @@ public class ZombieAttack : MonoBehaviour
             {
                 pk.killPlayer();
 
-                Zombie newZombie = Instantiate(zombiePrefab, transform.position, Quaternion.identity).GetComponent<Zombie>();
-                newZombie.wasPlayer = true;
+                Zombie newZombie = Instantiate(zombiePrefab, transform.position, Quaternion.identity)
+                .GetComponent<Zombie>();
+
+                newZombie.InitAsPlayerZombie();
             }
         }
     }

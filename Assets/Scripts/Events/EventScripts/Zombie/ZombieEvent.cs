@@ -19,8 +19,11 @@ public class ZombieEvent : GameEvent
             {
                 float randX = Random.Range(b.min.x, b.max.x);
                 float randZ = Random.Range(b.min.z, b.max.z);
-                Zombie zombie = Instantiate(zombiePrefab, new Vector3(randX, spawnLocation.transform.position.y, randZ), Quaternion.identity).GetComponent<Zombie>();
+                Zombie zombie = Instantiate(zombiePrefab,new Vector3(randX, spawnLocation.transform.position.y, randZ),
+                Quaternion.identity).GetComponent<Zombie>();
+
                 zombie.myEvent = this;
+                zombie.InitNormalZombie();
             }
         }
         

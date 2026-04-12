@@ -66,11 +66,12 @@ public class Zombie : MonoBehaviour
     private Vector3 wanderTarget;
     private bool isAttacking = false;
     private bool canAttack = true;
+    private bool isInitialized = false;
 
     [Header("State")]
     public ZombieEvent myEvent;
 
-    private void Awake()
+    /*private void Awake()
     {
         hitbox.SetActive(false);
         rb = GetComponent<Rigidbody>();
@@ -120,6 +121,17 @@ public class Zombie : MonoBehaviour
             moanTimer = Random.Range(minMoanTime, maxMoanTime);
             StartCoroutine(LifeTimer());
         }
+    }*/
+
+    private void Awake()
+    {
+        hitbox.SetActive(false);
+
+        rb = GetComponent<Rigidbody>();
+        audioSource = GetComponent<AudioSource>();
+
+        if (audioSource != null)
+            audioSource.playOnAwake = false;
     }
 
     void ChangeState(ZombieState newState)
@@ -136,6 +148,9 @@ public class Zombie : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (!isInitialized)
+            return;
+
         if (!RoundManager.Instance.currRoundActive) Destroy(gameObject);
 
         // NEW: Random moaning logic
@@ -397,5 +412,48 @@ public class Zombie : MonoBehaviour
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(transform.position, detectionRange);
         }
+    }
+
+    public void InitNormalZombie()
+    {
+        isInitialized = true;
+
+        rb.isKinematic = true;
+
+        if (dirtMoundPrefab != null)
+        {
+            Vector3 spawnPos = transform.position;
+
+            spawnedDirt = Instantiate(dirtMoundPrefab, spawnPos, Quaternion.identity);
+
+            DirtMound dirtScript = spawnedDirt.GetComponent<DirtMound>();
+            if (dirtScript != null)
+                dirtScript.Init(this);
+        }
+
+        Vector3 startPos = transform.position;
+        startPos.y = groundY - spawnDepth;
+
+        transform.position = startPos;
+        rb.position = startPos;
+
+        ChangeState(ZombieState.Rising);
+
+        if (riseSound != null)
+            audioSource.PlayOneShot(riseSound);
+    }
+
+    public void InitAsPlayerZombie()
+    {
+        isInitialized = true;
+
+        wasPlayer = true;
+
+        rb.isKinematic = false;
+
+        ChangeState(ZombieState.Wander);
+
+        moanTimer = Random.Range(minMoanTime, maxMoanTime);
+        StartCoroutine(LifeTimer());
     }
 }
