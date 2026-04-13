@@ -49,6 +49,7 @@ public class ZombieEvent : GameEvent
                 {
                     Zombie zombie = Instantiate(zombiePrefab, spawnPos, Quaternion.identity).GetComponent<Zombie>();
                     zombie.myEvent = this;
+                    zombie.InitNormalZombie();
                     spawnedPositions.Add(spawnPos);
                 }
                 else
