@@ -32,7 +32,7 @@ public class EnvironmentEffects : MonoBehaviour
 
                 if (cherry)
                 {
-                    StartCoroutine(cherry.TemporarilyIgnoreBasket(1f));
+                    StartCoroutine(cherry.TemporarilyIgnoreBasket(2f));
                 }
                 rb.AddForce(force * rb.mass, ForceMode.Impulse);
             }              
