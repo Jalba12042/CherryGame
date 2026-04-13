@@ -18,6 +18,9 @@ public class UFO : MonoBehaviour
     [SerializeField] private float moveSpeed;
     [SerializeField] private float hoverDuration;
     [SerializeField] private float abductSpeed;
+
+    [SerializeField] private Transform ufoModel;
+    [SerializeField] private float spinSpeed = 50f;
     private float stateTimer;
 
     public UFOEvent myEvent;
@@ -46,6 +49,11 @@ public class UFO : MonoBehaviour
     {
         if (targetPlayer == null) return;
         if (!RoundManager.Instance.currRoundActive) Destroy(gameObject);
+
+        if (ufoModel != null)
+        {
+            ufoModel.Rotate(Vector3.up * spinSpeed * Time.deltaTime);
+        }
 
         switch (currentState)
         {

@@ -4,6 +4,8 @@ public class MeteorShadowExpand : MonoBehaviour
 {
     public Transform fallingObject;
 
+    public LayerMask groundLayer;
+
     [Header("Distance Settings")]
     public float maxDistance = 20f;
     public float minScale = 20f;
@@ -25,34 +27,41 @@ public class MeteorShadowExpand : MonoBehaviour
     {
         rend = GetComponent<Renderer>();
         mat = rend.material;
+
+        transform.parent = null;
     }
 
     void Update()
     {
+        if (fallingObject == null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         if (fadingOut)
         {
             FadeOut();
             return;
         }
 
+        Debug.DrawRay(fallingObject.position, Vector3.down * maxDistance, Color.red);
+
         RaycastHit hit;
 
-        // Cast downward in standard Unity Y-up
-        if (Physics.Raycast(fallingObject.position, Vector3.down, out hit, maxDistance))
+        if (Physics.Raycast(fallingObject.position, Vector3.down, out hit, maxDistance, groundLayer))
         {
             float distance = hit.distance;
 
-            // 0 = far away, 1 = close to ground
+            transform.position = hit.point + Vector3.up * 0.05f;
+
             float t = 1f - Mathf.Clamp01(distance / maxDistance);
 
-            // Shadow gets bigger as object gets closer
             float scale = Mathf.Lerp(minScale, maxScale, t);
             transform.localScale = new Vector3(scale, scale, scale);
 
-            // Shadow gets darker as object gets closer
             mat.color = Color.Lerp(farColor, closeColor, t);
 
-            // Begin fading when almost touching ground
             if (distance <= impactThreshold)
             {
                 fadingOut = true;
