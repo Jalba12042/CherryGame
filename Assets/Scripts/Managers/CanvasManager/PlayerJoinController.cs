@@ -304,6 +304,7 @@ public class PlayerJoinController : MonoBehaviour
     {
         if (GameManager.Instance == null) return;
 
+        // --- SAVE PLAYER COUNT + CONTROLLERS (your existing code) ---
         GameManager.Instance.playerCount = slots.Length;
         GameManager.Instance.controllerAssignments = new int[slots.Length];
 
@@ -312,6 +313,36 @@ public class PlayerJoinController : MonoBehaviour
             GameManager.Instance.controllerAssignments[i] = assignedControllers[i];
         }
 
+        // --- NEW: SAVE CUSTOMIZATION DATA ---
+        GameManager.Instance.playerCustomizations.Clear();
+
+        for (int i = 0; i < slots.Length; i++)
+        {
+            PlayerCustomizationData data = new PlayerCustomizationData();
+
+            // Get components from preview model + UI
+            var customization = slots[i].spawnedModel.GetComponentInChildren<PlayerCustomization>();
+            var ui = slots[i].customizationUI;
+
+            // Save clothing selections
+            if (customization != null)
+            {
+                data.headIndex = customization.GetHeadIndex();
+                data.torsoIndex = customization.GetTorsoIndex();
+                data.bottomIndex = customization.GetBottomIndex();
+            }
+
+            // Save UI selections (color + name)
+            if (ui != null)
+            {
+                data.colorIndex = ui.GetCurrentColorIndex();
+                data.nameIndex = ui.GetCurrentNameIndex();
+            }
+
+            GameManager.Instance.playerCustomizations.Add(data);
+        }
+
+        // --- LOAD GAME SCENE ---
         SceneManager.LoadScene(RoundManager.Instance.currRound.sceneName);
     }
 

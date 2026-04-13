@@ -1,8 +1,9 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -24,6 +25,8 @@ public class GameManager : MonoBehaviour
     private float deadzone = 0.5f;
 
     public bool isOnKeyboard = false;
+
+    public List<PlayerCustomizationData> playerCustomizations = new List<PlayerCustomizationData>();
 
     public enum GameState
     {
