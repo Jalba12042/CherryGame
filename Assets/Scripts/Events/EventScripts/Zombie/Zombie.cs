@@ -50,6 +50,8 @@ public class Zombie : MonoBehaviour
     [SerializeField] private float attackCooldown = 2.5f;
     public bool wasPlayer = false;
 
+    [Header("Spawning")]
+    public float spawnRadius;
     [Header("Audio")] // NEW audio additions
     public AudioClip riseSound;
     public AudioClip[] moanSounds; // Multiple moans
