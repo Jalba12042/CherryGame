@@ -3321,6 +3321,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
       insertIndex: -1
       addedObject: {fileID: 721171905930765880}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3831512609517769558}
     - targetCorrespondingSourceObject: {fileID: 3399871976306979022, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2732529497668179981}
@@ -3436,11 +3439,7 @@ MonoBehaviour:
   fallMultiplier: 9
   lowJumpMultiplier: 2
   allowJumpInput: 1
-  groundCheckPoint: {fileID: 5200476231527402118}
-  groundCheckDistance: 1
-  groundLayer:
-    serializedVersion: 2
-    m_Bits: 128
+  gc: {fileID: 0}
   rotationSpeed: 10
   aimRotationMultiplier: 0.25
   handHoldPoint: {fileID: 2993220774640444911}
@@ -3448,7 +3447,6 @@ MonoBehaviour:
   projectileScript: {fileID: 671919915021707683}
   screenShake: {fileID: 0}
   canMove: 1
-  isGrounded: 0
   isAiming: 0
   isKnockedBack: 0
   footstepSource: {fileID: 5163521135877257543}
@@ -3564,7 +3562,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isBig: 0
-  itemJumpForce: 20
+  itemJumpForce: 15
   taseForce: 15
   stunDuration: 3
   isTasing: 0
@@ -3822,6 +3820,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a69b6238b4a2b304db8f4750fbb62f8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &3831512609517769558
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5896580224650156824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 400424a60f824984bbe82ddd26112298, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isGrounded: 0
+  groundCheckDistance: 1
+  origin: {x: 0, y: 0, z: 0}
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  groundCheckOffset: {x: 0, y: 0.1, z: 0}
 --- !u!4 &6529952096185074082 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 453412f0d8412442b82d4e87810f0875, type: 3}

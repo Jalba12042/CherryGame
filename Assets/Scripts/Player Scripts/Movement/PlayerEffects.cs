@@ -10,6 +10,10 @@ public class PlayerEffects : MonoBehaviour
     private bool wasGroundedLastFrame;
     private Playermovement player;
     private ScreenShake screenShake;
+    private EnvironmentEffects envEffects;
+    private GroundCheck gc;
+
+    private Rigidbody rb;
 
     [Header("Taser Settings")]
     [SerializeField] private float taseForce;
@@ -20,16 +24,19 @@ public class PlayerEffects : MonoBehaviour
     {
         player = GetComponent<Playermovement>();
         screenShake = FindFirstObjectByType<ScreenShake>();
+        envEffects = FindFirstObjectByType<EnvironmentEffects>();
+        rb = GetComponent<Rigidbody>();
+        gc = GetComponent<GroundCheck>();
     }
 
     void FixedUpdate()
     {
         if (player == null) return;
 
-        if (!wasGroundedLastFrame && player.isGrounded && isBig)
+        if (!wasGroundedLastFrame && gc.isGrounded && isBig)
             TriggerBigImpact();
 
-        wasGroundedLastFrame = player.isGrounded;
+        wasGroundedLastFrame = gc.isGrounded;
     }
 
     /*private void TriggerBigImpact()
@@ -59,48 +66,7 @@ public class PlayerEffects : MonoBehaviour
     private void TriggerBigImpact()
     {
         screenShake?.Shake();
-
-        int cherryLayer = LayerMask.NameToLayer("Cherry");
-
-        Rigidbody[] allRigidbodies = GameObject.FindObjectsByType<Rigidbody>(FindObjectsSortMode.None);
-        foreach (var rb in allRigidbodies)
-        {
-            if (rb.gameObject.layer == cherryLayer)
-            {
-                rb.isKinematic = false;
-                rb.WakeUp();
-
-                float upForce = itemJumpForce;        // vertical force
-                float horizontalRange = 2f;           // horizontal scatter
-                Vector3 force = new Vector3(
-                    Random.Range(-horizontalRange, horizontalRange),
-                    upForce,
-                    Random.Range(-horizontalRange, horizontalRange)
-                );
-
-                rb.AddForce(force, ForceMode.Impulse);
-
-                // Tell the cherry to ignore basket pull for a short time
-                Cherry cherry = rb.GetComponent<Cherry>();
-                if (cherry != null)
-                    StartCoroutine(cherry.TemporarilyIgnoreBasket(1f));
-            }
-        }
-
-        RoundManager rm = RoundManager.Instance;
-        ApplyJumpToObjects(rm.powerupsInPlay);
-        ApplyJumpToObjects(new List<GameObject>(rm.playerObjects));
-    }
-
-    private void ApplyJumpToObjects(List<GameObject> list)
-    {
-        if (list == null) return;
-        foreach (var obj in list)
-        {
-            Rigidbody rb = obj.GetComponent<Rigidbody>();
-            if (rb != null)
-                rb.AddForce(Vector3.up * itemJumpForce, ForceMode.Impulse);
-        }
+        envEffects?.bigImpact(itemJumpForce, rb);
     }
 
     private void OnCollisionEnter(Collision collision)
