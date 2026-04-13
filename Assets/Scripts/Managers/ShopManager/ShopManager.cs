@@ -9,40 +9,41 @@ public class ShopManager : MonoBehaviour
 {
     [SerializeField] private VoteImageManager vim;
 
-    // List of all powerups
     public List<ItemData> powerUpRegistry;
-
     [SerializeField] private float shopTimerDurationInSecs;
-    [SerializeField] private TMP_Text[] buttonTexts;
-    [SerializeField] private TMP_Text[] buttonDescs;
+
+    [Header("UI Elements (Images Only!)")]
+    [SerializeField] private Image[] itemSlots;
+    [SerializeField] private GameObject[] numberIconObjects;
+    [SerializeField] private Sprite soldOutSprite;
+
+    [SerializeField] private TMP_Text[] stickyNoteTexts;
     [SerializeField] private TMP_Text timerText;
+
     private float timer;
-
-
-    public Button[] shopButtons;
-    private int amtOfButtons;
+    private int amtOfItems;
     private int[] playerVotes;
+    private bool[] isSoldOut = new bool[4];
 
-
-    [Header("Highlight Images (per player per button)")]
-    public Image[,] playerHighlights = new Image[4, 4]; // [playerIndex, buttonIndex]
+    [Header("Highlight Images")]
+    public Image[,] playerItemHighlights = new Image[4, 4];
+    public Image[,] playerNumHighlights = new Image[4, 4];
 
     private int[] currentIndexes = new int[4];
     private bool[] canMove = new bool[4];
-    private int[] buttonVotes;
+    private int[] itemVotes;
     private List<ItemData> powerUps;
     private ItemData addedPowerUp;
 
     private Color[] playerColors = { Color.blue, Color.red, Color.green, Color.yellow };
 
-    private int playerCount;
-
     private void Start()
     {
-        setupButtons();
+        setupItems();
 
-        playerCount = Mathf.Min(GameManager.Instance.playerCount, Gamepad.all.Count);
-        buttonVotes = new int[amtOfButtons];
+        int playerCount = Mathf.Min(GameManager.Instance.playerCount, 4);
+        itemVotes = new int[itemSlots.Length];
+
         for (int i = 0; i < playerCount; i++)
         {
             currentIndexes[i] = 0;
@@ -52,11 +53,12 @@ public class ShopManager : MonoBehaviour
         playerVotes = new int[4];
         for (int i = 0; i < 4; i++)
         {
-            playerVotes[i] = -1; // start with no votes
+            playerVotes[i] = -1;
         }
 
         SetupHighlights();
-        HighlightButtons();
+        HighlightItems();
+        UpdateStickyNote();
 
         StartCoroutine(StartShopTimer());
     }
@@ -65,129 +67,186 @@ public class ShopManager : MonoBehaviour
     {
         timerText.text = $"{shopTimerDurationInSecs - (int)timer}";
         timerText.color = timer >= shopTimerDurationInSecs - 3f ? Color.red : Color.white;
-        HandleControllerInput();
+
+        HandleInput();
     }
 
-    private void HandleControllerInput()
+    private void HandleInput()
     {
-        int playerCount = Mathf.Min(GameManager.Instance.playerCount, Gamepad.all.Count);
-
-        for (int i = 0; i < playerCount; i++)
+        if (GameManager.Instance.isOnKeyboard)
         {
-            var gamepad = Gamepad.all[i];
-            Vector2 move = gamepad.leftStick.ReadValue();
-
-            if (canMove[i])
+            if (Keyboard.current != null)
             {
-                // UP
-                if (move.y > 0.5f)
+                if (canMove[0])
                 {
-                    if (currentIndexes[i] - 2 >= 0)
-                        currentIndexes[i] -= 2; // Move up one row
-                    canMove[i] = false;
-                    HighlightButtons();
+                    if (Keyboard.current.wKey.wasPressedThisFrame || Keyboard.current.upArrowKey.wasPressedThisFrame)
+                    {
+                        if (currentIndexes[0] - 2 >= 0) currentIndexes[0] -= 2;
+                        canMove[0] = false; HighlightItems();
+                    }
+                    else if (Keyboard.current.sKey.wasPressedThisFrame || Keyboard.current.downArrowKey.wasPressedThisFrame)
+                    {
+                        if (currentIndexes[0] + 2 < itemSlots.Length) currentIndexes[0] += 2;
+                        canMove[0] = false; HighlightItems();
+                    }
+                    else if (Keyboard.current.aKey.wasPressedThisFrame || Keyboard.current.leftArrowKey.wasPressedThisFrame)
+                    {
+                        if (currentIndexes[0] % 2 != 0) currentIndexes[0] -= 1;
+                        canMove[0] = false; HighlightItems();
+                    }
+                    else if (Keyboard.current.dKey.wasPressedThisFrame || Keyboard.current.rightArrowKey.wasPressedThisFrame)
+                    {
+                        if (currentIndexes[0] % 2 == 0 && currentIndexes[0] + 1 < itemSlots.Length) currentIndexes[0] += 1;
+                        canMove[0] = false; HighlightItems();
+                    }
                 }
-                // DOWN
-                else if (move.y < -0.5f)
+
+                if (!Keyboard.current.wKey.isPressed && !Keyboard.current.sKey.isPressed &&
+                    !Keyboard.current.aKey.isPressed && !Keyboard.current.dKey.isPressed &&
+                    !Keyboard.current.upArrowKey.isPressed && !Keyboard.current.downArrowKey.isPressed &&
+                    !Keyboard.current.leftArrowKey.isPressed && !Keyboard.current.rightArrowKey.isPressed)
                 {
-                    if (currentIndexes[i] + 2 < shopButtons.Length)
-                        currentIndexes[i] += 2; // Move down one row
-                    canMove[i] = false;
-                    HighlightButtons();
+                    canMove[0] = true;
                 }
-                // LEFT
-                else if (move.x < -0.5f)
+
+                if (Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.enterKey.wasPressedThisFrame)
                 {
-                    if (currentIndexes[i] % 2 != 0)
-                        currentIndexes[i] -= 1; // Move left
-                    canMove[i] = false;
-                    HighlightButtons();
+                    SubmitVote(0, currentIndexes[0]);
                 }
-                // RIGHT
-                else if (move.x > 0.5f)
+
+                int kVote = -1;
+                if (Keyboard.current.digit1Key.wasPressedThisFrame) kVote = 0;
+                if (Keyboard.current.digit2Key.wasPressedThisFrame) kVote = 1;
+                if (Keyboard.current.digit3Key.wasPressedThisFrame) kVote = 2;
+                if (Keyboard.current.digit4Key.wasPressedThisFrame) kVote = 3;
+
+                if (kVote != -1 && kVote < isSoldOut.Length && !isSoldOut[kVote])
                 {
-                    if (currentIndexes[i] % 2 == 0 && currentIndexes[i] + 1 < shopButtons.Length)
-                        currentIndexes[i] += 1; // Move right
-                    canMove[i] = false;
-                    HighlightButtons();
+                    currentIndexes[0] = kVote;
+                    HighlightItems();
+                    SubmitVote(0, kVote);
                 }
             }
+        }
+        else
+        {
+            int safePlayerCount = Mathf.Min(GameManager.Instance.playerCount, 4);
 
-            // Reset movement gating (prevents rapid flicking)
-            if (Mathf.Abs(move.y) < 0.2f && Mathf.Abs(move.x) < 0.2f)
-                canMove[i] = true;
-
-
-            if (gamepad.buttonSouth.wasPressedThisFrame)
+            for (int i = 0; i < safePlayerCount; i++)
             {
-                int chosenButton = currentIndexes[i];
+                if (i >= GameManager.Instance.controllerAssignments.Length) continue;
 
-                // Remove old vote if there was one
-                int oldVote = playerVotes[i];
-                if (oldVote != -1 && chosenButton < amtOfButtons)
+                int controllerIndex = GameManager.Instance.controllerAssignments[i];
+                if (controllerIndex < 0 || controllerIndex >= Gamepad.all.Count) continue;
+
+                var gamepad = Gamepad.all[controllerIndex];
+                Vector2 move = gamepad.leftStick.ReadValue();
+
+                if (canMove[i])
                 {
-                    buttonVotes[oldVote]--;
+                    if (move.y > 0.5f)
+                    {
+                        if (currentIndexes[i] - 2 >= 0) currentIndexes[i] -= 2;
+                        canMove[i] = false; HighlightItems();
+                    }
+                    else if (move.y < -0.5f)
+                    {
+                        if (currentIndexes[i] + 2 < itemSlots.Length) currentIndexes[i] += 2;
+                        canMove[i] = false; HighlightItems();
+                    }
+                    else if (move.x < -0.5f)
+                    {
+                        if (currentIndexes[i] % 2 != 0) currentIndexes[i] -= 1;
+                        canMove[i] = false; HighlightItems();
+                    }
+                    else if (move.x > 0.5f)
+                    {
+                        if (currentIndexes[i] % 2 == 0 && currentIndexes[i] + 1 < itemSlots.Length) currentIndexes[i] += 1;
+                        canMove[i] = false; HighlightItems();
+                    }
                 }
 
-                // Add new vote
-                if (chosenButton < amtOfButtons)
-                {
-                    buttonVotes[chosenButton]++;
-                    playerVotes[i] = chosenButton;
-                    Debug.Log($"Player {i + 1} (Color {playerColors[i]}) voted for button {chosenButton + 1}. Total votes: {buttonVotes[chosenButton]}");
-                }
+                if (Mathf.Abs(move.y) < 0.2f && Mathf.Abs(move.x) < 0.2f) canMove[i] = true;
 
-                vim.changeVote(i, chosenButton);
+                if (gamepad.buttonSouth.wasPressedThisFrame)
+                {
+                    SubmitVote(i, currentIndexes[i]);
+                }
             }
-
         }
     }
 
-    private void HighlightButtons()
+    private void SubmitVote(int pIndex, int vIndex)
     {
-        int playerCount = Mathf.Min(GameManager.Instance.playerCount, Gamepad.all.Count);
-
-        // First, disable ALL highlights for every player and every button
-        for (int p = 0; p < playerCount; p++)
+        if (vIndex < powerUps.Count && !isSoldOut[vIndex])
         {
-            for (int b = 0; b < shopButtons.Length; b++)
-            {
-                if (playerHighlights[p, b] != null)
-                    playerHighlights[p, b].enabled = false;
-            }
-        }
+            int oldVote = playerVotes[pIndex];
+            if (oldVote != -1) itemVotes[oldVote]--;
 
-        // Then, enable ONLY the ones the players are currently on
-        for (int p = 0; p < playerCount; p++)
-        {
-            int current = Mathf.Clamp(currentIndexes[p], 0, shopButtons.Length - 1);
-            if (playerHighlights[p, current] != null)
-                playerHighlights[p, current].enabled = true;
+            itemVotes[vIndex]++;
+            playerVotes[pIndex] = vIndex;
 
+            if (vim != null) vim.changeVote(pIndex, vIndex);
+            UpdateStickyNote();
         }
     }
 
+    private void UpdateStickyNote()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (i < stickyNoteTexts.Length && stickyNoteTexts[i] != null)
+            {
+                if (playerVotes[i] != -1)
+                    stickyNoteTexts[i].text = $"{i + 1} | L";
+                else
+                    stickyNoteTexts[i].text = $"{i + 1} | ";
+            }
+        }
+    }
 
+    private void HighlightItems()
+    {
+        int safePlayerCount = Mathf.Min(GameManager.Instance.playerCount, 4);
 
-    // Shop Timer
+        for (int p = 0; p < safePlayerCount; p++)
+        {
+            for (int b = 0; b < itemSlots.Length; b++)
+            {
+                if (playerItemHighlights[p, b] != null) playerItemHighlights[p, b].enabled = false;
+                if (playerNumHighlights[p, b] != null) playerNumHighlights[p, b].enabled = false;
+            }
+        }
+
+        for (int p = 0; p < safePlayerCount; p++)
+        {
+            int current = Mathf.Clamp(currentIndexes[p], 0, itemSlots.Length - 1);
+            if (playerItemHighlights[p, current] != null) playerItemHighlights[p, current].enabled = true;
+            if (playerNumHighlights[p, current] != null) playerNumHighlights[p, current].enabled = true;
+        }
+    }
+
     private IEnumerator StartShopTimer()
     {
         timer = 0;
         while (timer < shopTimerDurationInSecs)
         {
             timer += Time.deltaTime;
-
-            // change timer to 3 after everyone has voted
             int votesCounted = 0;
-            for (int i = 0; i < playerCount; i++)
+            int availableItems = 0;
+
+            int safePlayerCount = Mathf.Min(GameManager.Instance.playerCount, 4);
+            for (int i = 0; i < safePlayerCount; i++)
             {
-                if (playerVotes[i] != -1)
-                {
-                    votesCounted++;
-                }
+                if (playerVotes[i] != -1) votesCounted++;
             }
 
-            if (votesCounted == playerCount || amtOfButtons == 0)
+            for (int i = 0; i < isSoldOut.Length; i++)
+            {
+                if (!isSoldOut[i]) availableItems++;
+            }
+
+            if (votesCounted == safePlayerCount || availableItems == 0)
             {
                 timer = Mathf.Max(timer, shopTimerDurationInSecs - 3f);
             }
@@ -198,62 +257,99 @@ public class ShopManager : MonoBehaviour
         int currentHighestVal = -1;
         List<int> winners = new List<int>();
 
-        for (int i = 0; i < buttonVotes.Length; i++)
+        for (int i = 0; i < itemVotes.Length; i++)
         {
-            Debug.Log($"Button {i + 1} got {buttonVotes[i]} votes");
-
-            // check for a winner(s)
-            if (buttonVotes[i] > currentHighestVal)
+            if (itemVotes[i] > currentHighestVal)
             {
-                winners.Clear();
-                winners.Add(i);
-                currentHighestVal = buttonVotes[i];
+                winners.Clear(); winners.Add(i);
+                currentHighestVal = itemVotes[i];
             }
-            else if (buttonVotes[i] == currentHighestVal)
+            else if (itemVotes[i] == currentHighestVal)
             {
-                winners.Add(i);
-                currentHighestVal = buttonVotes[i];
+                winners.Add(i); currentHighestVal = itemVotes[i];
             }
         }
 
-        int winnerIndex;
-        if (winners.Count != 0)
-        {
-            winnerIndex = winners[0];
+        StartCoroutine(VisualRouletteSpin(winners));
+    }
 
-            // if there's a tie
+    private IEnumerator VisualRouletteSpin(List<int> winners)
+    {
+        int finalWinnerIndex = -1;
+
+        if (winners.Count > 0)
+        {
             if (winners.Count > 1)
             {
-                int randIndex = Random.Range(0, winners.Count);
-                winnerIndex = winners[randIndex];
+                float spinTime = 2.0f;
+                float currentSpinTime = 0f;
+                float delay = 0.1f;
+
+                while (currentSpinTime < spinTime)
+                {
+                    int randomFlash = winners[Random.Range(0, winners.Count)];
+
+                    if (playerItemHighlights[0, randomFlash] != null)
+                    {
+                        playerItemHighlights[0, randomFlash].enabled = true;
+                        playerItemHighlights[0, randomFlash].color = Color.white;
+                    }
+                    if (playerNumHighlights[0, randomFlash] != null)
+                    {
+                        playerNumHighlights[0, randomFlash].enabled = true;
+                        playerNumHighlights[0, randomFlash].color = Color.white;
+                    }
+
+                    yield return new WaitForSeconds(delay);
+
+                    if (playerItemHighlights[0, randomFlash] != null)
+                    {
+                        playerItemHighlights[0, randomFlash].enabled = false;
+                        playerItemHighlights[0, randomFlash].color = playerColors[0];
+                    }
+                    if (playerNumHighlights[0, randomFlash] != null)
+                    {
+                        playerNumHighlights[0, randomFlash].enabled = false;
+                        playerNumHighlights[0, randomFlash].color = playerColors[0];
+                    }
+
+                    currentSpinTime += delay;
+                    delay += 0.02f;
+                }
             }
 
-            if (winnerIndex != -1)
-                addedPowerUp = powerUps[winnerIndex];
-        }
-/*        //addedPowerUp.added = true;
+            int randIndex = Random.Range(0, winners.Count);
+            finalWinnerIndex = winners[randIndex];
+            addedPowerUp = powerUps[finalWinnerIndex];
 
-        for (int i = 0; i < powerUpRegistry.Count; i++)
-        {
-            if (powerUpRegistry[i] == addedPowerUp)
+            if (playerItemHighlights[0, finalWinnerIndex] != null)
             {
-                //powerUpRegistry[i].added = true;
-                break;
+                playerItemHighlights[0, finalWinnerIndex].enabled = true;
+                playerItemHighlights[0, finalWinnerIndex].color = Color.yellow;
             }
-        }*/
+            if (playerNumHighlights[0, finalWinnerIndex] != null)
+            {
+                playerNumHighlights[0, finalWinnerIndex].enabled = true;
+                playerNumHighlights[0, finalWinnerIndex].color = Color.yellow;
+            }
 
-        if (addedPowerUp)
+            yield return new WaitForSeconds(1.5f);
+        }
+
+        if (addedPowerUp != null)
+        {
             RoundManager.Instance.powerUpsInRotation.Add(addedPowerUp.powerup);
-        
+        }
+
         RoundManager.Instance.switchRoundScene();
     }
 
-    private void setupButtons()
+    private void setupItems()
     {
         powerUps = new List<ItemData>();
-        amtOfButtons = shopButtons.Length;
+        amtOfItems = itemSlots.Length;
 
-        // list of available items we haven't had yet
+        // 1. Gather what items are available
         List<ItemData> availableItems = new List<ItemData>();
         foreach (ItemData item in powerUpRegistry)
         {
@@ -263,72 +359,92 @@ public class ShopManager : MonoBehaviour
             }
         }
 
-        int numButtonsToSetup = Mathf.Min(buttonTexts.Length, availableItems.Count);
-
-        // hashset to remove the possibility of selecting the same item twice
-        HashSet<int> chosenIndexes = new HashSet<int>();
-
-        for (int i = 0; i < numButtonsToSetup; i++)
+        // 2. Randomly shuffle the available items!
+        List<ItemData> shuffledItems = new List<ItemData>(availableItems);
+        for (int i = 0; i < shuffledItems.Count; i++)
         {
-            int randIndex;
-            ItemData randItem;
-
-            // picking a random index until we find one we haven't used
-            do
-            {
-                randIndex = Random.Range(0, availableItems.Count);
-                randItem = availableItems[randIndex];
-            }
-            while (chosenIndexes.Contains(randIndex));
-
-            // add the unique index to the set
-            chosenIndexes.Add(randIndex);
-
-            // assign the item data to the button
-            buttonTexts[i].text = randItem.itemName;
-            buttonDescs[i].text = randItem.desc;
-
-            powerUps.Add(randItem);
+            ItemData temp = shuffledItems[i];
+            int randomIndex = Random.Range(i, shuffledItems.Count);
+            shuffledItems[i] = shuffledItems[randomIndex];
+            shuffledItems[randomIndex] = temp;
         }
 
-        // change text if we run out of unique items
-        for (int i = numButtonsToSetup; i < buttonTexts.Length; i++)
+        int numItemsToSetup = Mathf.Min(itemSlots.Length, shuffledItems.Count);
+
+        // 3. Lock the shuffled items into the visual slots
+        for (int i = 0; i < itemSlots.Length; i++)
         {
-            buttonTexts[i].text = "SOLD OUT";
-            buttonDescs[i].text = "";
-            amtOfButtons--;
+            if (i < numItemsToSetup)
+            {
+                ItemData chosenItem = shuffledItems[i];
+                powerUps.Add(chosenItem);
+                isSoldOut[i] = false;
+
+                // THIS is what changes the picture in the frame!
+                if (itemSlots[i] != null && chosenItem.itemIcon != null)
+                {
+                    itemSlots[i].sprite = chosenItem.itemIcon;
+                }
+
+                if (numberIconObjects.Length > i && numberIconObjects[i] != null)
+                {
+                    numberIconObjects[i].SetActive(true);
+                }
+            }
+            else
+            {
+                // Fill the rest with Sold Out signs
+                isSoldOut[i] = true;
+                powerUps.Add(null);
+
+                if (itemSlots[i] != null && soldOutSprite != null)
+                {
+                    itemSlots[i].sprite = soldOutSprite;
+                }
+
+                if (numberIconObjects.Length > i && numberIconObjects[i] != null)
+                {
+                    numberIconObjects[i].SetActive(false);
+                }
+                amtOfItems--;
+            }
         }
     }
 
     private void SetupHighlights()
     {
-        int playerCount = Mathf.Min(GameManager.Instance.playerCount, Gamepad.all.Count);
+        int safePlayerCount = Mathf.Min(GameManager.Instance.playerCount, 4);
 
-        for (int p = 0; p < playerCount; p++)
+        for (int p = 0; p < safePlayerCount; p++)
         {
-            for (int b = 0; b < shopButtons.Length; b++)
+            for (int b = 0; b < itemSlots.Length; b++)
             {
-                // Create highlight overlay as a child of the button
-                GameObject highlightObj = new GameObject($"Player{p + 1}_Highlight_Button{b + 1}");
-                highlightObj.transform.SetParent(shopButtons[b].transform, false);
+                GameObject itemHighlightObj = new GameObject($"Player{p + 1}_Highlight_Item{b + 1}");
+                itemHighlightObj.transform.SetParent(itemSlots[b].transform, false);
+                Image itemImg = itemHighlightObj.AddComponent<Image>();
+                itemImg.color = playerColors[p];
+                itemImg.raycastTarget = false;
+                RectTransform rtItem = itemHighlightObj.GetComponent<RectTransform>();
+                rtItem.anchorMin = Vector2.zero; rtItem.anchorMax = Vector2.one;
+                rtItem.offsetMin = Vector2.zero; rtItem.offsetMax = Vector2.zero;
+                Color cItem = itemImg.color; cItem.a = 0.40f; itemImg.color = cItem;
+                itemImg.enabled = false;
+                playerItemHighlights[p, b] = itemImg;
 
-                Image img = highlightObj.AddComponent<Image>();
-                img.color = playerColors[p]; // blue, red, green, yellow
-                img.raycastTarget = false; 
-
-                RectTransform rt = highlightObj.GetComponent<RectTransform>();
-                rt.anchorMin = new Vector2(0, 0);
-                rt.anchorMax = new Vector2(1, 1);
-                rt.offsetMin = Vector2.zero;
-                rt.offsetMax = Vector2.zero;
-
-                // Make it slightly transparent
-                Color c = img.color;
-                c.a = 0.25f; // Adjust transparency here
-                img.color = c;
-
-                img.enabled = false; // start off
-                playerHighlights[p, b] = img;
+                if (numberIconObjects.Length > b && numberIconObjects[b] != null)
+                {
+                    GameObject numHighlightObj = new GameObject($"Player{p + 1}_Highlight_Num{b + 1}");
+                    numHighlightObj.transform.SetParent(numberIconObjects[b].transform, false);
+                    Image numImg = numHighlightObj.AddComponent<Image>();
+                    numImg.color = playerColors[p];
+                    numImg.raycastTarget = false;
+                    RectTransform rtNum = numHighlightObj.GetComponent<RectTransform>();
+                    rtNum.anchorMin = Vector2.zero; rtNum.anchorMax = Vector2.one;
+                    rtNum.offsetMin = Vector2.zero; rtNum.offsetMax = Vector2.zero;
+                    Color cNum = numImg.color; cNum.a = 0.40f; numImg.color = cNum;
+                    numImg.enabled = false;
+                    playerNumHighlights[p, b] = numImg;
+                }
             }
         }
     }

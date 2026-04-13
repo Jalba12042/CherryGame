@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerDash : MonoBehaviour
@@ -10,23 +11,36 @@ public class PlayerDash : MonoBehaviour
     public float dashCooldown = 1f;
     public bool allowAirDash = true;
 
+    [Header("Dash Combat")]
+    public float hitForce = 10f;
+
     private Rigidbody rb;
     private Playermovement movement;
     private bool isDashing = false;
     private bool canDash = true;
-
     private float dashTimer;
 
     [Header("Dash UI")]
     public GameObject dashBarObject; // whole UI object
     public UnityEngine.UI.Image dashFillImage;
-
     private float dashCooldownTimer = 0f;
+
+    [Header("Audio")]
+    public AudioClip dashSound;
+    private AudioSource audioSource; // NEW: Dedicated audio source
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         movement = GetComponent<Playermovement>();
+
+        // NEW: Foolproof AudioSource grabber
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+        }
     }
 
     void Update()
@@ -52,7 +66,6 @@ public class PlayerDash : MonoBehaviour
             if (movement.assignedGamepad != null &&
                 movement.assignedGamepad.buttonWest.wasPressedThisFrame) // X on Xbox
             {
-                Debug.Log("Dash Button Pressed");
                 dashPressed = true;
             }
         }
@@ -91,11 +104,16 @@ public class PlayerDash : MonoBehaviour
         canDash = false;
         movement.canMove = false;
         dashTimer = dashDuration;
-
         dashCooldownTimer = dashCooldown;
 
         if (dashBarObject != null)
             dashBarObject.SetActive(true);
+
+        // NEW: Play the dash sound!
+        if (dashSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(dashSound);
+        }
 
         Vector3 dashDirection = transform.forward;
 
@@ -114,5 +132,40 @@ public class PlayerDash : MonoBehaviour
 
         if (dashBarObject != null)
             dashBarObject.SetActive(false);
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        // Only do this if YOU are currently dashing
+        if (!isDashing) return;
+
+        // Check if we hit another player
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            Rigidbody otherRb = collision.gameObject.GetComponent<Rigidbody>();
+
+            if (otherRb != null)
+            {
+                Playermovement otherPlayer = collision.gameObject.GetComponent<Playermovement>();
+
+                Vector3 pushDir = (collision.transform.position - transform.position).normalized;
+                pushDir.y = 0f;
+
+                // Apply velocity directly (stronger than AddForce)
+                otherRb.linearVelocity = pushDir * hitForce;
+
+                if (otherPlayer != null)
+                {
+                    otherPlayer.isKnockedBack = true;
+                    StartCoroutine(EndKnockback(otherPlayer, 0.3f));
+                }
+            }
+        }
+    }
+
+    IEnumerator EndKnockback(Playermovement player, float time)
+    {
+        yield return new WaitForSeconds(time);
+        player.isKnockedBack = false;
     }
 }

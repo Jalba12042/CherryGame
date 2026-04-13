@@ -44,6 +44,9 @@ public class Playermovement : MonoBehaviour
     public bool isGrounded;
     public bool isAiming = false;
 
+    [Header("Knockback")]
+    public bool isKnockedBack = false;
+
     [Header("Footstep Audio")]
     [SerializeField] private AudioSource footstepSource;
     [SerializeField] private AudioClip grassClip;
@@ -88,7 +91,7 @@ public class Playermovement : MonoBehaviour
     private void FixedUpdate()
     {
         //if (assignedGamepad == null || !canMove) return;
-        if (!canMove) return;
+        if (!canMove || isKnockedBack) return;
 
         // --- Movement ---
         moveInput = GameManager.Instance.isOnKeyboard ? new Vector2(Input.GetAxis("HorizontalWASD"), Input.GetAxis("VerticalWASD")) : assignedGamepad.leftStick.ReadValue();

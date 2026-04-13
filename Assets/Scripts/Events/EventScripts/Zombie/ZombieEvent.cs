@@ -53,7 +53,7 @@ public class ZombieEvent : GameEvent
                 }
                 else
                 {
-                    Debug.LogWarning($"Could not find valid spawn for zombie {i} after {maxAttempts} attempts — skipping.");
+                    Debug.LogWarning($"Could not find valid spawn for zombie {i} after {maxAttempts} attempts ï¿½ skipping.");
                 }
             }
         }

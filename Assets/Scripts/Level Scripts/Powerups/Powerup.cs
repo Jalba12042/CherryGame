@@ -61,7 +61,7 @@ public class Powerup : MonoBehaviour
             StopCoroutine(activeTimer);
         }
 
-        if (powerupHandler.currPowerups[powerUpID])
+        /*if (powerupHandler.currPowerups[powerUpID])
         {
             // Find and stop the old powerup instance
             Powerup oldPowerup = powerupHandler.activePowerupInstances[powerUpID];
@@ -71,6 +71,16 @@ public class Powerup : MonoBehaviour
                 oldPowerup.ForceStop();
             }
             Debug.Log($"{puName} timer reset for {pc.name}");
+        }*/
+        if (powerupHandler.currPowerups[powerUpID])
+        {
+            Powerup oldPowerup = powerupHandler.activePowerupInstances[powerUpID];
+            if (oldPowerup != null)
+            {
+                oldPowerup.ResetTimer(duration);
+                Destroy(gameObject); // destroy the new pickup
+                return;
+            }
         }
         else
         {
@@ -104,6 +114,16 @@ public class Powerup : MonoBehaviour
         powerUpEnd();
         isActive = false;
         activeTimer = null;
+    }
+
+    public void ResetTimer(float newDuration)
+    {
+        if (activeTimer != null)
+        {
+            StopCoroutine(activeTimer);
+        }
+
+        activeTimer = StartCoroutine(StartTimer());
     }
 
     public void ForceStop()

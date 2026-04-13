@@ -1022,8 +1022,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.03975071, y: 0.038526677, z: 0.022545775}
-  m_Center: {x: 0.0005014048, y: 0.0025508443, z: 0.003122139}
+  m_Size: {x: 0.03975071, y: 0.038526677, z: 0.02106128}
+  m_Center: {x: 0.00050140574, y: 0.0025508443, z: 0.0023798672}
 --- !u!1 &2749196654933933932
 GameObject:
   m_ObjectHideFlags: 0
@@ -1913,6 +1913,7 @@ GameObject:
   - component: {fileID: 9015230482124953171}
   - component: {fileID: 4544566574231138003}
   - component: {fileID: 211163121312177149}
+  - component: {fileID: 4384681845203961599}
   m_Layer: 10
   m_Name: Face
   m_TagString: Untagged
@@ -2043,8 +2044,106 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 604f215b68c3c584eb3ac0cf3f916155, type: 3}
   minPitch: 1
   maxPitch: 2
+  screamVolume: 1
   aSource: {fileID: 0}
   faceAnimator: {fileID: 4544566574231138003}
+--- !u!82 &4384681845203961599
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5701349777857999640}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 4913995471313953567, guid: 54e82fe3da01e834fb158a66ea97067a, type: 2}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &5804837829021357102
 GameObject:
   m_ObjectHideFlags: 0
@@ -3391,8 +3490,10 @@ MonoBehaviour:
   dashDuration: 0.15
   dashCooldown: 3
   allowAirDash: 1
+  hitForce: 50
   dashBarObject: {fileID: 675942118702846967}
   dashFillImage: {fileID: 7825270283048170634}
+  dashSound: {fileID: 8300000, guid: 6965d4a065ca6004d88986a1ca596361, type: 3}
 --- !u!114 &41535873979419944
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3435,7 +3536,10 @@ MonoBehaviour:
   pickupSource: {fileID: 2881747651821587375}
   pickupClip: {fileID: 8300000, guid: 270772c070e108941b257f2a8951630e, type: 3}
   dropClip: {fileID: 8300000, guid: 10335e0f8a2462f4a9a65ae22f317080, type: 3}
-  pickupRadius: 3.48
+  cherryLayer:
+    serializedVersion: 2
+    m_Bits: 16384
+  pickupRadius: 6
 --- !u!114 &3618199223766623653
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3449,7 +3553,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isBig: 0
-  itemJumpForce: 7
+  itemJumpForce: 20
   taseForce: 15
   stunDuration: 3
   isTasing: 0
@@ -3586,7 +3690,7 @@ AudioSource:
   m_GameObject: {fileID: 5896580224650156824}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -6528223651065312789, guid: 54e82fe3da01e834fb158a66ea97067a, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
