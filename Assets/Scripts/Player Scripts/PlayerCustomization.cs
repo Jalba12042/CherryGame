@@ -7,6 +7,10 @@ public class PlayerCustomization : MonoBehaviour
     public GameObject[] headOptions;
     public GameObject[] torsoOptions;
     public GameObject[] bottomOptions;
+    public int playerIndex; 
+
+
+    public Material[] colorMaterials;
 
     private int currentHeadIndex = -1;
     private int currentTorsoIndex = -1;
@@ -34,7 +38,7 @@ public class PlayerCustomization : MonoBehaviour
         }
     }
 
-    void EnableOne(GameObject[] options, int index)
+    public void EnableOne(GameObject[] options, int index)
     {
         if (options == null) return;
 
@@ -97,5 +101,28 @@ public class PlayerCustomization : MonoBehaviour
             currentBottomIndex = max;
 
         EnableOne(bottomOptions, currentBottomIndex);
+    }
+
+    public void ApplyFromData(PlayerCustomizationData data)
+    {
+        Initialize();
+
+        // HEAD
+        if (data.headIndex >= 0)
+            EnableOne(headOptions, data.headIndex);
+
+        // TORSO
+        if (data.torsoIndex >= 0)
+            EnableOne(torsoOptions, data.torsoIndex);
+
+        // BOTTOM
+        if (data.bottomIndex >= 0)
+            EnableOne(bottomOptions, data.bottomIndex);
+
+        // COLOR
+        if (colorMaterials != null && data.colorIndex >= 0 && data.colorIndex < colorMaterials.Length)
+        {
+            ApplyBodyMaterial(colorMaterials[data.colorIndex]);
+        }
     }
 }

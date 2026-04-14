@@ -201,6 +201,17 @@ public class RoundManager : MonoBehaviour
                 int assignedControllerIndex = GameManager.Instance.controllerAssignments[i];
 
                 GameObject playerObj = Instantiate(playerPrefab, currPlayerSpawn.spawnPoints[i].position, Quaternion.identity);
+
+                var customization = playerObj.GetComponentInChildren<PlayerCustomization>();
+
+                if (customization != null && GameManager.Instance.playerCustomizations.Count > i)
+                {
+                    customization.playerIndex = i;
+
+                    var data = GameManager.Instance.playerCustomizations[i];
+                    customization.ApplyFromData(data);
+                }
+
                 Playermovement player = playerObj.GetComponentInChildren<Playermovement>();
                 player.playerIndex = i;
                 player.GetComponent<PlayerEscapeUI>().playerIndex = i;
