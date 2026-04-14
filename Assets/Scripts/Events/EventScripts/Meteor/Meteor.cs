@@ -5,11 +5,14 @@ public class Meteor : MonoBehaviour
     private Rigidbody rb;
     [SerializeField] private float extraGravity = 20f;
     private ScreenShake ss;
+    private EnvironmentEffects ee;
+    [SerializeField] private float moveForce;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
         ss = FindFirstObjectByType<ScreenShake>();
+        ee = FindAnyObjectByType<EnvironmentEffects>();
     }
 
     void FixedUpdate()
@@ -25,7 +28,8 @@ public class Meteor : MonoBehaviour
             pk.killPlayer();
         }
 
-        ss.Shake();
+        ss?.Shake();
+        ee?.bigImpact(moveForce, null);
         // add explosion effect here
         Destroy(gameObject);
     }

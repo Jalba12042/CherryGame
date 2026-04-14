@@ -9,12 +9,17 @@ public class GrowPowerup : Powerup
     [SerializeField] private float grownMinPitch;
     [SerializeField] private float grownMaxPitch;
     [SerializeField] private float pitchTime;
+    [SerializeField] private float growthModifier;
+    [SerializeField] private float newGCOffset;
+    private GroundCheck gc;
     private float ogMinPitch;
     private float ogMaxPitch;
     private Scream screamScript;
     private float originalSpeed;
     private Vector3 originalSize;
     private PlayerEffects playerEffects;
+    private float originalGCDist;
+    private float originalGCOffset;
 
     [Header("Audio")]
     public AudioClip growSound;
@@ -24,6 +29,7 @@ public class GrowPowerup : Powerup
     {
         base.powerUpEffect();
 
+        gc = playerModel.GetComponent<GroundCheck>();
         playerEffects = playerModel.GetComponent<PlayerEffects>();
         screamScript = playerModel.GetComponentInChildren<Scream>();
 
@@ -46,6 +52,11 @@ public class GrowPowerup : Powerup
 
         originalSpeed = pc.moveSpeed;
         originalSize = playerModel.transform.localScale;
+
+        originalGCDist = gc.groundCheckDistance;
+        gc.groundCheckDistance *= growthModifier;
+        originalGCOffset = gc.groundCheckOffset.y;
+        gc.groundCheckOffset.y = newGCOffset;
 
         if (screamScript != null)
         {
@@ -121,6 +132,8 @@ public class GrowPowerup : Powerup
         base.powerUpEnd();
 
         pc.moveSpeed = originalSpeed;
+        gc.groundCheckDistance = originalGCDist;
+        gc.groundCheckOffset.y = originalGCOffset;
 
         if (screamScript != null)
         {

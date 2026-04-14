@@ -19,6 +19,7 @@ public class PlayerDash : MonoBehaviour
     private bool isDashing = false;
     private bool canDash = true;
     private float dashTimer;
+    private GroundCheck gc;
 
     [Header("Dash UI")]
     public GameObject dashBarObject; // whole UI object
@@ -33,6 +34,7 @@ public class PlayerDash : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         movement = GetComponent<Playermovement>();
+        gc = GetComponent<GroundCheck>();
 
         // NEW: Foolproof AudioSource grabber
         audioSource = GetComponent<AudioSource>();
@@ -77,7 +79,7 @@ public class PlayerDash : MonoBehaviour
 
         if (dashPressed)
         {
-            if (movement.isGrounded || allowAirDash)
+            if (gc.isGrounded || allowAirDash)
             {
                 StartDash();
             }
