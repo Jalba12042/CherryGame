@@ -118,10 +118,10 @@ public class UFO : MonoBehaviour
 
         stateTimer += Time.deltaTime;
 
-        if (stateTimer > 5f)
+        if (stateTimer > 3f)
         {
-            myEvent.isRunning = false;
             playerKill.killPlayer();
+            myEvent.isRunning = false;
             Destroy(gameObject);
         }
     }
