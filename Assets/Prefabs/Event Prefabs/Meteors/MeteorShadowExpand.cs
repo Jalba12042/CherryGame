@@ -3,7 +3,6 @@ using UnityEngine;
 public class MeteorShadowExpand : MonoBehaviour
 {
     public Transform fallingObject;
-
     public LayerMask groundLayer;
 
     [Header("Distance Settings")]
@@ -12,16 +11,21 @@ public class MeteorShadowExpand : MonoBehaviour
     public float maxScale = 50f;
 
     [Header("Color Settings")]
-    public Color farColor = new Color(0.5f, 0.5f, 0.5f, 1f);
-    public Color closeColor = new Color(0f, 0f, 0f, 1f);
+    public Color farColor = Color.gray;
+    public Color closeColor = Color.black;
 
     [Header("Fade Settings")]
     public float fadeSpeed = 5f;
-    public float impactThreshold = 0.2f;
+    public float impactThreshold = 0.5f;
+
+    [Header("Impact Effect")]
+    public SpawnCrack crackSpawner;
 
     private Renderer rend;
     private Material mat;
     private bool fadingOut = false;
+    private bool impactTriggered = false;
+
 
     void Start()
     {
@@ -45,23 +49,23 @@ public class MeteorShadowExpand : MonoBehaviour
             return;
         }
 
-        Debug.DrawRay(fallingObject.position, Vector3.down * maxDistance, Color.red);
-
         RaycastHit hit;
 
+        // IMPORTANT: raycast downward
         if (Physics.Raycast(fallingObject.position, Vector3.down, out hit, maxDistance, groundLayer))
         {
             float distance = hit.distance;
 
-            transform.position = hit.point + Vector3.up * 0.05f;
-
             float t = 1f - Mathf.Clamp01(distance / maxDistance);
 
+            // SCALE SHADOW
             float scale = Mathf.Lerp(minScale, maxScale, t);
             transform.localScale = new Vector3(scale, scale, scale);
 
+            // DARKEN SHADOW
             mat.color = Color.Lerp(farColor, closeColor, t);
 
+            // IMPACT
             if (distance <= impactThreshold)
             {
                 fadingOut = true;
@@ -72,12 +76,20 @@ public class MeteorShadowExpand : MonoBehaviour
     void FadeOut()
     {
         Color currentColor = mat.color;
-        currentColor.a = Mathf.Lerp(currentColor.a, 0f, Time.deltaTime * fadeSpeed);
+        currentColor.a -= Time.deltaTime * fadeSpeed;
+        currentColor.a = Mathf.Clamp01(currentColor.a);
+
         mat.color = currentColor;
 
         if (currentColor.a <= 0.01f)
         {
+            if (!impactTriggered && crackSpawner != null)
+            {
+                impactTriggered = true;
+            }
+
             gameObject.SetActive(false);
         }
     }
+
 }
