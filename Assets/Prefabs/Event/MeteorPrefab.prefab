@@ -165,6 +165,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   extraGravity: 30
   moveForce: 10
+  crackPrefab: {fileID: 3494914622607288966, guid: a9c5a6ae8fcc17442b13cc7f891a7a3b, type: 3}
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 65536
 --- !u!1001 &2812382034352114629
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -173,26 +177,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1239364506143205921}
     m_Modifications:
-    - target: {fileID: 3214631086235585641, guid: 7792b3d207d8c7f4589dc73dee4f199c, type: 3}
-      propertyPath: maxScale
-      value: 200
-      objectReference: {fileID: 0}
-    - target: {fileID: 3214631086235585641, guid: 7792b3d207d8c7f4589dc73dee4f199c, type: 3}
-      propertyPath: minScale
-      value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 3214631086235585641, guid: 7792b3d207d8c7f4589dc73dee4f199c, type: 3}
-      propertyPath: maxDistance
-      value: 150
-      objectReference: {fileID: 0}
-    - target: {fileID: 3214631086235585641, guid: 7792b3d207d8c7f4589dc73dee4f199c, type: 3}
-      propertyPath: fallingObject
-      value: 
-      objectReference: {fileID: 1239364506143205921}
-    - target: {fileID: 3214631086235585641, guid: 7792b3d207d8c7f4589dc73dee4f199c, type: 3}
-      propertyPath: groundLayer.m_Bits
-      value: 128
-      objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 7837e2c1167d8964e98ed679725d7fa1, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.6984849
@@ -249,6 +233,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: MeteorShadow
       objectReference: {fileID: 0}
+    - target: {fileID: 3214631086235585641, guid: 7792b3d207d8c7f4589dc73dee4f199c, type: 3}
+      propertyPath: maxScale
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 3214631086235585641, guid: 7792b3d207d8c7f4589dc73dee4f199c, type: 3}
+      propertyPath: minScale
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 3214631086235585641, guid: 7792b3d207d8c7f4589dc73dee4f199c, type: 3}
+      propertyPath: maxDistance
+      value: 150
+      objectReference: {fileID: 0}
+    - target: {fileID: 3214631086235585641, guid: 7792b3d207d8c7f4589dc73dee4f199c, type: 3}
+      propertyPath: fallingObject
+      value: 
+      objectReference: {fileID: 1239364506143205921}
+    - target: {fileID: 3214631086235585641, guid: 7792b3d207d8c7f4589dc73dee4f199c, type: 3}
+      propertyPath: groundLayer.m_Bits
+      value: 128
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -282,7 +286,7 @@ MonoBehaviour:
   fallingObject: {fileID: 1239364506143205921}
   groundLayer:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 65536
   maxDistance: 150
   minScale: 100
   maxScale: 200

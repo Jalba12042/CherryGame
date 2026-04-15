@@ -18,13 +18,12 @@ public class MeteorShadowExpand : MonoBehaviour
     public float fadeSpeed = 5f;
     public float impactThreshold = 0.5f;
 
-    [Header("Impact Effect")]
-    public SpawnCrack crackSpawner;
-
     private Renderer rend;
     private Material mat;
     private bool fadingOut = false;
     private bool impactTriggered = false;
+
+    private Vector3 impactPoint;
 
 
     void Start()
@@ -54,6 +53,11 @@ public class MeteorShadowExpand : MonoBehaviour
         // IMPORTANT: raycast downward
         if (Physics.Raycast(fallingObject.position, Vector3.down, out hit, maxDistance, groundLayer))
         {
+
+            impactPoint = hit.point;
+
+            transform.position = hit.point + Vector3.up * 0.1f;
+
             float distance = hit.distance;
 
             float t = 1f - Mathf.Clamp01(distance / maxDistance);
@@ -83,7 +87,7 @@ public class MeteorShadowExpand : MonoBehaviour
 
         if (currentColor.a <= 0.01f)
         {
-            if (!impactTriggered && crackSpawner != null)
+            if (!impactTriggered)
             {
                 impactTriggered = true;
             }

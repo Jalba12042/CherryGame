@@ -3,18 +3,13 @@ using System.Collections;
 
 public class SpawnCrack : MonoBehaviour
 {
+    public Vector3 targetScale = new Vector3(35.15f, 3.13f, 35.15f);
+
+
     public float growScale = 8f;
     public float growSpeed = 8f;
     public float stayDuration = 2f;
     public float shrinkSpeed = 2f;
-
-    private Vector3 targetScale;
-
-    void Start()
-    {
-        targetScale = new Vector3(growScale, 1f, growScale);
-        transform.localScale = Vector3.zero;
-    }
 
     public void TriggerCrack()
     {
@@ -28,12 +23,12 @@ public class SpawnCrack : MonoBehaviour
         transform.localScale = Vector3.zero;
 
         // grow
-        while (Vector3.Distance(transform.localScale, targetScale) > 0.1f)
+        while (Vector3.Distance(transform.localScale, targetScale) > 0.01f)
         {
-            transform.localScale = Vector3.Lerp(
+            transform.localScale = Vector3.MoveTowards(
                 transform.localScale,
                 targetScale,
-                Time.deltaTime * growSpeed
+                growSpeed * Time.deltaTime
             );
 
             yield return null;
@@ -44,10 +39,10 @@ public class SpawnCrack : MonoBehaviour
         // shrink
         while (transform.localScale.magnitude > 0.1f)
         {
-            transform.localScale = Vector3.Lerp(
+            transform.localScale = Vector3.MoveTowards(
                 transform.localScale,
                 Vector3.zero,
-                Time.deltaTime * shrinkSpeed
+                shrinkSpeed * Time.deltaTime
             );
 
             yield return null;
