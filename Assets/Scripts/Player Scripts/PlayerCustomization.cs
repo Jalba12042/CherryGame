@@ -20,6 +20,8 @@ public class PlayerCustomization : MonoBehaviour
     public int GetTorsoIndex() => currentTorsoIndex;
     public int GetBottomIndex() => currentBottomIndex;
 
+    public int CurrentColorIndex { get; private set; }
+
     public void Initialize()
     {
         // Disable everything at start
@@ -49,10 +51,13 @@ public class PlayerCustomization : MonoBehaviour
         }
     }
 
-    public void ApplyBodyMaterial(Material mat)
+    public void ApplyBodyMaterial(Material mat, int colorIndex)
     {
         if (bodyRenderer != null && mat != null)
+        {
             bodyRenderer.material = mat;
+            CurrentColorIndex = colorIndex;
+        }
     }
 
     public void ChangeHead(int dir)
@@ -122,7 +127,7 @@ public class PlayerCustomization : MonoBehaviour
         // COLOR
         if (colorMaterials != null && data.colorIndex >= 0 && data.colorIndex < colorMaterials.Length)
         {
-            ApplyBodyMaterial(colorMaterials[data.colorIndex]);
+            ApplyBodyMaterial(colorMaterials[data.colorIndex], data.colorIndex);
         }
     }
 }

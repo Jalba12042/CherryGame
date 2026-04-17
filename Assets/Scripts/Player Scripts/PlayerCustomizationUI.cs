@@ -100,7 +100,7 @@ public class PlayerCustomizationUI : MonoBehaviour
         var customization = playerModel.GetComponentInChildren<PlayerCustomization>();
         if (customization == null) return;
 
-        customization.ApplyBodyMaterial(colorMaterials[currentColorIndex]);
+        customization.ApplyBodyMaterial(colorMaterials[currentColorIndex], currentColorIndex);
     }
 
     public void SetColorIndex(int index, GameObject playerModel)

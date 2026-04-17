@@ -336,6 +336,7 @@ public class PlayerJoinController : MonoBehaviour
             if (ui != null)
             {
                 data.colorIndex = ui.GetCurrentColorIndex();
+                Debug.Log($"Saving Player {i} Color: {data.colorIndex}");
                 data.nameIndex = ui.GetCurrentNameIndex();
             }
 
