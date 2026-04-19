@@ -169,6 +169,12 @@ public class Projectile : MonoBehaviour
     {
         heldCherry = cherryObject;
         isHoldingCherry = true;
+        Cherry cherryScript = cherryObject.GetComponent<Cherry>();
+
+        if (cherryScript != null)
+        {
+            cherryScript.isHeld = true;
+        }
 
         cherryTrail = heldCherry.GetComponent<TrailRenderer>();
         if (cherryTrail != null)
@@ -256,6 +262,12 @@ public class Projectile : MonoBehaviour
 
         Rigidbody rb = heldCherry.GetComponent<Rigidbody>();
         heldCherry.transform.SetParent(null);
+
+        Cherry cherryScript = heldCherry.GetComponent<Cherry>();
+        if (cherryScript != null)
+        {
+            cherryScript.isHeld = false;
+        }
 
         cherryTrail = heldCherry.GetComponent<TrailRenderer>();
 
