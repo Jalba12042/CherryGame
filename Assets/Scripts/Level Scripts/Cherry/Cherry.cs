@@ -4,6 +4,8 @@ using System.Collections;
 public class Cherry : MonoBehaviour
 {
     [HideInInspector] public bool ignoreBasketPull = false;
+    public bool isHeld = false;
+    public GameObject playerHolding;
 
     public IEnumerator TemporarilyIgnoreBasket(float duration)
     {

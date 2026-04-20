@@ -13,6 +13,15 @@ public class FakeLoadingScreen : MonoBehaviour
     public string[] tips;
     public float tipInterval = 2f;
 
+
+    [Header("Ready Up UI")]
+    private Gamepad[] controllers;
+    public GameObject[] playerReadyIcons; // P1–P4
+
+    private bool[] playerReady = new bool[4];
+    private int totalPlayers;
+    private int readyCount;
+
     // NEW: We added the slot for your Timer Manager right here!
     public TimerUIManager timerManager;
 
@@ -69,6 +78,25 @@ public class FakeLoadingScreen : MonoBehaviour
                 if (cherry != null) cherry.SetActive(true);
             }
         }
+
+        if (GameManager.Instance != null)
+            totalPlayers = GameManager.Instance.playerCount;
+        else
+            totalPlayers = 0;
+
+        // Reset UI + state
+        for (int i = 0; i < playerReadyIcons.Length; i++)
+        {
+            if (playerReadyIcons[i] != null)
+                playerReadyIcons[i].SetActive(false);
+
+            playerReady[i] = false;
+        }
+
+        readyCount = 0;
+
+        // Grab controllers (optional fallback, not main system)
+        controllers = Gamepad.all.ToArray();
     }
 
     private void Update()
@@ -133,13 +161,33 @@ public class FakeLoadingScreen : MonoBehaviour
             return; // Stop checking controllers if mouse was clicked
         }
 
-        // Wait for "A" on ANY player's gamepad
-        foreach (var pad in UnityEngine.InputSystem.Gamepad.all)
+        for (int c = 0; c < controllers.Length; c++)
         {
+            Gamepad pad = controllers[c];
+            if (pad == null) continue;
+
             if (pad.buttonSouth.wasPressedThisFrame)
             {
-                BeginRound();
-                break;
+                // Find which player owns this controller
+                for (int i = 0; i < totalPlayers; i++)
+                {
+                    if (GameManager.Instance != null &&
+                        GameManager.Instance.controllerAssignments[i] == c)
+                    {
+                        if (!playerReady[i])
+                        {
+                            playerReady[i] = true;
+                            readyCount++;
+
+                            if (playerReadyIcons[i] != null)
+                                playerReadyIcons[i].SetActive(true);
+                        }
+                    }
+                }
+                if (readyCount >= totalPlayers && totalPlayers > 0)
+                {
+                    BeginRound();
+                }
             }
         }
     }
