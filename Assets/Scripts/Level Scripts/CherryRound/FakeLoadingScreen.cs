@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using TMPro;
@@ -16,7 +16,7 @@ public class FakeLoadingScreen : MonoBehaviour
 
     [Header("Ready Up UI")]
     private Gamepad[] controllers;
-    public GameObject[] playerReadyIcons; // P1�P4
+    public Image[] playerReadyIcons;
 
     private bool[] playerReady = new bool[4];
     private int totalPlayers;
@@ -45,6 +45,9 @@ public class FakeLoadingScreen : MonoBehaviour
     private int currentTip = 0;
 
     private bool roundStarted = false;
+
+    [Header("Color Icons")]
+    public Sprite[] colorIcons; // index matches colorIndex
 
     private void Start()
     {
@@ -88,7 +91,10 @@ public class FakeLoadingScreen : MonoBehaviour
         for (int i = 0; i < playerReadyIcons.Length; i++)
         {
             if (playerReadyIcons[i] != null)
-                playerReadyIcons[i].SetActive(false);
+            {
+                // ❌ DON'T show them yet
+                playerReadyIcons[i].gameObject.SetActive(false);
+            }
 
             playerReady[i] = false;
         }
@@ -180,7 +186,21 @@ public class FakeLoadingScreen : MonoBehaviour
                             readyCount++;
 
                             if (playerReadyIcons[i] != null)
-                                playerReadyIcons[i].SetActive(true);
+                            {
+                                playerReadyIcons[i].gameObject.SetActive(true);
+
+                                // Get color from GameManager
+                                if (GameManager.Instance != null &&
+                                    GameManager.Instance.playerCustomizations.Count > i)
+                                {
+                                    int colorIndex = GameManager.Instance.playerCustomizations[i].colorIndex;
+
+                                    if (colorIndex >= 0 && colorIndex < colorIcons.Length)
+                                    {
+                                        playerReadyIcons[i].sprite = colorIcons[colorIndex];
+                                    }
+                                }
+                            }
                         }
                     }
                 }
