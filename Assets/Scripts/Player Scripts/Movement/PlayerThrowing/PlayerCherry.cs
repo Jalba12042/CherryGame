@@ -132,7 +132,7 @@ public class PlayerCherry : MonoBehaviour
             CancelAimAndDrop();
         }
     }
-    private void CancelAimAndDrop()
+    public void CancelAimAndDrop()
     {
         if (heldCherry == null) return;
 
@@ -156,6 +156,12 @@ public class PlayerCherry : MonoBehaviour
 
         if (animator != null)
             animator.SetBool("isPickingUp", false);
+
+        Cherry cherryScript = heldCherry.GetComponent<Cherry>();
+        if (cherryScript != null)
+        {
+            cherryScript.isHeld = false;
+        }
 
         heldCherry = null;
     }

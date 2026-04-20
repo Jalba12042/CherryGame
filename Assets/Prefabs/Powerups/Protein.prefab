@@ -145,6 +145,8 @@ MonoBehaviour:
   grownMinPitch: 0.5
   grownMaxPitch: 0.75
   pitchTime: 2
+  growthModifier: 5
+  newGCOffset: 3
   growSound: {fileID: 8300000, guid: 39fee4244a81d4f41bd07c68a86624d0, type: 3}
 --- !u!114 &7649661978941439771
 MonoBehaviour:
@@ -159,7 +161,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isGrounded: 0
-  groundCheckDistance: 0
+  groundCheckDistance: 1
+  origin: {x: 0, y: 0, z: 0}
   groundLayer:
     serializedVersion: 2
     m_Bits: 0

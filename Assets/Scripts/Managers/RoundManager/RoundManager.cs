@@ -51,7 +51,7 @@ public class RoundManager : MonoBehaviour
 
     public int[] roundsWon = { 0, 0, 0, 0 };
 
-
+    private BasketContainer basketContainer;
     private void Awake()
     {
         if (Instance == null)
@@ -201,15 +201,41 @@ public class RoundManager : MonoBehaviour
                 int assignedControllerIndex = GameManager.Instance.controllerAssignments[i];
 
                 GameObject playerObj = Instantiate(playerPrefab, currPlayerSpawn.spawnPoints[i].position, Quaternion.identity);
+
+                var customization = playerObj.GetComponentInChildren<PlayerCustomization>();      
+
+                if (customization != null && GameManager.Instance.playerCustomizations.Count > i)
+                {
+                    customization.playerIndex = i;
+
+                    var data = GameManager.Instance.playerCustomizations[i];
+                    customization.ApplyFromData(data);
+                    Debug.Log($"Applying Player {i} Color: {data.colorIndex}");
+                }
+
+                if (basketContainer != null && i < basketContainer.baskets.Count)
+                {
+                    GameObject basketObj = basketContainer.baskets[i];
+
+                    BasketColorSync basket = basketObj.GetComponentInChildren<BasketColorSync>();
+
+                    Debug.Log($"Basket {i} found: {basket != null}");
+
+                    if (basket != null && customization != null)
+                    {
+                        basket.SetColor(customization.CurrentColorIndex);
+                    }
+                }
+
+           
+
                 Playermovement player = playerObj.GetComponentInChildren<Playermovement>();
                 player.playerIndex = i;
                 player.GetComponent<PlayerEscapeUI>().playerIndex = i;
 
                 if (assignedControllerIndex >= 0 && assignedControllerIndex < UnityEngine.InputSystem.Gamepad.all.Count)
                     player.assignedGamepad = UnityEngine.InputSystem.Gamepad.all[assignedControllerIndex];
-
-                PlayerColorAssigner colorAssigner = playerObj.GetComponentInChildren<PlayerColorAssigner>();
-                if (colorAssigner != null) colorAssigner.AssignColor(i);
+ 
 
                 Camera faceCam = player.GetComponentInChildren<Camera>();
                 if (faceCam != null && i < playerFaceRenderTextures.Length)
@@ -330,5 +356,22 @@ public class RoundManager : MonoBehaviour
                 player.canMove = value;
             }
         }
+    }
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        basketContainer = FindFirstObjectByType<BasketContainer>();
+
+        Debug.Log("BasketContainer found after scene load: " + basketContainer);
     }
 }

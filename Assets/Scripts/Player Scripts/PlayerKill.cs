@@ -54,6 +54,10 @@ public class PlayerKill : MonoBehaviour
             r.enabled = false;
         }
 
+        PlayerCherry playerCherry = GetComponent<PlayerCherry>();
+        if (playerCherry != null)
+            playerCherry.CancelAimAndDrop();
+
         pm.canMove = false;
         gameObject.layer = LayerMask.NameToLayer("Default");
         transform.position = RoundManager.Instance.currPlayerSpawn.spawnPoints[pm.playerIndex].position;

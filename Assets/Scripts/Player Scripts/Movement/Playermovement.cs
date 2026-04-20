@@ -18,9 +18,7 @@ public class Playermovement : MonoBehaviour
 
 
     [Header("Ground Check")]
-    [SerializeField] private Transform groundCheckPoint;
-    [SerializeField] private float groundCheckDistance = 0.4f;
-    [SerializeField] private LayerMask groundLayer;
+    public GroundCheck gc;
 
     [Header("Rotation Settings")]
     [SerializeField] private float rotationSpeed = 10f;
@@ -41,7 +39,6 @@ public class Playermovement : MonoBehaviour
 
     [Header("State")]
     public bool canMove = true;
-    public bool isGrounded;
     public bool isAiming = false;
 
     [Header("Knockback")]
@@ -67,6 +64,7 @@ public class Playermovement : MonoBehaviour
     {
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
+        gc = GetComponent<GroundCheck>();
 
         // Try to find Projectile if not assigned
         if (projectileScript == null)
@@ -95,7 +93,6 @@ public class Playermovement : MonoBehaviour
 
         // --- Movement ---
         moveInput = GameManager.Instance.isOnKeyboard ? new Vector2(Input.GetAxis("HorizontalWASD"), Input.GetAxis("VerticalWASD")) : assignedGamepad.leftStick.ReadValue();
-        isGrounded = Physics.Raycast(groundCheckPoint.position, Vector3.down, groundCheckDistance, groundLayer);
 
         HandleFootsteps();
 
@@ -117,7 +114,7 @@ public class Playermovement : MonoBehaviour
 
 
         // --- Enhanced Gravity (fixed jump height) ---
-        if (!isGrounded)
+        if (!gc.isGrounded)
         {
             if (rb.linearVelocity.y < 0)
             {
@@ -131,7 +128,7 @@ public class Playermovement : MonoBehaviour
             }
         }
 
-        if (isGrounded && isJumping)
+        if (gc.isGrounded && isJumping)
         {
             isJumping = false;
         }
@@ -158,7 +155,7 @@ public class Playermovement : MonoBehaviour
             {
                 animator.SetFloat("Speed", smoothSpeed);
             }
-            animator.SetBool("isGrounded", isGrounded);
+            animator.SetBool("isGrounded", gc.isGrounded);
 
         }
 
@@ -172,7 +169,7 @@ public class Playermovement : MonoBehaviour
         // Jump input
         if (!GameManager.Instance.isOnKeyboard)
         {
-            if (allowJumpInput && isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame && canMove)
+            if (allowJumpInput && gc.isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame && canMove)
             {
                 DoJump();
                 animator.SetTrigger("Jump"); // fire animation immediately
@@ -181,7 +178,7 @@ public class Playermovement : MonoBehaviour
         }
         else
         {
-            if (allowJumpInput && isGrounded && Input.GetKeyDown(KeyCode.Space) && canMove)
+            if (allowJumpInput && gc.isGrounded && Input.GetKeyDown(KeyCode.Space) && canMove)
             {
                 DoJump();
                 animator.SetTrigger("Jump");
@@ -239,7 +236,7 @@ public class Playermovement : MonoBehaviour
     public void DoJump()
     {
         // Only jump if still grounded at the moment of the event
-        if (!isGrounded) return;
+        if (!gc.isGrounded) return;
 
         // Play jump sound
         if (jumpSource != null && jumpClip != null)
@@ -256,14 +253,14 @@ public class Playermovement : MonoBehaviour
 
     private void HandleFootsteps()
     {
-        if (!isGrounded || rb.linearVelocity.magnitude < 0.1f)
+        if (!gc.isGrounded || rb.linearVelocity.magnitude < 0.1f)
         {
             if (footstepSource.isPlaying)
                 footstepSource.Stop();
             return;
         }
 
-        if (Physics.Raycast(groundCheckPoint.position, Vector3.down, out RaycastHit hit, 2f))
+        if (Physics.Raycast(gc.origin, Vector3.down, out RaycastHit hit, 2f))
         {
             string newSurface = hit.collider.tag;
 

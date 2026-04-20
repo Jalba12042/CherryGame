@@ -8,10 +8,12 @@ using UnityEngine;
 public class CherryRound : Round
 {
     [SerializeField] private GameObject cherryPrefab;
+    [SerializeField] private GameObject cherryBombPrefab;
     [SerializeField] private GameObject cratePrefab;
     [SerializeField] private float spawnInterval;
     [SerializeField] private int minCherrySpawns;
     [SerializeField] private int maxCherrySpawns;
+    [SerializeField] private float cherryBombChance;
     [SerializeField, Range(0, 100)] private int powerupSpawnRate;
 
     private GameObject spawnArea;
@@ -55,7 +57,13 @@ public class CherryRound : Round
             {
                 float randX = Random.Range(b.min.x, b.max.x);
                 float randZ = Random.Range(b.min.z, b.max.z);
-                goalObjects.Add(Instantiate(cherryPrefab, new Vector3(randX, spawnArea.transform.position.y, randZ), Quaternion.identity));
+
+                float randBombChance = Random.Range(0f, 1f);
+
+                if (randBombChance < cherryBombChance)
+                    goalObjects.Add(Instantiate(cherryBombPrefab, new Vector3(randX, spawnArea.transform.position.y, randZ), Quaternion.identity));
+                else 
+                    goalObjects.Add(Instantiate(cherryPrefab, new Vector3(randX, spawnArea.transform.position.y, randZ), Quaternion.identity));
             }
 
             // powerup spawn logic
