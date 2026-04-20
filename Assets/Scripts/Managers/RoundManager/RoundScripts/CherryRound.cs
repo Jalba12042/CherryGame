@@ -10,6 +10,8 @@ public class CherryRound : Round
     [SerializeField] private GameObject cherryPrefab;
     [SerializeField] private GameObject cherryBombPrefab;
     [SerializeField] private GameObject cratePrefab;
+    [SerializeField] private GameObject goldenCherry;
+    [SerializeField] private float goldenCherryTime = 70f;
     [SerializeField] private float spawnInterval;
     [SerializeField] private int minCherrySpawns;
     [SerializeField] private int maxCherrySpawns;
@@ -18,6 +20,7 @@ public class CherryRound : Round
 
     private GameObject spawnArea;
     private GameObject powerupSpawnArea; // temp power up spawn area
+    private GameObject goldenSpawnArea;
     private BasketContainer bc;
 
     public override void setValues()
@@ -31,6 +34,8 @@ public class CherryRound : Round
         // temp the bounds of power up spawn area
         powerupSpawnArea = GameObject.FindWithTag("PowerUpSpawnArea");
 
+        goldenSpawnArea = GameObject.FindWithTag("GoldenSpawn");
+
         // start timer
         startTimerUI = GameObject.FindWithTag("StartTimer");
         startTimerUI.SetActive(false);
@@ -42,6 +47,7 @@ public class CherryRound : Round
     }
     public override IEnumerator StartGoal()
     {
+        bool goldenCherrySpawned = false;
         Collider spawnCollider = spawnArea.GetComponent<Collider>();
         Bounds b = spawnCollider.bounds;
 
@@ -82,6 +88,13 @@ public class CherryRound : Round
                 }
             }
             
+            if (RoundManager.Instance.currRoundProgress > goldenCherryTime && !goldenCherrySpawned)
+            {
+                goldenCherrySpawned = true;
+                Vector3 spawnPos = new Vector3(goldenSpawnArea.transform.position.x, goldenSpawnArea.transform.position.y, goldenSpawnArea.transform.position.z);
+                Instantiate(goldenCherry, spawnPos, Quaternion.identity);
+            }
+
             yield return new WaitForSeconds(spawnInterval);
         }
     }
