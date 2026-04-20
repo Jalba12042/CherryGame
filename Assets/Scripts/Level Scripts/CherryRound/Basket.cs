@@ -15,12 +15,20 @@ public class Basket : MonoBehaviour
         {
             numItemsInBasket++;
         }
+        if (other.gameObject.tag == "GoldenCherry")
+        {
+            numItemsInBasket += 3;
+        }
     }
     private void OnTriggerExit(Collider other)
     {
         if (other.gameObject.tag == "Cherry")
         {
             numItemsInBasket--;
+        }
+        if (other.gameObject.tag == "GoldenCherry")
+        {
+            numItemsInBasket -= 3;
         }
     }
 }

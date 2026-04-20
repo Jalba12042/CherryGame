@@ -7,6 +7,9 @@ public class GoldenCherry : Cherry
     [SerializeField] private float slowFallDuration = 3f;
     [SerializeField] private float slowFallSpeed = 1f;
 
+    private bool effectApplied = false;
+    private GameObject prevPlayerHolding;
+
     private void Awake()
     {
         StartCoroutine(Spawn());
@@ -28,5 +31,22 @@ public class GoldenCherry : Cherry
         yield return new WaitForSeconds(waitInAirTime);
 
         rb.isKinematic = false;
+    }
+
+    private void Update()
+    {
+        if (playerHolding != null && !effectApplied)
+        {
+            effectApplied = true;
+            prevPlayerHolding = playerHolding;
+            PlayerDash pd = playerHolding.GetComponent<PlayerDash>();
+
+            pd.enabled = false;
+        }
+        else if (!playerHolding && effectApplied) {
+            PlayerDash pd = prevPlayerHolding.GetComponent<PlayerDash>();
+            pd.enabled = true;
+            effectApplied = false;
+        }
     }
 }
