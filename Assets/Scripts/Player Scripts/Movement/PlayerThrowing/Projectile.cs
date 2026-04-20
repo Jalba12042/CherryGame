@@ -174,6 +174,7 @@ public class Projectile : MonoBehaviour
         if (cherryScript != null)
         {
             cherryScript.isHeld = true;
+            cherryScript.playerHolding = gameObject;
         }
 
         cherryTrail = heldCherry.GetComponent<TrailRenderer>();
@@ -267,6 +268,7 @@ public class Projectile : MonoBehaviour
         if (cherryScript != null)
         {
             cherryScript.isHeld = false;
+            cherryScript.playerHolding = null;
         }
 
         cherryTrail = heldCherry.GetComponent<TrailRenderer>();
