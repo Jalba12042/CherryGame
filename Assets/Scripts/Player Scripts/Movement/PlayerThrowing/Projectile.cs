@@ -83,10 +83,14 @@ public class Projectile : MonoBehaviour
 
     void Update()
     {
-            if (!canThrowEnabled)
-                return;
+        if (!canThrowEnabled)
+        {
+            // disable ONLY throwing, NOT everything
+            isAiming = false;
+            return;
+        }
 
-            if (!canThrow)
+        if (!canThrow)
         {
             throwCooldownTimer -= Time.deltaTime;
             throwCooldownTimer = Mathf.Max(0, throwCooldownTimer);
@@ -365,7 +369,12 @@ public class Projectile : MonoBehaviour
     public void DisableThrowing()
     {
         canThrowEnabled = false;
-        CancelAim(); // safety reset
+
+        // Only stop aiming — DO NOT touch pickup animation
+        isAiming = false;
+
+        if (owner != null)
+            owner.animator.SetBool("isAiming", false);
     }
 
     public void EnableThrowing()

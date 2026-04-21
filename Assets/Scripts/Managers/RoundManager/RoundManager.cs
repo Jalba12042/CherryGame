@@ -52,6 +52,8 @@ public class RoundManager : MonoBehaviour
     public int[] roundsWon = { 0, 0, 0, 0 };
 
     private BasketContainer basketContainer;
+
+    public SprinklerManager sprinklerManager;
     private void Awake()
     {
         if (Instance == null)
@@ -174,6 +176,12 @@ public class RoundManager : MonoBehaviour
 
     public void BeginRound()
     {
+        if (sprinklerManager != null)
+        {
+            sprinklerManager?.StopSprinklers();
+        }
+
+
         if (currRound == null || currRoundActive) return;
 
         currRoundProgress = 0;
@@ -295,6 +303,12 @@ public class RoundManager : MonoBehaviour
         SetPlayersCanMove(true);
 
         currRoundActive = true;
+
+        if (sprinklerManager != null)
+        {
+            sprinklerManager?.StartSprinklers();
+        }
+
         StartCoroutine(RoundTimer());
         StartCoroutine(currRound.StartGoal());
         StartCoroutine(EventManager.Instance.EventTimer());
@@ -371,6 +385,9 @@ public class RoundManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         basketContainer = FindFirstObjectByType<BasketContainer>();
+
+        sprinklerManager = FindFirstObjectByType<SprinklerManager>();
+
 
         Debug.Log("BasketContainer found after scene load: " + basketContainer);
     }

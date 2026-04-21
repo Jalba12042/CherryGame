@@ -42,6 +42,9 @@ public class GoldenCherry : Cherry
         if (playerHolding != null && !effectApplied)
         {
             effectApplied = true;
+
+            prevPlayerHolding = playerHolding;
+
             StartCoroutine(ApplyGoldenEffect(playerHolding));
         }
 
