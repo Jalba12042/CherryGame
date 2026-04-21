@@ -9,7 +9,6 @@ public enum ZombieState
     Digging
 }
 
-// NEW: Forces Unity to add an AudioSource so you don't forget!
 [RequireComponent(typeof(AudioSource))]
 public class Zombie : MonoBehaviour
 {
@@ -52,11 +51,15 @@ public class Zombie : MonoBehaviour
 
     [Header("Spawning")]
     public float spawnRadius;
-    [Header("Audio")] // NEW audio additions
-    public AudioClip riseSound;
-    public AudioClip[] moanSounds; // Multiple moans
+
+    [Header("Audio")]
+    public AudioClip riseSound;        // PLAYED AT START: Spawning / digging up
+    public AudioClip attackSwingSound; // PLAYED ON ATTACK: Swinging / lunging
+    public AudioClip despawnSound;     // PLAYED AT END: Digging back down
+    public AudioClip[] moanSounds;     // PLAYED RANDOMLY: Groans while walking
     public float minMoanTime = 3f;
     public float maxMoanTime = 8f;
+
     private float moanTimer;
     private AudioSource audioSource;
 
@@ -73,58 +76,6 @@ public class Zombie : MonoBehaviour
     [Header("State")]
     public ZombieEvent myEvent;
 
-    /*private void Awake()
-    {
-        hitbox.SetActive(false);
-        rb = GetComponent<Rigidbody>();
-        audioSource = GetComponent<AudioSource>(); // NEW audio
-
-        // NEW: audio setup
-        if (audioSource != null)
-            audioSource.playOnAwake = false;
-
-        if (!wasPlayer)
-        {
-            rb.isKinematic = true;
-
-            if (dirtMoundPrefab != null)
-            {
-                Vector3 spawnPos = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-
-                spawnedDirt = Instantiate(dirtMoundPrefab, spawnPos, Quaternion.identity);
-
-                DirtMound dirtScript = spawnedDirt.GetComponent<DirtMound>();
-                if (dirtScript != null)
-                {
-                    dirtScript.Init(this); // 👈 THIS zombie gets passed in
-                }
-            }
-
-            // Force zombie to start underground
-            Vector3 startPos = transform.position;
-            startPos.y = groundY - spawnDepth;
-            transform.position = startPos;
-
-            // Make sure Rigidbody matches position
-            rb.position = startPos;
-
-            ChangeState(ZombieState.Rising);
-
-            // NEW: play rise sound
-            if (riseSound != null && audioSource != null)
-                audioSource.PlayOneShot(riseSound);
-        }
-        else
-        {
-            rb.isKinematic = false;
-            ChangeState(ZombieState.Wander);
-
-            // NEW: moan timer setup
-            moanTimer = Random.Range(minMoanTime, maxMoanTime);
-            StartCoroutine(LifeTimer());
-        }
-    }*/
-
     private void Awake()
     {
         hitbox.SetActive(false);
@@ -136,6 +87,15 @@ public class Zombie : MonoBehaviour
             audioSource.playOnAwake = false;
     }
 
+    private void Start()
+    {
+        // THIS IS THE FIX: Automatically trigger the intro dig & sound if it wasn't a dead player!
+        if (!isInitialized && !wasPlayer)
+        {
+            InitNormalZombie();
+        }
+    }
+
     void ChangeState(ZombieState newState)
     {
         ZState = newState;
@@ -143,7 +103,17 @@ public class Zombie : MonoBehaviour
 
     private IEnumerator LifeTimer()
     {
+        // Wait until the event is officially over
         yield return new WaitUntil(() => !myEvent.isRunning);
+
+        // --- OUTRO SOUND ---
+        // Play the despawn digging sound right before they go underground!
+        if (despawnSound != null)
+        {
+            Vector3 soundPos = Camera.main != null ? Camera.main.transform.position : transform.position;
+            AudioSource.PlayClipAtPoint(despawnSound, soundPos, 1f);
+        }
+
         digTimer = digTotalTime;
         ChangeState(ZombieState.Digging);
     }
@@ -155,7 +125,7 @@ public class Zombie : MonoBehaviour
 
         if (!RoundManager.Instance.currRoundActive) Destroy(gameObject);
 
-        // NEW: Random moaning logic
+        // --- RANDOM MOANING SOUNDS ---
         if ((ZState == ZombieState.Wander || ZState == ZombieState.Chasing) && moanSounds.Length > 0)
         {
             moanTimer -= Time.fixedDeltaTime;
@@ -213,7 +183,7 @@ public class Zombie : MonoBehaviour
                 rb.isKinematic = false;
                 ChangeState(ZombieState.Wander);
 
-                // NEW: start moaning after rising
+                // start moaning after rising
                 moanTimer = Random.Range(minMoanTime, maxMoanTime);
 
                 StartCoroutine(LifeTimer());
@@ -228,10 +198,11 @@ public class Zombie : MonoBehaviour
     {
         dirtFinished = true;
     }
+
     void Dig()
     {
         hitbox.SetActive(false);
-        anim.enabled = false; // keep your digging animation logic
+        anim.enabled = false;
 
         rb.isKinematic = true;
 
@@ -311,7 +282,6 @@ public class Zombie : MonoBehaviour
         {
             anim.SetBool("isMoving", true);
 
-
             Vector3 direction = offset / distance;
             float step = moveSpeed * Time.fixedDeltaTime;
             float clampedStep = Mathf.Min(step, distance);
@@ -324,7 +294,6 @@ public class Zombie : MonoBehaviour
         else
         {
             anim.SetBool("isMoving", false);
-
         }
     }
 
@@ -392,6 +361,12 @@ public class Zombie : MonoBehaviour
     public void StartAttack()
     {
         hitbox.SetActive(true);
+
+        // --- ATTACK SOUND ---
+        if (attackSwingSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(attackSwingSound);
+        }
     }
 
     public void EndAttack()
@@ -416,16 +391,15 @@ public class Zombie : MonoBehaviour
         }
     }
 
+    // THIS IS THE INTRO DIGGING LOGIC
     public void InitNormalZombie()
     {
         isInitialized = true;
-
         rb.isKinematic = true;
 
         if (dirtMoundPrefab != null)
         {
             Vector3 spawnPos = transform.position;
-
             spawnedDirt = Instantiate(dirtMoundPrefab, spawnPos, Quaternion.identity);
 
             DirtMound dirtScript = spawnedDirt.GetComponent<DirtMound>();
@@ -441,6 +415,7 @@ public class Zombie : MonoBehaviour
 
         ChangeState(ZombieState.Rising);
 
+        // --- INTRO SOUND ---
         if (riseSound != null)
             audioSource.PlayOneShot(riseSound);
     }
@@ -448,9 +423,7 @@ public class Zombie : MonoBehaviour
     public void InitAsPlayerZombie()
     {
         isInitialized = true;
-
         wasPlayer = true;
-
         rb.isKinematic = false;
 
         ChangeState(ZombieState.Wander);

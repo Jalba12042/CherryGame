@@ -27,13 +27,20 @@ public class UFO : MonoBehaviour
     public UFOEvent myEvent;
 
     [Header("Audio")]
+    public AudioClip spawnIntroSound; // NEW: Sound when it first appears
     public AudioClip hoverSound;
     public AudioClip abductSound;
-    private AudioSource audioSource; // NEW
+    private AudioSource audioSource;
 
     private void Awake()
     {
-        audioSource = GetComponent<AudioSource>(); // NEW
+        audioSource = GetComponent<AudioSource>();
+
+        // Play the spawn sound immediately!
+        if (spawnIntroSound != null)
+        {
+            audioSource.PlayOneShot(spawnIntroSound);
+        }
 
         players = GameObject.FindGameObjectsWithTag("Player");
         if (players.Length == 0) return;
@@ -57,7 +64,6 @@ public class UFO : MonoBehaviour
         playerBroadcaster.OnCollisionEntered -= HandleCollision;
     }
 
-    // check if play collides with another player
     void HandleCollision(Collision collision)
     {
         if (collision.gameObject.tag == "Player")
@@ -97,6 +103,7 @@ public class UFO : MonoBehaviour
             ChangeState(UFOState.Hovering);
         }
     }
+
     private void HandleHover()
     {
         stateTimer += Time.deltaTime;
@@ -131,7 +138,6 @@ public class UFO : MonoBehaviour
         currentState = nextState;
         stateTimer = 0f;
 
-        // NEW: Audio Logic for State Changes
         if (currentState == UFOState.Approaching)
         {
             audioSource.clip = hoverSound;
@@ -140,8 +146,8 @@ public class UFO : MonoBehaviour
         }
         else if (currentState == UFOState.Abducting)
         {
-            audioSource.Stop(); // Stop the hover hum
-            audioSource.PlayOneShot(abductSound); // Play the abduction beam
+            audioSource.Stop();
+            audioSource.PlayOneShot(abductSound);
         }
     }
 }
