@@ -50,7 +50,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 8415c7c0c7e6a07428843903dba171d9, type: 3}
       propertyPath: m_Name
-      value: PillTablet
+      value: JumpPill
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -136,8 +136,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   duration: 10
   puName: Jump Boost
+  despawnTimerInSecs: 7
   powerUpID: 1
   jumpMultiplier: 1.25
+  pickupSound: {fileID: 8300000, guid: 92cde48b5ce64244f881e9367b376fec, type: 3}
 --- !u!114 &3546702190040073470
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -152,6 +154,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isGrounded: 0
   groundCheckDistance: 1
+  origin: {x: 0, y: 0, z: 0}
   groundLayer:
     serializedVersion: 2
     m_Bits: 128

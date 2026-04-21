@@ -122,6 +122,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   zombiePrefab: {fileID: 4576879799856139597}
+  biteKillSound: {fileID: 0}
 --- !u!1001 &3694427498325159964
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -276,11 +277,11 @@ AudioSource:
   m_GameObject: {fileID: 4576879799856139597}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -6528223651065312789, guid: 54e82fe3da01e834fb158a66ea97067a, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.828
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -389,6 +390,7 @@ MonoBehaviour:
   detectionRange: 18
   groundY: 37
   riseWaitTime: 1
+  spawnDepth: 2
   digTotalTime: 2
   dirtMoundPrefab: {fileID: 3056928826682485176, guid: 92f0d44b7a9300f4d94e34e9d695bfbe, type: 3}
   hitbox: {fileID: 8771124959331512218}
@@ -396,8 +398,12 @@ MonoBehaviour:
   anim: {fileID: 2528473930506497685}
   attackCooldown: 2.5
   wasPlayer: 0
+  spawnRadius: 0
   riseSound: {fileID: 8300000, guid: a6809269a4a904f46bd415f9289f9089, type: 3}
-  moanSounds: []
+  attackSwingSound: {fileID: 8300000, guid: b754da783cc053742ab91977c4e99cc7, type: 3}
+  despawnSound: {fileID: 8300000, guid: 96f5da8014b08b746a57c890ad4c0af6, type: 3}
+  moanSounds:
+  - {fileID: 8300000, guid: a6809269a4a904f46bd415f9289f9089, type: 3}
   minMoanTime: 2
   maxMoanTime: 3
   myEvent: {fileID: 0}

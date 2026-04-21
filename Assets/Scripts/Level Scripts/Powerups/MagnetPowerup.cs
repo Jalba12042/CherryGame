@@ -9,7 +9,7 @@ public class MagnetPowerup : Powerup
     public float pullForce = 10f;
 
     [Header("Attachment")]
-    public string handPointName = "MagnetPoint"; // name of child object on player
+    public string handPointName = "MagnetPoint";
 
     private Coroutine magnetRoutine;
     private Transform handPoint;
@@ -17,40 +17,37 @@ public class MagnetPowerup : Powerup
     protected override void powerUpEffect()
     {
         base.powerUpEffect();
-
         AttachToHand();
-
         magnetRoutine = StartCoroutine(MagnetRoutine());
+
+        // --- NEW CLEAN UI LOGIC ---
+        if (FaceCamManager.Instance != null) FaceCamManager.Instance.ShowPowerUp(pc.playerIndex, "Magnet");
     }
 
     protected override void powerUpEnd()
     {
         base.powerUpEnd();
-
         if (magnetRoutine != null)
         {
             StopCoroutine(magnetRoutine);
         }
 
-        // Optional: destroy or detach visual
+        // --- NEW CLEAN UI LOGIC ---
+        if (FaceCamManager.Instance != null) FaceCamManager.Instance.HidePowerUp(pc.playerIndex);
+
         Destroy(gameObject);
     }
 
     void AttachToHand()
     {
-        // Find hand point on player
         handPoint = FindChildRecursive(playerModel.transform, handPointName);
-
         if (handPoint == null)
         {
             Debug.LogWarning("Hand point not found!");
             return;
         }
 
-        // Parent this powerup to the hand
         transform.SetParent(handPoint);
-
-        // Reset local transform
         transform.localPosition = Vector3.zero;
         transform.localRotation = Quaternion.identity;
     }
@@ -60,13 +57,11 @@ public class MagnetPowerup : Powerup
         while (true)
         {
             Collider[] hits = Physics.OverlapSphere(playerModel.transform.position, pullRadius);
-
             foreach (Collider hit in hits)
             {
                 if (hit.CompareTag(targetTag))
                 {
                     Rigidbody rb = hit.GetComponent<Rigidbody>();
-
                     if (rb != null)
                     {
                         Vector3 direction = (playerModel.transform.position - hit.transform.position).normalized;
@@ -74,22 +69,17 @@ public class MagnetPowerup : Powerup
                     }
                 }
             }
-
             yield return null;
         }
     }
 
-    // Recursive search helper
     Transform FindChildRecursive(Transform parent, string name)
     {
         foreach (Transform child in parent)
         {
-            if (child.name == name)
-                return child;
-
+            if (child.name == name) return child;
             Transform result = FindChildRecursive(child, name);
-            if (result != null)
-                return result;
+            if (result != null) return result;
         }
         return null;
     }

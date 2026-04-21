@@ -9,7 +9,7 @@ public class PlayerPowerupHandler : MonoBehaviour
     private float originalMoveSpeed;
 
     [Header("Powerup State")]
-    public List<bool> currPowerups; // Each index = whether that powerup type is active
+    public List<bool> currPowerups;
     public Dictionary<int, Powerup> activePowerupInstances = new Dictionary<int, Powerup>();
 
     [Header("Status Flags")]
@@ -28,7 +28,6 @@ public class PlayerPowerupHandler : MonoBehaviour
         player = GetComponent<Playermovement>();
         originalMoveSpeed = player.moveSpeed;
 
-        // --- Initialize currPowerups list based on available powerups in RoundManager ---
         int highestID = -1;
         if (RoundManager.Instance != null && RoundManager.Instance.powerUpsInRotation != null)
         {
@@ -50,12 +49,12 @@ public class PlayerPowerupHandler : MonoBehaviour
     void Update()
     {
         if (nearbyPowerup != null && player.assignedGamepad != null)
-        {            
+        {
             if (player.assignedGamepad.rightTrigger.wasPressedThisFrame)
             {
-                nearbyPowerup.Activate(this); // Pass handler instead of Playermovement
+                nearbyPowerup.Activate(this);
                 nearbyPowerup = null;
-            }      
+            }
         }
         else if (nearbyPowerup != null && GameManager.Instance.isOnKeyboard)
         {
@@ -79,7 +78,6 @@ public class PlayerPowerupHandler : MonoBehaviour
             nearbyPowerup = null;
     }
 
-    // --- Movement Modifiers (for sprinklers, slows, etc.) ---
     public void ApplyPushback(Vector3 direction, float force)
     {
         Rigidbody rb = GetComponent<Rigidbody>();
@@ -119,11 +117,17 @@ public class PlayerPowerupHandler : MonoBehaviour
         if (taserAudioSource != null && taserClip != null)
             taserAudioSource.PlayOneShot(taserClip);
 
+        // --- NEW CLEAN UI LOGIC ---
+        if (FaceCamManager.Instance != null) FaceCamManager.Instance.ShowPowerUp(player.playerIndex, "Taser");
+
         yield return new WaitForSeconds(duration);
 
         if (taserVFX != null)
             taserVFX.SetActive(false);
 
         isTased = false;
+
+        // --- NEW CLEAN UI LOGIC ---
+        if (FaceCamManager.Instance != null) FaceCamManager.Instance.HidePowerUp(player.playerIndex);
     }
 }

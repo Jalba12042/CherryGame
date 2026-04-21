@@ -16,11 +16,15 @@ public class AnyInputToAnimatorTrigger : MonoBehaviour
 
     [Header("Timing")]
     public float fadeOutWaitSeconds = 1.0f;
-    // NEW: How many seconds to wait before the player is allowed to press a button
+    // How many seconds to wait before the player is allowed to press a button
     public float inputDelaySeconds = 2.0f;
 
     [Header("Arming input")]
     public bool armInputOnStart = true; // Kept this true so it starts automatically
+
+    [Header("Audio")]
+    public AudioSource audioSource; // Drag an AudioSource here
+    public AudioClip startSound;    // Drag your "Press Start" sound effect here
 
     private bool inputArmed = false;
     private bool fired = false;
@@ -40,17 +44,15 @@ public class AnyInputToAnimatorTrigger : MonoBehaviour
 
         if (armInputOnStart)
         {
-            // NEW: Instead of arming instantly, start the delay timer
+            // Instead of arming instantly, start the delay timer
             StartCoroutine(ArmInputAfterDelay());
         }
     }
 
-    // NEW: The timer that waits before letting the player press a button
+    // The timer that waits before letting the player press a button
     IEnumerator ArmInputAfterDelay()
     {
-
         yield return new WaitForSeconds(inputDelaySeconds);
-
         inputArmed = true;
     }
 
@@ -67,6 +69,12 @@ public class AnyInputToAnimatorTrigger : MonoBehaviour
         {
             fired = true;
 
+            // --- NEW: Play the sound effect! ---
+            if (audioSource != null && startSound != null)
+            {
+                audioSource.PlayOneShot(startSound);
+            }
+
             if (titleAnimator) titleAnimator.SetTrigger(triggerName);
             if (promptAnimator) promptAnimator.SetTrigger(triggerName);
 
@@ -77,7 +85,6 @@ public class AnyInputToAnimatorTrigger : MonoBehaviour
     IEnumerator RevealAfterDelay()
     {
         yield return new WaitForSecondsRealtime(fadeOutWaitSeconds);
-
         RevealMenu();
     }
 
