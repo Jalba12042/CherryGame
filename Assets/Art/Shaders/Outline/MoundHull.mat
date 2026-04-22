@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: UFOBodyHull
+  m_Name: MoundHull
   m_Shader: {fileID: -6465566751694194690, guid: 5841a70c6d635054eb1040b192edcab8, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -16,7 +16,7 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 2000
   stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS
@@ -39,14 +39,14 @@ Material:
     m_Ints: []
     m_Floats:
     - _Fade_Distance: 75
-    - _OutlineThickness: 0.0113
+    - _OutlineThickness: 0.0217
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors:
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
---- !u!114 &7198899745638676719
+--- !u!114 &5199989067084055321
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
