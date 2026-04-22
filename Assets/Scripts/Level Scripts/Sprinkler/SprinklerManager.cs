@@ -4,7 +4,7 @@ using UnityEngine;
 public class SprinklerManager : MonoBehaviour
 {
     [Header("Spawn Volume")]
-    public BoxCollider spawnArea;
+    public BoxCollider[] spawnAreas;
 
     [Header("Sprinkler")]
     public GameObject sprinklerPrefab;
@@ -36,15 +36,30 @@ public class SprinklerManager : MonoBehaviour
     {
         while (true)
         {
-            yield return new WaitForSeconds(timeBetweenEvents);
+            // random delay before spawn
+            float delay = Random.Range(timeBetweenEvents, timeBetweenEvents + 5f);
+            yield return new WaitForSeconds(delay);
+
             yield return StartCoroutine(SpawnSprinklerEvent());
+
+            // extra cooldown AFTER it finishes
+            yield return new WaitForSeconds(3f);
         }
     }
 
     private Vector3 GetRandomPointInBox()
     {
-        Vector3 center = spawnArea.bounds.center;
-        Vector3 size = spawnArea.bounds.size;
+        if (spawnAreas == null || spawnAreas.Length == 0)
+        {
+            Debug.LogWarning("No spawn areas assigned!");
+            return Vector3.zero;
+        }
+
+        // Pick a random spawn area
+        BoxCollider chosenArea = spawnAreas[Random.Range(0, spawnAreas.Length)];
+
+        Vector3 center = chosenArea.bounds.center;
+        Vector3 size = chosenArea.bounds.size;
 
         float x = Random.Range(-size.x / 2f, size.x / 2f);
         float z = Random.Range(-size.z / 2f, size.z / 2f);

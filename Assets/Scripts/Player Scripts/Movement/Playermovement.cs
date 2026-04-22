@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
 public class Playermovement : MonoBehaviour
@@ -271,6 +272,22 @@ public class Playermovement : MonoBehaviour
         {
             footstepSource.Play();
         }
+    }
+
+    public void ApplyKnockback(Vector3 direction, float force, float duration)
+    {
+        if (rb == null) return;
+
+        rb.linearVelocity = direction.normalized * force;
+
+        isKnockedBack = true;
+        StartCoroutine(EndKnockback(duration));
+    }
+
+    private IEnumerator EndKnockback(float time)
+    {
+        yield return new WaitForSeconds(time);
+        isKnockedBack = false;
     }
 
     public Gamepad GetAssignedGamepad() => assignedGamepad;

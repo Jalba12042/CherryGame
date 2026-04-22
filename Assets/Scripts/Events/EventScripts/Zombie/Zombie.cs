@@ -52,11 +52,14 @@ public class Zombie : MonoBehaviour
     [Header("Spawning")]
     public float spawnRadius;
 
+    [Header("Ground Detection")]
+    [SerializeField] private LayerMask groundLayer;
+
     [Header("Audio")]
-    public AudioClip riseSound;        // PLAYED AT START: Spawning / digging up
-    public AudioClip attackSwingSound; // PLAYED ON ATTACK: Swinging / lunging
-    public AudioClip despawnSound;     // PLAYED AT END: Digging back down
-    public AudioClip[] moanSounds;     // PLAYED RANDOMLY: Groans while walking
+    public AudioClip riseSound;
+    public AudioClip attackSwingSound;
+    public AudioClip despawnSound;
+    public AudioClip[] moanSounds;
     public float minMoanTime = 3f;
     public float maxMoanTime = 8f;
 
@@ -72,6 +75,9 @@ public class Zombie : MonoBehaviour
     private bool isAttacking = false;
     private bool canAttack = true;
     private bool isInitialized = false;
+
+    private Vector3 knockbackVelocity = Vector3.zero;
+    [SerializeField] private float knockbackDecay = 5f;
 
     [Header("State")]
     public ZombieEvent myEvent;
@@ -89,7 +95,6 @@ public class Zombie : MonoBehaviour
 
     private void Start()
     {
-        // THIS IS THE FIX: Automatically trigger the intro dig & sound if it wasn't a dead player!
         if (!isInitialized && !wasPlayer)
         {
             InitNormalZombie();
@@ -103,11 +108,8 @@ public class Zombie : MonoBehaviour
 
     private IEnumerator LifeTimer()
     {
-        // Wait until the event is officially over
         yield return new WaitUntil(() => !myEvent.isRunning);
 
-        // --- OUTRO SOUND ---
-        // Play the despawn digging sound right before they go underground!
         if (despawnSound != null)
         {
             Vector3 soundPos = Camera.main != null ? Camera.main.transform.position : transform.position;
@@ -123,12 +125,19 @@ public class Zombie : MonoBehaviour
         if (!isInitialized)
             return;
 
-        if (!RoundManager.Instance.currRoundActive) Destroy(gameObject);
+        if (!RoundManager.Instance.currRoundActive)
+            Destroy(gameObject);
 
-        // --- RANDOM MOANING SOUNDS ---
+        knockbackVelocity = Vector3.MoveTowards(
+            knockbackVelocity,
+            Vector3.zero,
+            knockbackDecay * Time.fixedDeltaTime
+        );
+
         if ((ZState == ZombieState.Wander || ZState == ZombieState.Chasing) && moanSounds.Length > 0)
         {
             moanTimer -= Time.fixedDeltaTime;
+
             if (moanTimer <= 0f)
             {
                 int randomMoan = Random.Range(0, moanSounds.Length);
@@ -181,9 +190,16 @@ public class Zombie : MonoBehaviour
             {
                 wanderTarget = transform.position;
                 rb.isKinematic = false;
+
+                float realGroundY = GetGroundY();
+                Vector3 p = rb.position;
+                p.y = realGroundY;
+                rb.position = p;
+
+                rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+
                 ChangeState(ZombieState.Wander);
 
-                // start moaning after rising
                 moanTimer = Random.Range(minMoanTime, maxMoanTime);
 
                 StartCoroutine(LifeTimer());
@@ -273,6 +289,12 @@ public class Zombie : MonoBehaviour
 
     void MoveTowards(Vector3 point)
     {
+        if (knockbackVelocity.magnitude > 0.05f)
+        {
+            rb.MovePosition(rb.position + knockbackVelocity * Time.fixedDeltaTime);
+            return;
+        }
+
         Vector3 offset = point - rb.position;
         offset.y = 0f;
 
@@ -286,7 +308,15 @@ public class Zombie : MonoBehaviour
             float step = moveSpeed * Time.fixedDeltaTime;
             float clampedStep = Mathf.Min(step, distance);
 
-            Vector3 newPosition = rb.position + direction * clampedStep;
+            //Vector3 newPosition = rb.position + direction * clampedStep;
+
+            Vector3 movement = direction * clampedStep;
+
+            // apply knockback
+            movement += knockbackVelocity * Time.fixedDeltaTime;
+
+            Vector3 newPosition = rb.position + movement;
+
             rb.MovePosition(newPosition);
 
             transform.forward = direction;
@@ -430,5 +460,24 @@ public class Zombie : MonoBehaviour
 
         moanTimer = Random.Range(minMoanTime, maxMoanTime);
         StartCoroutine(LifeTimer());
+    }
+
+    public void ApplyKnockback(Vector3 direction, float force)
+    {
+        direction.y = 0.4f; // small lift
+
+        knockbackVelocity += direction.normalized * force;
+    }
+
+    private float GetGroundY()
+    {
+        Ray ray = new Ray(transform.position + Vector3.up * 2f, Vector3.down);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, 10f, groundLayer))
+        {
+            return hit.point.y;
+        }
+
+        return groundY; // fallback
     }
 }

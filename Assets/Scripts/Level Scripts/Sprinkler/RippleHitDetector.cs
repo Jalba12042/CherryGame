@@ -6,7 +6,11 @@ public class RippleHitDetector : MonoBehaviour
     private ParticleSystem ps;
     private ParticleSystem.Particle[] particles;
 
+
     public float hitRadius = 0.12f; // how close a droplet must be to hit the player
+    public float pushForce = 18f;
+    public float upwardBoost = 2f;
+
 
     private void Awake()
     {
@@ -27,12 +31,40 @@ public class RippleHitDetector : MonoBehaviour
 
             foreach (var hit in hits)
             {
-                PlayerKill pk = hit.GetComponentInParent<PlayerKill>();
-                if (pk != null && !pk.currDead)
+                Rigidbody rb = hit.GetComponentInParent<Rigidbody>();
+                if (rb == null) continue;
+
+                // Direction AWAY from sprinkler center
+                Vector3 pushDir = (hit.transform.position - transform.position);
+                pushDir.y = 0f;
+                pushDir = pushDir.normalized;
+
+                // ---------- PLAYER ----------
+                Playermovement player = hit.GetComponentInParent<Playermovement>();
+                if (player != null)
                 {
-                    pk.killPlayer();
+                    rb.linearVelocity = pushDir * pushForce;
+
+                    player.isKnockedBack = true;
+                    StartCoroutine(EndKnockback(player, 0.25f));
+
+                    continue; // don’t double-hit as zombie
+                }
+
+                // ---------- ZOMBIE ----------
+                Zombie zombie = hit.GetComponentInParent<Zombie>();
+                if (zombie != null)
+                {
+                    // IMPORTANT: do NOT disable movement
+                    rb.linearVelocity = pushDir * pushForce;
                 }
             }
         }
+    }
+
+    private System.Collections.IEnumerator EndKnockback(Playermovement player, float time)
+    {
+        yield return new WaitForSeconds(time);
+        player.isKnockedBack = false;
     }
 }
