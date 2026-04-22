@@ -40,6 +40,7 @@ public class Zombie : MonoBehaviour
 
     [SerializeField] private GameObject dirtMoundPrefab;
     private GameObject spawnedDirt;
+    private GameObject exitDirt;
     private bool dirtFinished = false;
 
     [Header("Attacking")]
@@ -115,6 +116,8 @@ public class Zombie : MonoBehaviour
             Vector3 soundPos = Camera.main != null ? Camera.main.transform.position : transform.position;
             AudioSource.PlayClipAtPoint(despawnSound, soundPos, 1f);
         }
+
+        SpawnExitDirt();
 
         digTimer = digTotalTime;
         ChangeState(ZombieState.Digging);
@@ -479,5 +482,32 @@ public class Zombie : MonoBehaviour
         }
 
         return groundY; // fallback
+    }
+
+    private Vector3 GetGroundPosition(Vector3 origin)
+    {
+        Ray ray = new Ray(origin + Vector3.up * 2f, Vector3.down);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, 10f, groundLayer))
+        {
+            return hit.point;
+        }
+
+        return origin;
+    }
+
+    private void SpawnExitDirt()
+    {
+        if (dirtMoundPrefab == null) return;
+
+        Vector3 groundPos = GetGroundPosition(transform.position);
+
+        exitDirt = Instantiate(dirtMoundPrefab, groundPos, Quaternion.identity);
+
+        DirtMound dirtScript = exitDirt.GetComponent<DirtMound>();
+        if (dirtScript != null)
+        {
+            dirtScript.InitExit(this);
+        }
     }
 }
