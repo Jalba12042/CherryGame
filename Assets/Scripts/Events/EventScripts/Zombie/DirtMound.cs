@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class DirtMound : MonoBehaviour
 {
@@ -10,27 +10,57 @@ public class DirtMound : MonoBehaviour
 
     private Zombie zombie;
 
+    private bool isExit = false;
+
+    public enum DirtMode
+    {
+        Rising,
+        Sinking
+    }
+
+    private DirtMode mode;
+
     public void Init(Zombie z)
     {
         zombie = z;
+        mode = DirtMode.Rising;
+    }
+
+    public void InitExit(Zombie z)
+    {
+        zombie = z;
+        mode = DirtMode.Sinking;
     }
 
     void Start()
     {
         startPos = transform.position;
-        targetPos = startPos + Vector3.up * riseHeight;
+
+        if (mode == DirtMode.Rising)
+        {
+            targetPos = startPos + Vector3.up * riseHeight;
+        }
+        else
+        {
+            targetPos = startPos - Vector3.up * riseHeight;
+        }
     }
 
     void Update()
     {
-        transform.position = Vector3.MoveTowards(transform.position, targetPos, riseSpeed * Time.deltaTime);
+        transform.position = Vector3.MoveTowards(
+            transform.position,
+            targetPos,
+            riseSpeed * Time.deltaTime
+        );
 
         if (Vector3.Distance(transform.position, targetPos) < 0.01f)
         {
-            if (zombie != null)
-                zombie.SetDirtFinished();
-
-            enabled = false;
+            if (mode == DirtMode.Rising)
+            {
+                if (zombie != null)
+                    zombie.SetDirtFinished();
+            }
         }
     }
 }

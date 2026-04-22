@@ -23,7 +23,8 @@ public class GrowPowerup : Powerup
 
     [Header("Audio")]
     public AudioClip growSound;
-    private AudioSource fxSource; // A dedicated source for the powerup sound
+    public AudioClip shrinkSound;
+    private AudioSource fxSource;
 
     protected override void powerUpEffect()
     {
@@ -33,22 +34,23 @@ public class GrowPowerup : Powerup
         playerEffects = playerModel.GetComponent<PlayerEffects>();
         screamScript = playerModel.GetComponentInChildren<Scream>();
 
-        // NEW: Create an AudioSource just for the growing sound
         fxSource = gameObject.AddComponent<AudioSource>();
         fxSource.playOnAwake = false;
 
-        // Auto-route to the same mixer as the player's scream (SFX)
         if (screamScript != null && screamScript.aSource != null)
         {
             fxSource.outputAudioMixerGroup = screamScript.aSource.outputAudioMixerGroup;
         }
 
-        // Play the grow sound
         if (growSound != null)
         {
             fxSource.clip = growSound;
+            fxSource.pitch = 1.0f;
             fxSource.Play();
         }
+
+        // --- NEW CLEAN UI LOGIC ---
+        if (FaceCamManager.Instance != null) FaceCamManager.Instance.ShowPowerUp(pc.playerIndex, "Protein");
 
         originalSpeed = pc.moveSpeed;
         originalSize = playerModel.transform.localScale;
@@ -87,11 +89,9 @@ public class GrowPowerup : Powerup
                 screamScript.aSource.pitch = Mathf.Lerp(screamScript.aSource.pitch, randPitch, elapsed / pitchTime);
             }
 
-            // NEW: Pitch bend the grow sound DOWN as they get bigger!
-            // It starts at 1.2 (slightly high) and bends down to 0.5 (deep and heavy)
             if (fxSource != null && fxSource.isPlaying)
             {
-                fxSource.pitch = Mathf.Lerp(1.2f, 0.5f, elapsed / growthTime);
+                fxSource.pitch = Mathf.Lerp(1.0f, 1.5f, elapsed / growthTime);
             }
 
             elapsed += Time.deltaTime;
@@ -104,10 +104,20 @@ public class GrowPowerup : Powerup
 
     private IEnumerator Shrink()
     {
+        if (shrinkSound != null && fxSource != null)
+        {
+            fxSource.clip = shrinkSound;
+            fxSource.pitch = 1.5f;
+            fxSource.Play();
+        }
+
+        // --- NEW CLEAN UI LOGIC ---
+        if (FaceCamManager.Instance != null) FaceCamManager.Instance.HidePowerUp(pc.playerIndex);
+
         Vector3 startSize = playerModel.transform.localScale;
         float elapsed = 0;
-
         float randPitch = Random.Range(ogMinPitch, ogMaxPitch);
+
         while (elapsed < growthTime)
         {
             playerModel.transform.localScale = Vector3.Lerp(startSize, originalSize, elapsed / growthTime);
@@ -115,6 +125,11 @@ public class GrowPowerup : Powerup
             if (screamScript != null && screamScript.aSource != null)
             {
                 screamScript.aSource.pitch = Mathf.Lerp(screamScript.aSource.pitch, randPitch, elapsed / pitchTime);
+            }
+
+            if (fxSource != null && fxSource.isPlaying)
+            {
+                fxSource.pitch = Mathf.Lerp(1.5f, 0.8f, elapsed / growthTime);
             }
 
             elapsed += Time.deltaTime;

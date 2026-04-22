@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
 
 public class PlayerJoinController : MonoBehaviour
 {
@@ -23,6 +24,14 @@ public class PlayerJoinController : MonoBehaviour
     public float introDelay = 2.0f; // Wait 120 frames (2 seconds)
     public float fadeDuration = 0.5f; // Fade in over 0.5 seconds
     private bool canInteract = false; // Locks the controllers during the intro
+
+    [Header("Outro Transition Settings")]
+    public Animator boxAnimator;           // Drag the Box object here (needs an Animator)
+    public AudioSource sfxSource;          // AudioSource to play the sound
+    public AudioClip catThrowSound;        // The cat yeet sound!
+    public Image backgroundImage;          // The background image behind the box
+    public Sprite loadingScreenSprite;     // The new background to swap to
+    public float timeToWaitForThrow = 1.5f;// How long the throw animation takes
 
     void Start()
     {
@@ -215,7 +224,13 @@ public class PlayerJoinController : MonoBehaviour
                 slots[player].customizationUI.SetColorIndex(defaultColorIndex, slots[player].spawnedModel);
 
                 var movement = slots[player].spawnedModel.GetComponent<Playermovement>();
-                if (movement != null) movement.enabled = false;
+                if (movement != null)
+                {
+                    movement.enabled = false;
+                    // --- THE FIX IS RIGHT HERE ---
+                    // This tells the 3D model exactly which player it belongs to so the PowerUps know!
+                    movement.playerID = player;
+                }
 
                 if (GameManager.Instance != null)
                     GameManager.Instance.controllerAssignments[player] = controllerIndex;
@@ -289,6 +304,41 @@ public class PlayerJoinController : MonoBehaviour
             timeLeft--;
         }
 
+        // Trigger the Throw Box Animation instead of loading the scene instantly!
+        StartCoroutine(ThrowBoxTransition());
+    }
+
+    // --- NEW: THE THROW TRANSITION ---
+    IEnumerator ThrowBoxTransition()
+    {
+        canInteract = false; // Lock controllers
+        countdownPanel.SetActive(false); // Hide the numbers
+
+        // 1. Play the Cat Sound!
+        if (sfxSource != null && catThrowSound != null)
+        {
+            sfxSource.PlayOneShot(catThrowSound);
+        }
+
+        // 2. Trigger the Box Throw Animation!
+        if (boxAnimator != null)
+        {
+            boxAnimator.SetTrigger("ThrowRight");
+        }
+
+        // 3. Wait for the box to fly off screen
+        yield return new WaitForSeconds(timeToWaitForThrow);
+
+        // 4. Swap the background image
+        if (backgroundImage != null && loadingScreenSprite != null)
+        {
+            backgroundImage.sprite = loadingScreenSprite;
+        }
+
+        // Wait a tiny bit so the players actually see the new background
+        yield return new WaitForSeconds(0.5f);
+
+        // 5. Finally, save the data and launch the game!
         StartGame();
     }
 
@@ -304,7 +354,7 @@ public class PlayerJoinController : MonoBehaviour
     {
         if (GameManager.Instance == null) return;
 
-        // --- SAVE PLAYER COUNT + CONTROLLERS (your existing code) ---
+        // --- SAVE PLAYER COUNT + CONTROLLERS ---
         GameManager.Instance.playerCount = slots.Length;
         GameManager.Instance.controllerAssignments = new int[slots.Length];
 
@@ -313,7 +363,7 @@ public class PlayerJoinController : MonoBehaviour
             GameManager.Instance.controllerAssignments[i] = assignedControllers[i];
         }
 
-        // --- NEW: SAVE CUSTOMIZATION DATA ---
+        // --- SAVE CUSTOMIZATION DATA ---
         GameManager.Instance.playerCustomizations.Clear();
 
         for (int i = 0; i < slots.Length; i++)
@@ -321,18 +371,18 @@ public class PlayerJoinController : MonoBehaviour
             PlayerCustomizationData data = new PlayerCustomizationData();
 
             // Get components from preview model + UI
-            var customization = slots[i].spawnedModel.GetComponentInChildren<PlayerCustomization>();
-            var ui = slots[i].customizationUI;
-
-            // Save clothing selections
-            if (customization != null)
+            if (slots[i].spawnedModel != null)
             {
-                data.headIndex = customization.GetHeadIndex();
-                data.torsoIndex = customization.GetTorsoIndex();
-                data.bottomIndex = customization.GetBottomIndex();
+                var customization = slots[i].spawnedModel.GetComponentInChildren<PlayerCustomization>();
+                if (customization != null)
+                {
+                    data.headIndex = customization.GetHeadIndex();
+                    data.torsoIndex = customization.GetTorsoIndex();
+                    data.bottomIndex = customization.GetBottomIndex();
+                }
             }
 
-            // Save UI selections (color + name)
+            var ui = slots[i].customizationUI;
             if (ui != null)
             {
                 data.colorIndex = ui.GetCurrentColorIndex();

@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
 public class Playermovement : MonoBehaviour
 {
     [Header("Player Settings")]
+    public int playerID; // NEW: Added this so the UI knows who is picking up the power-up!
     public int playerIndex = 0;
     public float moveSpeed = 5f;
     public float jumpForce = 7f;
@@ -15,7 +17,6 @@ public class Playermovement : MonoBehaviour
     public float lowJumpMultiplier = 2f;
     public bool allowJumpInput = true;
     private bool isJumping = false;
-
 
     [Header("Ground Check")]
     public GroundCheck gc;
@@ -35,7 +36,6 @@ public class Playermovement : MonoBehaviour
 
     [Header("Screen Shake")]
     public ScreenShake screenShake;  // Reference for screen shake effects
-
 
     [Header("State")]
     public bool canMove = true;
@@ -85,10 +85,8 @@ public class Playermovement : MonoBehaviour
             Debug.LogWarning($"{name} is missing a Hand Hold Point in the inspector!");
     }
 
-
     private void FixedUpdate()
     {
-        //if (assignedGamepad == null || !canMove) return;
         if (!canMove || isKnockedBack) return;
 
         // --- Movement ---
@@ -96,8 +94,6 @@ public class Playermovement : MonoBehaviour
 
         HandleFootsteps();
 
-        //Vector3 move = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
-        //Vector3 targetVelocity = move * moveSpeed;
         Transform cam = Camera.main.transform;
 
         // Flatten camera vectors (ignore Y)
@@ -109,9 +105,7 @@ public class Playermovement : MonoBehaviour
 
         Vector3 targetVelocity = move * moveSpeed;
 
-
         rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
-
 
         // --- Enhanced Gravity (fixed jump height) ---
         if (!gc.isGrounded)
@@ -132,7 +126,6 @@ public class Playermovement : MonoBehaviour
         {
             isJumping = false;
         }
-
 
         if (animator != null)
         {
@@ -156,16 +149,11 @@ public class Playermovement : MonoBehaviour
                 animator.SetFloat("Speed", smoothSpeed);
             }
             animator.SetBool("isGrounded", gc.isGrounded);
-
         }
-
-
     }
 
     private void Update()
     {
-        //if (assignedGamepad == null) return;
-
         // Jump input
         if (!GameManager.Instance.isOnKeyboard)
         {
@@ -186,19 +174,14 @@ public class Playermovement : MonoBehaviour
             }
         }
 
-
         // Rotation
         HandleRotation();
     }
 
     private void HandleRotation()
     {
-        //if (assignedGamepad == null) return;
-
         Vector2 moveInput = GameManager.Instance.isOnKeyboard ? new Vector2(Input.GetAxis("HorizontalWASD"), Input.GetAxis("VerticalWASD")) : assignedGamepad.leftStick.ReadValue();
         Vector2 aimInput = GameManager.Instance.isOnKeyboard ? new Vector2(Input.GetAxis("HorizontalArrows"), Input.GetAxis("VerticalArrows")) : assignedGamepad.rightStick.ReadValue();
-        //Vector2 moveInput = assignedGamepad.leftStick.ReadValue();
-        //Vector2 aimInput = assignedGamepad.rightStick.ReadValue();
 
         isAiming = projectileScript != null && projectileScript.IsAiming();
 
@@ -228,10 +211,8 @@ public class Playermovement : MonoBehaviour
                 appliedRotationSpeed *= aimRotationMultiplier;
 
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * appliedRotationSpeed);
-
         }
     }
-
 
     public void DoJump()
     {
@@ -293,41 +274,21 @@ public class Playermovement : MonoBehaviour
         }
     }
 
-
-    /*private void OnTriggerEnter(Collider other)
+    public void ApplyKnockback(Vector3 direction, float force, float duration)
     {
-        if (other.CompareTag("Brick"))
-        {
-            currentSurface = "Brick";
-            footstepSource.clip = brickClip;
-            Debug.Log("Entered Brick");
-        }
+        if (rb == null) return;
+
+        rb.linearVelocity = direction.normalized * force;
+
+        isKnockedBack = true;
+        StartCoroutine(EndKnockback(duration));
     }
 
-    private void OnTriggerExit(Collider other)
+    private IEnumerator EndKnockback(float time)
     {
-        if (other.CompareTag("Brick"))
-        {
-            currentSurface = "Grass";
-            footstepSource.clip = grassClip;
-            Debug.Log("Exited Brick");
-        }
+        yield return new WaitForSeconds(time);
+        isKnockedBack = false;
     }
-
-    private void HandleFootsteps()
-    {
-        if (!isGrounded || rb.linearVelocity.magnitude < 0.1f)
-        {
-            if (footstepSource.isPlaying)
-                footstepSource.Stop();
-            return;
-        }
-
-        if (!footstepSource.isPlaying)
-        {
-            footstepSource.Play();
-        }
-    }*/
 
     public Gamepad GetAssignedGamepad() => assignedGamepad;
 }

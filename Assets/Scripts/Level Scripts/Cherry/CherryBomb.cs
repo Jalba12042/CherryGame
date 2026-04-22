@@ -10,8 +10,40 @@ public class CherryBomb : Cherry
     [SerializeField] private float upwardModifier = 1.5f;
     [SerializeField] private LayerMask groundLayer;
 
-    private void Update()
+    [Header("Visuals")]
+    [SerializeField] private GameObject fuseVFX;
+    [SerializeField] private Renderer cherryRenderer;
+    [SerializeField] private Material normalMaterial;
+    [SerializeField] private Material flashingMaterial;
+
+    private void Start()
     {
+        if (fuseVFX != null)
+            fuseVFX.SetActive(false);
+
+        if (cherryRenderer != null && normalMaterial != null)
+            cherryRenderer.material = normalMaterial;
+    }
+
+    private void Update()
+    {   
+        if (isHeld)
+        {
+            if (fuseVFX != null)
+                fuseVFX.SetActive(true);
+
+            if (cherryRenderer != null && flashingMaterial != null)
+                cherryRenderer.material = flashingMaterial;
+        }
+        else
+        {
+            if (fuseVFX != null)
+                fuseVFX.SetActive(false);
+
+            if (cherryRenderer != null && normalMaterial != null)
+                cherryRenderer.material = normalMaterial;
+        }
+
         if (isHeld && !fuseLit)
         {
             fuseLit = true;

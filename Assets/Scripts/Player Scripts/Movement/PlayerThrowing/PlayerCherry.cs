@@ -79,7 +79,7 @@ public class PlayerCherry : MonoBehaviour
 
         foreach (var hit in hits)
         {
-            if (!hit.CompareTag("Cherry")) continue;
+            if (!hit.CompareTag("Cherry") && !hit.CompareTag("GoldenCherry")) continue;
 
             float dist = Vector3.Distance(transform.position, hit.ClosestPoint(transform.position));
             if (dist < closestDist)
@@ -92,6 +92,14 @@ public class PlayerCherry : MonoBehaviour
         if (closestCherry == null) return;
 
         heldCherry = closestCherry;
+
+        Cherry cherryScript = heldCherry.GetComponent<Cherry>();
+        if (cherryScript != null)
+        {
+            cherryScript.isHeld = true;
+            cherryScript.playerHolding = this.gameObject;
+        }
+
 
         if (pickupSource != null && pickupClip != null)
         {
@@ -161,6 +169,7 @@ public class PlayerCherry : MonoBehaviour
         if (cherryScript != null)
         {
             cherryScript.isHeld = false;
+            cherryScript.playerHolding = null;
         }
 
         heldCherry = null;

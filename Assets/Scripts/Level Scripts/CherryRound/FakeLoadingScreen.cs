@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using TMPro;
@@ -12,6 +12,15 @@ public class FakeLoadingScreen : MonoBehaviour
     public TMP_Text tipsText;
     public string[] tips;
     public float tipInterval = 2f;
+
+
+    [Header("Ready Up UI")]
+    private Gamepad[] controllers;
+    public Image[] playerReadyIcons;
+
+    private bool[] playerReady = new bool[4];
+    private int totalPlayers;
+    private int readyCount;
 
     // NEW: We added the slot for your Timer Manager right here!
     public TimerUIManager timerManager;
@@ -36,6 +45,9 @@ public class FakeLoadingScreen : MonoBehaviour
     private int currentTip = 0;
 
     private bool roundStarted = false;
+
+    [Header("Color Icons")]
+    public Sprite[] colorIcons; // index matches colorIndex
 
     private void Start()
     {
@@ -69,6 +81,28 @@ public class FakeLoadingScreen : MonoBehaviour
                 if (cherry != null) cherry.SetActive(true);
             }
         }
+
+        if (GameManager.Instance != null)
+            totalPlayers = GameManager.Instance.playerCount;
+        else
+            totalPlayers = 0;
+
+        // Reset UI + state
+        for (int i = 0; i < playerReadyIcons.Length; i++)
+        {
+            if (playerReadyIcons[i] != null)
+            {
+                // ❌ DON'T show them yet
+                playerReadyIcons[i].gameObject.SetActive(false);
+            }
+
+            playerReady[i] = false;
+        }
+
+        readyCount = 0;
+
+        // Grab controllers (optional fallback, not main system)
+        controllers = Gamepad.all.ToArray();
     }
 
     private void Update()
@@ -133,13 +167,47 @@ public class FakeLoadingScreen : MonoBehaviour
             return; // Stop checking controllers if mouse was clicked
         }
 
-        // Wait for "A" on ANY player's gamepad
-        foreach (var pad in UnityEngine.InputSystem.Gamepad.all)
+        for (int c = 0; c < controllers.Length; c++)
         {
+            Gamepad pad = controllers[c];
+            if (pad == null) continue;
+
             if (pad.buttonSouth.wasPressedThisFrame)
             {
-                BeginRound();
-                break;
+                // Find which player owns this controller
+                for (int i = 0; i < totalPlayers; i++)
+                {
+                    if (GameManager.Instance != null &&
+                        GameManager.Instance.controllerAssignments[i] == c)
+                    {
+                        if (!playerReady[i])
+                        {
+                            playerReady[i] = true;
+                            readyCount++;
+
+                            if (playerReadyIcons[i] != null)
+                            {
+                                playerReadyIcons[i].gameObject.SetActive(true);
+
+                                // Get color from GameManager
+                                if (GameManager.Instance != null &&
+                                    GameManager.Instance.playerCustomizations.Count > i)
+                                {
+                                    int colorIndex = GameManager.Instance.playerCustomizations[i].colorIndex;
+
+                                    if (colorIndex >= 0 && colorIndex < colorIcons.Length)
+                                    {
+                                        playerReadyIcons[i].sprite = colorIcons[colorIndex];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (readyCount >= totalPlayers && totalPlayers > 0)
+                {
+                    BeginRound();
+                }
             }
         }
     }

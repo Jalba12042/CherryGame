@@ -9,7 +9,6 @@ public enum ZombieState
     Digging
 }
 
-// NEW: Forces Unity to add an AudioSource so you don't forget!
 [RequireComponent(typeof(AudioSource))]
 public class Zombie : MonoBehaviour
 {
@@ -41,6 +40,7 @@ public class Zombie : MonoBehaviour
 
     [SerializeField] private GameObject dirtMoundPrefab;
     private GameObject spawnedDirt;
+    private GameObject exitDirt;
     private bool dirtFinished = false;
 
     [Header("Attacking")]
@@ -52,11 +52,18 @@ public class Zombie : MonoBehaviour
 
     [Header("Spawning")]
     public float spawnRadius;
-    [Header("Audio")] // NEW audio additions
+
+    [Header("Ground Detection")]
+    [SerializeField] private LayerMask groundLayer;
+
+    [Header("Audio")]
     public AudioClip riseSound;
-    public AudioClip[] moanSounds; // Multiple moans
+    public AudioClip attackSwingSound;
+    public AudioClip despawnSound;
+    public AudioClip[] moanSounds;
     public float minMoanTime = 3f;
     public float maxMoanTime = 8f;
+
     private float moanTimer;
     private AudioSource audioSource;
 
@@ -70,60 +77,11 @@ public class Zombie : MonoBehaviour
     private bool canAttack = true;
     private bool isInitialized = false;
 
+    private Vector3 knockbackVelocity = Vector3.zero;
+    [SerializeField] private float knockbackDecay = 5f;
+
     [Header("State")]
     public ZombieEvent myEvent;
-
-    /*private void Awake()
-    {
-        hitbox.SetActive(false);
-        rb = GetComponent<Rigidbody>();
-        audioSource = GetComponent<AudioSource>(); // NEW audio
-
-        // NEW: audio setup
-        if (audioSource != null)
-            audioSource.playOnAwake = false;
-
-        if (!wasPlayer)
-        {
-            rb.isKinematic = true;
-
-            if (dirtMoundPrefab != null)
-            {
-                Vector3 spawnPos = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-
-                spawnedDirt = Instantiate(dirtMoundPrefab, spawnPos, Quaternion.identity);
-
-                DirtMound dirtScript = spawnedDirt.GetComponent<DirtMound>();
-                if (dirtScript != null)
-                {
-                    dirtScript.Init(this); // 👈 THIS zombie gets passed in
-                }
-            }
-
-            // Force zombie to start underground
-            Vector3 startPos = transform.position;
-            startPos.y = groundY - spawnDepth;
-            transform.position = startPos;
-
-            // Make sure Rigidbody matches position
-            rb.position = startPos;
-
-            ChangeState(ZombieState.Rising);
-
-            // NEW: play rise sound
-            if (riseSound != null && audioSource != null)
-                audioSource.PlayOneShot(riseSound);
-        }
-        else
-        {
-            rb.isKinematic = false;
-            ChangeState(ZombieState.Wander);
-
-            // NEW: moan timer setup
-            moanTimer = Random.Range(minMoanTime, maxMoanTime);
-            StartCoroutine(LifeTimer());
-        }
-    }*/
 
     private void Awake()
     {
@@ -136,6 +94,14 @@ public class Zombie : MonoBehaviour
             audioSource.playOnAwake = false;
     }
 
+    private void Start()
+    {
+        if (!isInitialized && !wasPlayer)
+        {
+            InitNormalZombie();
+        }
+    }
+
     void ChangeState(ZombieState newState)
     {
         ZState = newState;
@@ -144,6 +110,15 @@ public class Zombie : MonoBehaviour
     private IEnumerator LifeTimer()
     {
         yield return new WaitUntil(() => !myEvent.isRunning);
+
+        if (despawnSound != null)
+        {
+            Vector3 soundPos = Camera.main != null ? Camera.main.transform.position : transform.position;
+            AudioSource.PlayClipAtPoint(despawnSound, soundPos, 1f);
+        }
+
+        SpawnExitDirt();
+
         digTimer = digTotalTime;
         ChangeState(ZombieState.Digging);
     }
@@ -153,12 +128,19 @@ public class Zombie : MonoBehaviour
         if (!isInitialized)
             return;
 
-        if (!RoundManager.Instance.currRoundActive) Destroy(gameObject);
+        if (!RoundManager.Instance.currRoundActive)
+            Destroy(gameObject);
 
-        // NEW: Random moaning logic
+        knockbackVelocity = Vector3.MoveTowards(
+            knockbackVelocity,
+            Vector3.zero,
+            knockbackDecay * Time.fixedDeltaTime
+        );
+
         if ((ZState == ZombieState.Wander || ZState == ZombieState.Chasing) && moanSounds.Length > 0)
         {
             moanTimer -= Time.fixedDeltaTime;
+
             if (moanTimer <= 0f)
             {
                 int randomMoan = Random.Range(0, moanSounds.Length);
@@ -211,9 +193,16 @@ public class Zombie : MonoBehaviour
             {
                 wanderTarget = transform.position;
                 rb.isKinematic = false;
+
+                float realGroundY = GetGroundY();
+                Vector3 p = rb.position;
+                p.y = realGroundY;
+                rb.position = p;
+
+                rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+
                 ChangeState(ZombieState.Wander);
 
-                // NEW: start moaning after rising
                 moanTimer = Random.Range(minMoanTime, maxMoanTime);
 
                 StartCoroutine(LifeTimer());
@@ -228,10 +217,11 @@ public class Zombie : MonoBehaviour
     {
         dirtFinished = true;
     }
+
     void Dig()
     {
         hitbox.SetActive(false);
-        anim.enabled = false; // keep your digging animation logic
+        anim.enabled = false;
 
         rb.isKinematic = true;
 
@@ -302,6 +292,12 @@ public class Zombie : MonoBehaviour
 
     void MoveTowards(Vector3 point)
     {
+        if (knockbackVelocity.magnitude > 0.05f)
+        {
+            rb.MovePosition(rb.position + knockbackVelocity * Time.fixedDeltaTime);
+            return;
+        }
+
         Vector3 offset = point - rb.position;
         offset.y = 0f;
 
@@ -311,12 +307,19 @@ public class Zombie : MonoBehaviour
         {
             anim.SetBool("isMoving", true);
 
-
             Vector3 direction = offset / distance;
             float step = moveSpeed * Time.fixedDeltaTime;
             float clampedStep = Mathf.Min(step, distance);
 
-            Vector3 newPosition = rb.position + direction * clampedStep;
+            //Vector3 newPosition = rb.position + direction * clampedStep;
+
+            Vector3 movement = direction * clampedStep;
+
+            // apply knockback
+            movement += knockbackVelocity * Time.fixedDeltaTime;
+
+            Vector3 newPosition = rb.position + movement;
+
             rb.MovePosition(newPosition);
 
             transform.forward = direction;
@@ -324,7 +327,6 @@ public class Zombie : MonoBehaviour
         else
         {
             anim.SetBool("isMoving", false);
-
         }
     }
 
@@ -392,6 +394,12 @@ public class Zombie : MonoBehaviour
     public void StartAttack()
     {
         hitbox.SetActive(true);
+
+        // --- ATTACK SOUND ---
+        if (attackSwingSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(attackSwingSound);
+        }
     }
 
     public void EndAttack()
@@ -416,16 +424,15 @@ public class Zombie : MonoBehaviour
         }
     }
 
+    // THIS IS THE INTRO DIGGING LOGIC
     public void InitNormalZombie()
     {
         isInitialized = true;
-
         rb.isKinematic = true;
 
         if (dirtMoundPrefab != null)
         {
             Vector3 spawnPos = transform.position;
-
             spawnedDirt = Instantiate(dirtMoundPrefab, spawnPos, Quaternion.identity);
 
             DirtMound dirtScript = spawnedDirt.GetComponent<DirtMound>();
@@ -441,6 +448,7 @@ public class Zombie : MonoBehaviour
 
         ChangeState(ZombieState.Rising);
 
+        // --- INTRO SOUND ---
         if (riseSound != null)
             audioSource.PlayOneShot(riseSound);
     }
@@ -448,14 +456,58 @@ public class Zombie : MonoBehaviour
     public void InitAsPlayerZombie()
     {
         isInitialized = true;
-
         wasPlayer = true;
-
         rb.isKinematic = false;
 
         ChangeState(ZombieState.Wander);
 
         moanTimer = Random.Range(minMoanTime, maxMoanTime);
         StartCoroutine(LifeTimer());
+    }
+
+    public void ApplyKnockback(Vector3 direction, float force)
+    {
+        direction.y = 0.4f; // small lift
+
+        knockbackVelocity += direction.normalized * force;
+    }
+
+    private float GetGroundY()
+    {
+        Ray ray = new Ray(transform.position + Vector3.up * 2f, Vector3.down);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, 10f, groundLayer))
+        {
+            return hit.point.y;
+        }
+
+        return groundY; // fallback
+    }
+
+    private Vector3 GetGroundPosition(Vector3 origin)
+    {
+        Ray ray = new Ray(origin + Vector3.up * 2f, Vector3.down);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, 10f, groundLayer))
+        {
+            return hit.point;
+        }
+
+        return origin;
+    }
+
+    private void SpawnExitDirt()
+    {
+        if (dirtMoundPrefab == null) return;
+
+        Vector3 groundPos = GetGroundPosition(transform.position);
+
+        exitDirt = Instantiate(dirtMoundPrefab, groundPos, Quaternion.identity);
+
+        DirtMound dirtScript = exitDirt.GetComponent<DirtMound>();
+        if (dirtScript != null)
+        {
+            dirtScript.InitExit(this);
+        }
     }
 }

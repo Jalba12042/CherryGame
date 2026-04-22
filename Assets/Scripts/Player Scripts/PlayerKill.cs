@@ -4,6 +4,9 @@ using UnityEngine;
 public class PlayerKill : MonoBehaviour
 {
     public Renderer[] playerRenderers;
+
+    [SerializeField] private GameObject visualRoot;
+
     public bool currDead = false;
     public Playermovement pm;
     [SerializeField] private int respawnDuration;
@@ -38,6 +41,9 @@ public class PlayerKill : MonoBehaviour
         pm.canMove = true;
         gameObject.layer = LayerMask.NameToLayer("Player");
         GetComponentInChildren<Animator>().enabled = true;
+
+        visualRoot.SetActive(true);
+
         foreach (var r in playerRenderers)
         {
             r.enabled = true;
@@ -49,6 +55,8 @@ public class PlayerKill : MonoBehaviour
     public void killPlayer()
     {
         GetComponentInChildren<Animator>().enabled = false;
+
+        visualRoot.SetActive(false);
         foreach (var r in playerRenderers)
         {
             r.enabled = false;

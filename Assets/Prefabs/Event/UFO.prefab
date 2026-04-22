@@ -841,7 +841,7 @@ Transform:
   m_GameObject: {fileID: 7718136328109965787}
   serializedVersion: 2
   m_LocalRotation: {x: 0.5020167, y: -0.507803, z: 0.49792475, w: 0.49212426}
-  m_LocalPosition: {x: 0.0077, y: 0.0092, z: 0.0006}
+  m_LocalPosition: {x: 0.00332, y: 0.0091, z: 0.00053}
   m_LocalScale: {x: 0.021531777, y: 0.021531777, z: 0.021531777}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1074,8 +1074,9 @@ MonoBehaviour:
   ufoModel: {fileID: 497231903146980137}
   spinSpeed: 50
   myEvent: {fileID: 0}
-  hoverSound: {fileID: 0}
-  abductSound: {fileID: 0}
+  spawnIntroSound: {fileID: 8300000, guid: 2e3474c4f3244eb479f27fe87d02062e, type: 3}
+  hoverSound: {fileID: 8300000, guid: a43316937f9c88c4cbe222cd856303bb, type: 3}
+  abductSound: {fileID: 8300000, guid: f53d2730fba3891409ae68d3b41ff997, type: 3}
 --- !u!82 &1570084061629968851
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1089,7 +1090,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.804
   m_Pitch: 1
   Loop: 0
   Mute: 0
