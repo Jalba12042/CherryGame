@@ -56,6 +56,10 @@ public class Zombie : MonoBehaviour
     [Header("Ground Detection")]
     [SerializeField] private LayerMask groundLayer;
 
+    [Header("Rise Pose")]
+    [SerializeField] private int risePose;
+    [SerializeField] private int maxRisePoses = 2;
+
     [Header("Audio")]
     public AudioClip riseSound;
     public AudioClip attackSwingSound;
@@ -191,6 +195,7 @@ public class Zombie : MonoBehaviour
 
             if (riseTimer <= 0f)
             {
+
                 wanderTarget = transform.position;
                 rb.isKinematic = false;
 
@@ -200,6 +205,8 @@ public class Zombie : MonoBehaviour
                 rb.position = p;
 
                 rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+
+                anim.SetBool("isRising", false);
 
                 ChangeState(ZombieState.Wander);
 
@@ -429,6 +436,10 @@ public class Zombie : MonoBehaviour
     {
         isInitialized = true;
         rb.isKinematic = true;
+
+        risePose = Random.Range(0, maxRisePoses);
+        anim.SetInteger("risePose", risePose);
+        anim.SetBool("isRising", true);
 
         if (dirtMoundPrefab != null)
         {
