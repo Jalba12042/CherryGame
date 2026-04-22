@@ -33,15 +33,7 @@ public class CherryBomb : Cherry
                 fuseVFX.SetActive(true);
 
             if (cherryRenderer != null && flashingMaterial != null)
-                cherryRenderer.material = flashingMaterial;
-        }
-        else
-        {
-            if (fuseVFX != null)
-                fuseVFX.SetActive(false);
-
-            if (cherryRenderer != null && normalMaterial != null)
-                cherryRenderer.material = normalMaterial;
+                SetCherryMaterial(flashingMaterial);
         }
 
         if (isHeld && !fuseLit)
@@ -78,5 +70,12 @@ public class CherryBomb : Cherry
         }
 
         Destroy(gameObject);
+    }
+
+    void SetCherryMaterial(Material mat)
+    {
+        Material[] mats = cherryRenderer.materials;
+        mats[0] = mat; // ONLY swap main cherry material
+        cherryRenderer.materials = mats;
     }
 }
