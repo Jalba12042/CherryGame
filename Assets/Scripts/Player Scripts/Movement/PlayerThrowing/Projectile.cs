@@ -62,6 +62,7 @@ public class Projectile : MonoBehaviour
     public bool IsThrowPending() => pendingThrow;
 
     private TrailRenderer cherryTrail;
+    public bool canThrowEnabled = true;
 
     void Start()
     {
@@ -82,7 +83,13 @@ public class Projectile : MonoBehaviour
 
     void Update()
     {
-        
+        if (!canThrowEnabled)
+        {
+            // disable ONLY throwing, NOT everything
+            isAiming = false;
+            return;
+        }
+
         if (!canThrow)
         {
             throwCooldownTimer -= Time.deltaTime;
@@ -156,7 +163,7 @@ public class Projectile : MonoBehaviour
 
             owner.animator.SetTrigger("doThrow");
             owner.animator.SetBool("isAiming", false);
-            owner.animator.SetBool("isPickingUp", false);
+            //owner.animator.SetBool("isPickingUp", false);
 
             owner.StartCoroutine(DelayedThrow(finalPower));
 
@@ -357,5 +364,21 @@ public class Projectile : MonoBehaviour
         owner.animator.SetBool("isPickingUp", false);
 
         currentPower = 0f;
+    }
+
+    public void DisableThrowing()
+    {
+        canThrowEnabled = false;
+
+        // Only stop aiming — DO NOT touch pickup animation
+        isAiming = false;
+
+        if (owner != null)
+            owner.animator.SetBool("isAiming", false);
+    }
+
+    public void EnableThrowing()
+    {
+        canThrowEnabled = true;
     }
 }

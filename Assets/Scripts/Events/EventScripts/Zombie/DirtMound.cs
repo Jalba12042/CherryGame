@@ -23,7 +23,11 @@ public class DirtMound : MonoBehaviour
 
     void Update()
     {
-        transform.position = Vector3.MoveTowards(transform.position, targetPos, riseSpeed * Time.deltaTime);
+        transform.position = Vector3.MoveTowards(
+            transform.position,
+            targetPos,
+            riseSpeed * Time.deltaTime
+        );
 
         if (Vector3.Distance(transform.position, targetPos) < 0.01f)
         {

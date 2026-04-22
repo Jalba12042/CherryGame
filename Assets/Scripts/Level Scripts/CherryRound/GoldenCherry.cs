@@ -10,6 +10,10 @@ public class GoldenCherry : Cherry
     private bool effectApplied = false;
     private GameObject prevPlayerHolding;
 
+    private Playermovement cachedPlayer;
+    private Projectile cachedProjectile;
+    private PlayerDash cachedDash;
+
     private void Awake()
     {
         StartCoroutine(Spawn());
@@ -38,6 +42,52 @@ public class GoldenCherry : Cherry
         if (playerHolding != null && !effectApplied)
         {
             effectApplied = true;
+
+            prevPlayerHolding = playerHolding;
+
+            StartCoroutine(ApplyGoldenEffect(playerHolding));
+        }
+
+
+        if (playerHolding == null && effectApplied)
+        {
+            effectApplied = false;
+
+            if (prevPlayerHolding != null)
+            {
+                Animator anim = prevPlayerHolding.GetComponent<Animator>();
+                if (anim != null)
+                    anim.SetBool("isPickingUp", false);
+
+                PlayerDash pd = prevPlayerHolding.GetComponent<PlayerDash>();
+                if (pd != null) pd.enabled = true;
+
+                Projectile proj = prevPlayerHolding.GetComponent<Projectile>();
+                if (proj != null) proj.EnableThrowing();
+            }
+
+            prevPlayerHolding = null;
+        }
+    }
+
+    private IEnumerator ApplyGoldenEffect(GameObject player)
+    {
+        // wait 1 frame so pickup animation/state can register first
+        yield return null;
+
+        PlayerDash pd = player.GetComponent<PlayerDash>();
+        if (pd != null) pd.enabled = false;
+
+        Projectile proj = player.GetComponent<Projectile>();
+        if (proj != null) proj.DisableThrowing();
+    }
+
+
+    /*private void Update()
+    {
+        if (playerHolding != null && !effectApplied)
+        {
+            effectApplied = true;
             prevPlayerHolding = playerHolding;
             PlayerDash pd = playerHolding.GetComponent<PlayerDash>();
 
@@ -48,5 +98,5 @@ public class GoldenCherry : Cherry
             pd.enabled = true;
             effectApplied = false;
         }
-    }
+    }*/
 }

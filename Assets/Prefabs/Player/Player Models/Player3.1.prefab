@@ -1931,7 +1931,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.5051523, y: -0.49636656, z: -0.50129545, w: -0.49713606}
   m_LocalPosition: {x: 0.00387, y: 0.00683, z: 0.00028}
-  m_LocalScale: {x: 0.015049396, y: 0.015049397, z: 0.015049394}
+  m_LocalScale: {x: 0.017443458, y: 0.015049397, z: 0.015049394}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5776581273501784135}
@@ -1980,7 +1980,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 802955823, guid: af30be9b8215341d6965133ad9617d85, type: 3}
+  m_Sprite: {fileID: -481190321, guid: ec1039038481445fc9b3eb55e8660c48, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -3195,43 +3195,43 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 149785260f21f184185d74d1f92a16c1, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.010462994
+      value: 0.010185515
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 149785260f21f184185d74d1f92a16c1, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.010942541
+      value: 0.010652345
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 149785260f21f184185d74d1f92a16c1, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.010462993
+      value: 0.010185514
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 149785260f21f184185d74d1f92a16c1, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.038951144
+      value: 0.0383
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 149785260f21f184185d74d1f92a16c1, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.00030643228
+      value: -0.0003
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 149785260f21f184185d74d1f92a16c1, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.00036618416
+      value: 0.0002
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 149785260f21f184185d74d1f92a16c1, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.7071068
+      value: -0.7070624
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 149785260f21f184185d74d1f92a16c1, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0.000000059604638
+      value: -0.007912126
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 149785260f21f184185d74d1f92a16c1, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.70710677
+      value: -0.7070626
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 149785260f21f184185d74d1f92a16c1, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.0000001490116
+      value: -0.007911828
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 149785260f21f184185d74d1f92a16c1, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -3239,11 +3239,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 149785260f21f184185d74d1f92a16c1, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: 90
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 149785260f21f184185d74d1f92a16c1, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
+      value: 1.282
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 149785260f21f184185d74d1f92a16c1, type: 3}
       propertyPath: m_Name
@@ -3798,6 +3798,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e402cd27d64a0b4bbe021fe8c751059, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerID: 0
   playerIndex: 0
   moveSpeed: 14
   jumpForce: 9
@@ -3849,6 +3850,7 @@ MonoBehaviour:
   throwCooldown: 4
   cooldownBarObject: {fileID: 675942118702846967}
   cooldownFillImage: {fileID: 2193314312661664148}
+  canThrowEnabled: 1
 --- !u!114 &7264247946588991192
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3891,7 +3893,7 @@ MonoBehaviour:
   stunCanvas: {fileID: 2818092781206818176}
   stunTimerText: {fileID: 6336764105013487709}
   grabSource: {fileID: 2881747651821587375}
-  grabClip: {fileID: 8300000, guid: 270772c070e108941b257f2a8951630e, type: 3}
+  grabClip: {fileID: 8300000, guid: 5bde7209d137a854cb758783121d5bd2, type: 3}
   dropClip: {fileID: 8300000, guid: 10335e0f8a2462f4a9a65ae22f317080, type: 3}
   throwForceForward: 200
   throwForceUp: 12
@@ -3909,7 +3911,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   handHoldPoint: {fileID: 2993220774640444911}
   pickupSource: {fileID: 2881747651821587375}
-  pickupClip: {fileID: 8300000, guid: 270772c070e108941b257f2a8951630e, type: 3}
+  pickupClip: {fileID: 8300000, guid: 5bde7209d137a854cb758783121d5bd2, type: 3}
   dropClip: {fileID: 8300000, guid: 10335e0f8a2462f4a9a65ae22f317080, type: 3}
   cherryLayer:
     serializedVersion: 2

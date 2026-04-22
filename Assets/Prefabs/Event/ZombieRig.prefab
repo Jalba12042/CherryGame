@@ -122,6 +122,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   zombiePrefab: {fileID: 7519376380929433528}
+  biteKillSound: {fileID: 0}
 --- !u!1001 &7249486067505554153
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -132,15 +133,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 00c1b49c414464f3ebc01afe2aa3fb75, type: 3}
       propertyPath: m_LocalScale.x
-      value: 282.72934
+      value: 262.73755
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 00c1b49c414464f3ebc01afe2aa3fb75, type: 3}
       propertyPath: m_LocalScale.y
-      value: 282.72934
+      value: 262.73755
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 00c1b49c414464f3ebc01afe2aa3fb75, type: 3}
       propertyPath: m_LocalScale.z
-      value: 282.72934
+      value: 262.73755
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 00c1b49c414464f3ebc01afe2aa3fb75, type: 3}
       propertyPath: m_LocalPosition.x
@@ -275,8 +276,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.030143727, y: 0.040301036, z: 0.021483606}
-  m_Center: {x: 0.002628875, y: 0.020800853, z: 0.0031241998}
+  m_Size: {x: 0.030143727, y: 0.03954564, z: 0.021483606}
+  m_Center: {x: 0.0026288747, y: 0.02117855, z: 0.0031242}
 --- !u!82 &6690771887271679460
 AudioSource:
   m_ObjectHideFlags: 0
@@ -408,8 +409,14 @@ MonoBehaviour:
   attackCooldown: 2.5
   wasPlayer: 0
   spawnRadius: 15
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 65536
   riseSound: {fileID: 8300000, guid: a6809269a4a904f46bd415f9289f9089, type: 3}
+  attackSwingSound: {fileID: 8300000, guid: 62f4a3b0bd8cc7a49bc962c165d0a0e3, type: 3}
+  despawnSound: {fileID: 0}
   moanSounds: []
   minMoanTime: 2
   maxMoanTime: 3
+  knockbackDecay: 5
   myEvent: {fileID: 0}

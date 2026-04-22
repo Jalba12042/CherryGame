@@ -1,166 +1,117 @@
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
+using TMPro;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using System.Collections.Generic;
+
+[System.Serializable]
+public class VictoryPuppet
+{
+    public string colorName;
+    public int colorIndex;
+    public GameObject puppetGroup;
+}
 
 public class WinScript : MonoBehaviour
 {
-    public TMP_Text winnerText; // assign in Inspector to display winner
-    public Button[] menuButtons; // Shop button etc.
-    private int currentIndex = 0;
+    public static List<int> winningPlayers = new List<int>();
 
-    private bool canMove = true;
-    private float deadzone = 0.5f;
+    [Header("UI Elements")]
+    public TextMeshProUGUI winnerText;
+    public string shopSceneName = "Shop";
 
-    [SerializeField] private string shopSceneName;
+    [Header("Name Mapping")]
+    public string[] availableNames;
 
-    public static List<int> winningPlayers;
+    [Header("Puppet Animations")]
+    public VictoryPuppet[] colorPuppets;
 
-    // NEW: Add slots for your puppet animations
-    public GameObject redPuppetAnim;
-    public GameObject bluePuppetAnim;
+    // --- NEW: This is now a list so you can drop in as many tie animations as you want! ---
+    public GameObject[] tiePuppetGroups;
 
     void Start()
     {
-        // NEW: Make sure both are hidden at the very start
-        if (redPuppetAnim != null) redPuppetAnim.SetActive(false);
-        if (bluePuppetAnim != null) bluePuppetAnim.SetActive(false);
+        // 1. Turn off ALL puppets first so the screen is completely clean
+        TurnOffAllPuppets();
 
-        // Show winner text
-        if (winnerText != null)
+        // 2. Figure out who won based on the list from RoundManager
+        bool isTie = winningPlayers.Count > 1;
+        int winnerID = winningPlayers.Count > 0 ? winningPlayers[0] : 0;
+
+        if (isTie)
         {
-            if (winningPlayers.Count != 1)
+            // --- IT'S A TIE ---
+            if (winnerText != null) winnerText.text = "IT'S A TIE!";
+
+            // --- NEW: Pick a random tie animation from the list! ---
+            if (tiePuppetGroups != null && tiePuppetGroups.Length > 0)
             {
-                // Tie logic
-                string winners = "Players ";
-                for (int i = 0; i < winningPlayers.Count; i++)
+                int randomIndex = Random.Range(0, tiePuppetGroups.Length);
+                if (tiePuppetGroups[randomIndex] != null)
                 {
-                    winners += winningPlayers[i] + 1;
-                    if (i == winningPlayers.Count - 1)
-                    {
-                        winners += " ";
-                    }
-                    else
-                    {
-                        winners += ", ";
-                    }
-                }
-                winners += "Tied!";
-
-                winnerText.text = winners;
-            }
-            else
-            {
-                // Someone won!
-                winnerText.text = $"Player {winningPlayers[0] + 1} Wins!";
-
-                // NEW: Turn on the correct puppet based on who won
-                // winningPlayers[0] == 0 means Player 1 (Red)
-                // winningPlayers[0] == 1 means Player 2 (Blue)
-
-                if (winningPlayers[0] == 0)
-                {
-                    if (redPuppetAnim != null) redPuppetAnim.SetActive(true);
-                }
-                else if (winningPlayers[0] == 1)
-                {
-                    if (bluePuppetAnim != null) bluePuppetAnim.SetActive(true);
+                    tiePuppetGroups[randomIndex].SetActive(true);
                 }
             }
         }
-
-        HighlightButton();
-    }
-
-    /*void Update()
-    {
-        if (Gamepad.all.Count == 0) return;
-        var gamepad = Gamepad.all[0];
-        Vector2 move = gamepad.leftStick.ReadValue();
-
-        // Navigation
-        if (canMove)
+        else
         {
-            if (move.y > deadzone)
+            // --- SOMEONE WON ---
+            string winName = "PLAYER " + (winnerID + 1);
+            int winColorIndex = 0;
+
+            // 3. Grab their custom data from the GameManager's Memory Bank!
+            if (GameManager.Instance != null && GameManager.Instance.playerCustomizations.Count > winnerID)
             {
-                currentIndex = Mathf.Max(0, currentIndex - 1);
-                HighlightButton();
-                canMove = false;
-            }
-            else if (move.y < -deadzone)
-            {
-                currentIndex = Mathf.Min(menuButtons.Length - 1, currentIndex + 1);
-                HighlightButton();
-                canMove = false;
-            }
-        }
+                var data = GameManager.Instance.playerCustomizations[winnerID];
+                winColorIndex = data.colorIndex;
 
-        if (Mathf.Abs(move.y) < 0.2f)
-        {
-            canMove = true;
-        }
-
-        // Confirm selection
-        if (gamepad.buttonSouth.wasPressedThisFrame)
-        {
-            menuButtons[currentIndex].onClick.Invoke();
-        }
-    }*/
-
-    void Update()
-    {
-        if (GameManager.Instance == null) return;
-
-        for (int i = 0; i < GameManager.Instance.playerCount; i++)
-        {
-            int assignedControllerIndex = GameManager.Instance.controllerAssignments[i];
-            if (assignedControllerIndex < 0 || assignedControllerIndex >= Gamepad.all.Count)
-                continue; // Skip unassigned or disconnected controllers
-
-            var gamepad = Gamepad.all[assignedControllerIndex];
-            Vector2 move = gamepad.leftStick.ReadValue();
-
-            // Navigation
-            if (canMove)
-            {
-                if (move.y > deadzone)
+                if (availableNames != null && data.nameIndex >= 0 && data.nameIndex < availableNames.Length)
                 {
-                    currentIndex = Mathf.Max(0, currentIndex - 1);
-                    HighlightButton();
-                    canMove = false;
-                }
-                else if (move.y < -deadzone)
-                {
-                    currentIndex = Mathf.Min(menuButtons.Length - 1, currentIndex + 1);
-                    HighlightButton();
-                    canMove = false;
+                    winName = availableNames[data.nameIndex];
                 }
             }
 
-            if (Mathf.Abs(move.y) < 0.2f)
-                canMove = true;
+            // Set the Name Text on the screen
+            if (winnerText != null) winnerText.text = winName + " WINS!";
 
-            // Confirm selection
-            if (gamepad.buttonSouth.wasPressedThisFrame)
+            // 4. Turn on the correct colored puppet!
+            bool foundPuppet = false;
+            foreach (VictoryPuppet vp in colorPuppets)
             {
-                menuButtons[currentIndex].onClick.Invoke();
+                if (vp.colorIndex == winColorIndex)
+                {
+                    if (vp.puppetGroup != null) vp.puppetGroup.SetActive(true);
+                    foundPuppet = true;
+                    break;
+                }
+            }
+
+            // Fallback: If you forgot to drag a puppet into the inspector, just use the first one
+            if (!foundPuppet && colorPuppets.Length > 0 && colorPuppets[0].puppetGroup != null)
+            {
+                colorPuppets[0].puppetGroup.SetActive(true);
             }
         }
     }
 
-    void HighlightButton()
+    private void TurnOffAllPuppets()
     {
-        for (int i = 0; i < menuButtons.Length; i++)
+        // --- NEW: Turn off EVERY tie animation in the list ---
+        if (tiePuppetGroups != null)
         {
-            ColorBlock colors = menuButtons[i].colors;
-            colors.normalColor = (i == currentIndex) ? Color.yellow : Color.white;
-            menuButtons[i].colors = colors;
+            foreach (GameObject tieGroup in tiePuppetGroups)
+            {
+                if (tieGroup != null) tieGroup.SetActive(false);
+            }
+        }
+
+        foreach (VictoryPuppet vp in colorPuppets)
+        {
+            if (vp.puppetGroup != null) vp.puppetGroup.SetActive(false);
         }
     }
 
-    public void GoToShop()
+    public void LoadShop()
     {
         SceneManager.LoadScene(shopSceneName);
     }

@@ -93,6 +93,14 @@ public class PlayerCherry : MonoBehaviour
 
         heldCherry = closestCherry;
 
+        Cherry cherryScript = heldCherry.GetComponent<Cherry>();
+        if (cherryScript != null)
+        {
+            cherryScript.isHeld = true;
+            cherryScript.playerHolding = this.gameObject;
+        }
+
+
         if (pickupSource != null && pickupClip != null)
         {
             pickupSource.pitch = Random.Range(0.95f, 1.05f);
