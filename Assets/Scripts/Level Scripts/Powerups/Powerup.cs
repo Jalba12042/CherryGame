@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Powerup : MonoBehaviour
@@ -133,6 +134,12 @@ public class Powerup : MonoBehaviour
             StopCoroutine(activeTimer);
             activeTimer = null;
         }
+
+        if (isActive)
+        {
+            powerUpEnd();
+        }
+
         isActive = false;
     }
 

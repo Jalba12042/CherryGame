@@ -381,4 +381,45 @@ public class Projectile : MonoBehaviour
     {
         canThrowEnabled = true;
     }
+
+    public void ForceResetCherry()
+    {
+        if (heldCherry != null)
+        {
+            // Unparent
+            heldCherry.transform.SetParent(null);
+
+            // Physics back on
+            Rigidbody rb = heldCherry.GetComponent<Rigidbody>();
+            if (rb != null)
+                rb.isKinematic = false;
+
+            // Reset cherry script
+            Cherry cherryScript = heldCherry.GetComponent<Cherry>();
+            if (cherryScript != null)
+            {
+                cherryScript.isHeld = false;
+                cherryScript.playerHolding = null;
+            }
+        }
+
+        // FULL RESET
+        heldCherry = null;
+        isHoldingCherry = false;
+        isAiming = false;
+        pendingThrow = false;
+        currentPower = 0f;
+
+        if (owner != null)
+        {
+            owner.animator.SetBool("isAiming", false);
+            owner.animator.SetBool("isPickingUp", false);
+        }
+
+        if (landingMarkerInstance != null)
+        {
+            landingMarkerInstance.SetActive(false);
+        }
+    }
+
 }

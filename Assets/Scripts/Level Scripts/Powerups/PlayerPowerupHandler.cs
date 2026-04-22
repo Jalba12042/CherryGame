@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -129,5 +129,43 @@ public class PlayerPowerupHandler : MonoBehaviour
 
         // --- NEW CLEAN UI LOGIC ---
         if (FaceCamManager.Instance != null) FaceCamManager.Instance.HidePowerUp(player.playerIndex);
+    }
+
+    public void ClearAllPowerups()
+    {
+        foreach (var kvp in activePowerupInstances)
+        {
+            Powerup pu = kvp.Value;
+
+            if (pu != null)
+            {
+                pu.ForceStop();
+            }
+        }
+
+        activePowerupInstances.Clear();
+
+        // Reset flags
+        for (int i = 0; i < currPowerups.Count; i++)
+        {
+            currPowerups[i] = false;
+        }
+
+        isSlowed = false;
+        isTased = false;
+
+        // Reset movement
+        if (player != null)
+        {
+            player.moveSpeed = originalMoveSpeed;
+        }
+
+        // Turn off VFX
+        if (taserVFX != null)
+            taserVFX.SetActive(false);
+
+        // Reset UI
+        if (FaceCamManager.Instance != null)
+            FaceCamManager.Instance.HidePowerUp(player.playerIndex);
     }
 }

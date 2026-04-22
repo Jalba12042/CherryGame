@@ -239,6 +239,7 @@ public class RoundManager : MonoBehaviour
 
                 Playermovement player = playerObj.GetComponentInChildren<Playermovement>();
                 player.playerIndex = i;
+                player.initialSpawnPosition = currPlayerSpawn.spawnPoints[i].position;
                 player.GetComponent<PlayerEscapeUI>().playerIndex = i;
 
                 if (assignedControllerIndex >= 0 && assignedControllerIndex < UnityEngine.InputSystem.Gamepad.all.Count)
@@ -257,6 +258,7 @@ public class RoundManager : MonoBehaviour
             GameObject playerObj = Instantiate(playerPrefab, currPlayerSpawn.spawnPoints[0].position, Quaternion.identity);
             Playermovement player = playerObj.GetComponentInChildren<Playermovement>();
             player.playerIndex = 0;
+            player.initialSpawnPosition = currPlayerSpawn.spawnPoints[0].position;
             player.GetComponent<PlayerEscapeUI>().playerIndex = 0;
 
             PlayerColorAssigner colorAssigner = playerObj.GetComponentInChildren<PlayerColorAssigner>();

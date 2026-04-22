@@ -217,4 +217,10 @@ public class PlayerCherry : MonoBehaviour
         }
     }
 
+    public void ForceDrop()
+    {
+        CancelAimAndDrop();
+        heldCherry = null;
+    }
+
 }
