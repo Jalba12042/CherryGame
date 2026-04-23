@@ -7,6 +7,26 @@ public class Cherry : MonoBehaviour
     public bool isHeld = false;
     public GameObject playerHolding;
 
+    [Header("Trail")]
+    [SerializeField] private GameObject cherryTrailObject;
+
+    void Awake()
+    {
+        if (cherryTrailObject != null)
+            cherryTrailObject.SetActive(false); // OFF by default
+    }
+
+    public void EnableTrail()
+    {
+        if (cherryTrailObject != null)
+            cherryTrailObject.SetActive(true);
+    }
+
+    public void DisableTrail()
+    {
+        if (cherryTrailObject != null)
+            cherryTrailObject.SetActive(false);
+    }
     public IEnumerator TemporarilyIgnoreBasket(float duration)
     {
         ignoreBasketPull = true;

@@ -61,7 +61,7 @@ public class Projectile : MonoBehaviour
     public bool IsAiming() => isAiming;
     public bool IsThrowPending() => pendingThrow;
 
-    private TrailRenderer cherryTrail;
+    //private TrailRenderer cherryTrail;
     public bool canThrowEnabled = true;
 
     void Start()
@@ -182,11 +182,12 @@ public class Projectile : MonoBehaviour
         {
             cherryScript.isHeld = true;
             cherryScript.playerHolding = gameObject;
+            cherryScript.DisableTrail();
         }
 
-        cherryTrail = heldCherry.GetComponent<TrailRenderer>();
+        /*cherryTrail = heldCherry.GetComponent<TrailRenderer>();
         if (cherryTrail != null)
-            cherryTrail.emitting = false;
+            cherryTrail.emitting = false;*/
 
         Rigidbody rb = heldCherry.GetComponent<Rigidbody>();
         if (rb != null)
@@ -276,15 +277,17 @@ public class Projectile : MonoBehaviour
         {
             cherryScript.isHeld = false;
             cherryScript.playerHolding = null;
+            cherryScript.EnableTrail();
         }
 
-        cherryTrail = heldCherry.GetComponent<TrailRenderer>();
+        /*cherryTrail = heldCherry.GetComponent<TrailRenderer>();
 
         if (cherryTrail != null)
         {
             cherryTrail.Clear();      // removes any old trail
             cherryTrail.emitting = true;  
-        }
+        }*/
+
 
         if (rb != null)
         {
