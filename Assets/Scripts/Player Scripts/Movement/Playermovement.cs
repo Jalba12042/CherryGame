@@ -59,6 +59,7 @@ public class Playermovement : MonoBehaviour
     private Rigidbody rb;
     public Animator animator;
     private Vector2 moveInput;
+    public Vector3 initialSpawnPosition;
 
     void Start()
     {

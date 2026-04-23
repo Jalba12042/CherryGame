@@ -143,6 +143,12 @@ public class PlayerGrab : MonoBehaviour
         if (grabbedGrab != null)
             grabbedGrab.isGrabbed = true;
 
+        PlayerGrabbed grabbedScript = grabbedPlayer.GetComponent<PlayerGrabbed>();
+        if (grabbedScript != null)
+        {
+            grabbedScript.grabber = this;
+        }
+
         Animator grabbedAnimator = grabbedPlayer.GetComponent<Animator>();
         if (grabbedAnimator != null)
             grabbedAnimator.SetBool("isGrabbed", true);
@@ -192,6 +198,12 @@ public class PlayerGrab : MonoBehaviour
             {
                 grabbedGrab.isGrabbed = false;
                 grabbedGrab.enabled = true;
+            }
+
+            PlayerGrabbed grabbedScript = grabbedPlayer.GetComponent<PlayerGrabbed>();
+            if (grabbedScript != null)
+            {
+                grabbedScript.grabber = null;
             }
 
             Animator grabbedAnimator = grabbedPlayer.GetComponent<Animator>();
@@ -339,6 +351,27 @@ public class PlayerGrab : MonoBehaviour
         {
             if (jiggle != null)
                 jiggle.enabled = enabled;
+        }
+    }
+
+    public void ForceReleaseAll()
+    {
+        // If I'm holding someone → release them
+        if (grabbedPlayer != null)
+        {
+            ReleaseGrab();
+        }
+
+        // If I'm being held → force the OTHER player to release me
+        if (isGrabbed)
+        {
+            PlayerGrab other = FindObjectOfType<PlayerGrab>(); // better: track who grabbed you
+            if (other != null)
+            {
+                other.ReleaseGrab();
+            }
+
+            isGrabbed = false;
         }
     }
 }
