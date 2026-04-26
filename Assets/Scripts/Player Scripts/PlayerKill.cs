@@ -13,6 +13,8 @@ public class PlayerKill : MonoBehaviour
     public Scream ps;
     private FaceCamStatic myFaceCamStatic;
 
+    [SerializeField] private GameObject confettiPrefab;
+
     private void Awake()
     {
         pm = GetComponent<Playermovement>();
@@ -73,6 +75,14 @@ public class PlayerKill : MonoBehaviour
         if (currDead) return;
 
         currDead = true;
+
+        Vector3 deathPosition = transform.position;
+
+        // Spawn confetti
+        if (confettiPrefab != null)
+        {
+            Instantiate(confettiPrefab, deathPosition, Quaternion.identity);
+        }
 
         ResetPlayerState();
 

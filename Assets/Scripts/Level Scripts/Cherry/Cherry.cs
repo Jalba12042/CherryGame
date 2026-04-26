@@ -7,13 +7,31 @@ public class Cherry : MonoBehaviour
     public bool isHeld = false;
     public GameObject playerHolding;
 
+    private GroundCheck groundCheck;
+    private bool wasGrounded = false;
+
     [Header("Trail")]
     [SerializeField] private GameObject cherryTrailObject;
 
     void Awake()
     {
+        groundCheck = GetComponent<GroundCheck>();
+
         if (cherryTrailObject != null)
             cherryTrailObject.SetActive(false); // OFF by default
+    }
+
+    void Update()
+    {
+        if (groundCheck == null) return;
+
+        // Detect landing moment (NOT just being grounded)
+        if (groundCheck.isGrounded && !wasGrounded)
+        {
+            DisableTrail();
+        }
+
+        wasGrounded = groundCheck.isGrounded;
     }
 
     public void EnableTrail()
