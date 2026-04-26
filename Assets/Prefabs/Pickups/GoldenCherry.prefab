@@ -1,5 +1,79 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &3222915667786563266
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 7285527476645163069}
+    m_Modifications:
+    - target: {fileID: 1525460665622107951, guid: de31ee30457382649949ccb5e3911f47, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.0029430983
+      objectReference: {fileID: 0}
+    - target: {fileID: 1525460665622107951, guid: de31ee30457382649949ccb5e3911f47, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.0029430992
+      objectReference: {fileID: 0}
+    - target: {fileID: 1525460665622107951, guid: de31ee30457382649949ccb5e3911f47, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.0029430992
+      objectReference: {fileID: 0}
+    - target: {fileID: 1525460665622107951, guid: de31ee30457382649949ccb5e3911f47, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.00058929535
+      objectReference: {fileID: 0}
+    - target: {fileID: 1525460665622107951, guid: de31ee30457382649949ccb5e3911f47, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.005400001
+      objectReference: {fileID: 0}
+    - target: {fileID: 1525460665622107951, guid: de31ee30457382649949ccb5e3911f47, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.001793146
+      objectReference: {fileID: 0}
+    - target: {fileID: 1525460665622107951, guid: de31ee30457382649949ccb5e3911f47, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 1525460665622107951, guid: de31ee30457382649949ccb5e3911f47, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 1525460665622107951, guid: de31ee30457382649949ccb5e3911f47, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1525460665622107951, guid: de31ee30457382649949ccb5e3911f47, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1525460665622107951, guid: de31ee30457382649949ccb5e3911f47, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 1525460665622107951, guid: de31ee30457382649949ccb5e3911f47, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1525460665622107951, guid: de31ee30457382649949ccb5e3911f47, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8057486341058259470, guid: de31ee30457382649949ccb5e3911f47, type: 3}
+      propertyPath: m_Name
+      value: GoldCherryEffect
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: de31ee30457382649949ccb5e3911f47, type: 3}
+--- !u!4 &4148271408009046509 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1525460665622107951, guid: de31ee30457382649949ccb5e3911f47, type: 3}
+  m_PrefabInstance: {fileID: 3222915667786563266}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7102702036121360342
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22,15 +96,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f9a3409ce0fb4ff4f9d5b7006094f2c1, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -8.622289
+      value: 70.9246
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f9a3409ce0fb4ff4f9d5b7006094f2c1, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 56.89
+      value: 4.96
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f9a3409ce0fb4ff4f9d5b7006094f2c1, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 74.708145
+      value: -45.97998
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f9a3409ce0fb4ff4f9d5b7006094f2c1, type: 3}
       propertyPath: m_LocalRotation.w
@@ -110,7 +184,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: f9a3409ce0fb4ff4f9d5b7006094f2c1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4148271408009046509}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f9a3409ce0fb4ff4f9d5b7006094f2c1, type: 3}
       insertIndex: -1
@@ -128,6 +205,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 8056024194308387289}
   m_SourcePrefab: {fileID: 100100000, guid: f9a3409ce0fb4ff4f9d5b7006094f2c1, type: 3}
+--- !u!4 &7285527476645163069 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: f9a3409ce0fb4ff4f9d5b7006094f2c1, type: 3}
+  m_PrefabInstance: {fileID: 7102702036121360342}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &7949051319438289543 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: f9a3409ce0fb4ff4f9d5b7006094f2c1, type: 3}
@@ -322,6 +404,7 @@ MonoBehaviour:
   ignoreBasketPull: 0
   isHeld: 0
   playerHolding: {fileID: 0}
+  cherryTrailObject: {fileID: 0}
   waitInAirTime: 1
   slowFallDuration: 3
   slowFallSpeed: 1

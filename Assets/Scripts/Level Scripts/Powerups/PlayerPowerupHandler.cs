@@ -23,6 +23,10 @@ public class PlayerPowerupHandler : MonoBehaviour
     [SerializeField] private AudioSource taserAudioSource;
     [SerializeField] private AudioClip taserClip;
 
+    [Header("Gun State")]
+    public bool hasGunEquipped = false;
+    public GunPowerup activeGun;
+
     void Start()
     {
         player = GetComponent<Playermovement>();
@@ -64,6 +68,8 @@ public class PlayerPowerupHandler : MonoBehaviour
                 nearbyPowerup = null;
             }
         }
+
+        HandleGunInput();
     }
 
     private void OnTriggerEnter(Collider other)
@@ -167,5 +173,45 @@ public class PlayerPowerupHandler : MonoBehaviour
         // Reset UI
         if (FaceCamManager.Instance != null)
             FaceCamManager.Instance.HidePowerUp(player.playerIndex);
+    }
+
+
+    private void HandleGunInput()
+    {
+        if (activeGun == null) return;
+
+        bool pressed = false;
+
+        if (player.assignedGamepad != null)
+        {
+            pressed = player.assignedGamepad.rightTrigger.wasPressedThisFrame;
+        }
+        else if (GameManager.Instance.isOnKeyboard)
+        {
+            pressed = Input.GetKeyDown(KeyCode.E);
+        }
+
+        if (!pressed) return;
+
+        // FIRST PRESS → equip gun
+        if (!hasGunEquipped)
+        {
+            hasGunEquipped = true;
+
+            Transform hand = transform.Find("Hand");
+            if (hand != null)
+            {
+                activeGun.EquipGun(hand);
+            }
+
+            return;
+        }
+
+        // SECOND PRESS → shoot
+        activeGun.Fire();
+
+        // reset so it can't be reused
+        hasGunEquipped = false;
+        activeGun = null;
     }
 }

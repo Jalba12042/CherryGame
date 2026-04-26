@@ -30,6 +30,9 @@ public class PlayerDash : MonoBehaviour
     public AudioClip dashSound;
     private AudioSource audioSource; // NEW: Dedicated audio source
 
+    [Header("Dash VFX")]
+    [SerializeField] private ParticleSystem dashSmoke;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -96,6 +99,11 @@ public class PlayerDash : MonoBehaviour
             {
                 isDashing = false;
                 movement.canMove = true; // re-enable movement
+
+                if (dashSmoke != null)
+                {
+                    dashSmoke.Stop(); // stops emitting but lets existing particles fade
+                }
             }
         }
     }
@@ -111,6 +119,12 @@ public class PlayerDash : MonoBehaviour
         if (dashBarObject != null)
             dashBarObject.SetActive(true);
 
+        if (dashSmoke != null)
+        {
+            dashSmoke.Clear();   // wipes old particles
+            dashSmoke.Play();    // start emitting
+        }
+
         // NEW: Play the dash sound!
         if (dashSound != null && audioSource != null)
         {
@@ -123,7 +137,7 @@ public class PlayerDash : MonoBehaviour
         Vector3 newVelocity = dashDirection * dashForce;
         newVelocity.y = rb.linearVelocity.y;
 
-        rb.linearVelocity = newVelocity;
+        rb.linearVelocity = newVelocity;     
 
         Invoke(nameof(ResetDash), dashCooldown);
     }

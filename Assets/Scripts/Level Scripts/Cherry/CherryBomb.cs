@@ -16,6 +16,9 @@ public class CherryBomb : Cherry
     [SerializeField] private Material normalMaterial;
     [SerializeField] private Material flashingMaterial;
 
+    [Header("Explosion VFX")]
+    [SerializeField] private GameObject explosionVFXPrefab;
+
     private void Start()
     {
         if (fuseVFX != null)
@@ -52,6 +55,18 @@ public class CherryBomb : Cherry
 
     private void Explode()
     {
+        if (explosionVFXPrefab != null)
+        {
+            GameObject vfx = Instantiate(explosionVFXPrefab, transform.position, Quaternion.identity);
+
+            // scale to match explosion radius
+            float diameter = explosionRadius * 2f;
+            vfx.transform.localScale = Vector3.one * diameter;
+
+            // destroy after a short time (VFX Graph doesn't auto-destroy)
+            Destroy(vfx, 2f);
+        }
+
         Collider[] hits = Physics.OverlapSphere(transform.position, explosionRadius);
         foreach (Collider h in hits)
         {

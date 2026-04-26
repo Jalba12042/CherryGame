@@ -9,55 +9,56 @@ public class GunPowerup : Powerup
     public float fireRate = 0.5f;
     public LayerMask hitLayers;       // set to Player layer
 
-    private bool canShoot = true;
+    private bool hasShot = false;
+
+
 
     protected override void powerUpEffect()
     {
         base.powerUpEffect();
+        hasShot = false;
     }
 
-    protected override void powerUpEnd()
+    // called by player when RT pressed first time
+    public void EquipGun(Transform hand)
     {
-        base.powerUpEnd();
+        transform.SetParent(hand);
+        transform.localPosition = Vector3.zero;
+        transform.localRotation = Quaternion.identity;
     }
 
-    private void Update()
+    // called by player when RT pressed second time
+    public void Fire()
     {
-        // Only allow shooting while this powerup is active
-        if (!powerupHandler || !powerupHandler.currPowerups[powerUpID])
-            return;
-
-        // Replace this input with your control scheme if needed
-        if (Input.GetMouseButton(0) && canShoot)
-        {
-            StartCoroutine(Shoot());
-        }
+        if (hasShot) return;
+        StartCoroutine(Shoot());
     }
 
     IEnumerator Shoot()
     {
-        canShoot = false;
+        hasShot = true;
 
         Ray ray = new Ray(barrel.position, barrel.forward);
         RaycastHit hit;
 
         if (Physics.Raycast(ray, out hit, range, hitLayers))
         {
-            Debug.Log("Hit: " + hit.collider.name);
-
-            // Try to find a player
             PlayerKill pk = hit.collider.GetComponentInParent<PlayerKill>();
-
             if (pk != null)
-            {
                 pk.killPlayer();
-            }
         }
 
-        // Optional: debug line
         Debug.DrawRay(barrel.position, barrel.forward * range, Color.red, 0.2f);
 
         yield return new WaitForSeconds(fireRate);
-        canShoot = true;
+
+        // consume powerup
+        powerUpEnd();
+        Destroy(gameObject);
+    }
+
+    protected override void powerUpEnd()
+    {
+        base.powerUpEnd();
     }
 }
