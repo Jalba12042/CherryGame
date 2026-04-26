@@ -163,7 +163,7 @@ public class Projectile : MonoBehaviour
 
             owner.animator.SetTrigger("doThrow");
             owner.animator.SetBool("isAiming", false);
-            //owner.animator.SetBool("isPickingUp", false);
+            owner.animator.SetBool("isPickingUp", false);
 
             owner.StartCoroutine(DelayedThrow(finalPower));
 
