@@ -34,7 +34,7 @@ public class EnvironmentEffects : MonoBehaviour
                 {
                     StartCoroutine(cherry.TemporarilyIgnoreBasket(2f));
                 }
-                rb.AddForce(force * rb.mass, ForceMode.Impulse);
+                rb.AddForce(force, ForceMode.VelocityChange);
             }              
         }
     } 
