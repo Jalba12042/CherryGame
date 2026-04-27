@@ -91,6 +91,13 @@ public class CherryPullArea : MonoBehaviour
 
         while (rb != null)
         {
+            Cherry ch = rb.GetComponent<Cherry>();
+            if (ch == null)
+                continue;
+
+            if (ch.ignoreBasketPull)
+                continue;
+
             Vector3 direction = snapPoint.position - rb.position;
             float distance = direction.magnitude;
 

@@ -82,6 +82,10 @@ public class CherryBomb : Cherry
                 Destroy(h.gameObject);
                 continue;
             }
+
+            Cherry cherry = h.GetComponent<Cherry>();
+            if (cherry != null)
+                cherry.StartCoroutine(TemporarilyIgnoreBasket(1));
          
             rb.AddExplosionForce(explosionForce, transform.position, explosionRadius, upwardModifier, ForceMode.Impulse);
 
