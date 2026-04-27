@@ -7,6 +7,10 @@ public class PlayerPowerupHandler : MonoBehaviour
     private Playermovement player;
     private Powerup nearbyPowerup;
     private float originalMoveSpeed;
+    private bool rtConsumedThisPress;
+
+    [Header("Hand Reference")]
+    public Transform handHoldPoint;
 
     [Header("Powerup State")]
     public List<bool> currPowerups;
@@ -52,24 +56,44 @@ public class PlayerPowerupHandler : MonoBehaviour
 
     void Update()
     {
-        if (nearbyPowerup != null && player.assignedGamepad != null)
+        bool rtPressed = false;
+
+        if (player.assignedGamepad != null)
+            rtPressed = player.assignedGamepad.rightTrigger.wasPressedThisFrame;
+        else if (GameManager.Instance.isOnKeyboard)
+            rtPressed = Input.GetKeyDown(KeyCode.E);
+
+        if (rtPressed)
         {
-            if (player.assignedGamepad.rightTrigger.wasPressedThisFrame)
-            {
-                nearbyPowerup.Activate(this);
-                nearbyPowerup = null;
-            }
-        }
-        else if (nearbyPowerup != null && GameManager.Instance.isOnKeyboard)
-        {
-            if (Input.GetKeyDown(KeyCode.E))
-            {
-                nearbyPowerup.Activate(this);
-                nearbyPowerup = null;
-            }
+            HandleRT();
         }
 
         HandleGunInput();
+    }
+
+    private void HandleRT()
+    {
+        // pickup gun from ground
+        if (nearbyPowerup is GunPowerup gun)
+        {
+            activeGun = gun;
+            nearbyPowerup = null;
+            return;
+        }
+
+        // equip or fire gun
+        if (activeGun != null)
+        {
+            HandleGunInput();
+            return;
+        }
+
+        // fallback: normal powerup
+        if (nearbyPowerup != null)
+        {
+            nearbyPowerup.Activate(this);
+            nearbyPowerup = null;
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -178,39 +202,33 @@ public class PlayerPowerupHandler : MonoBehaviour
 
     private void HandleGunInput()
     {
-        if (activeGun == null) return;
+        if (activeGun == null)
+            return;
 
         bool pressed = false;
 
         if (player.assignedGamepad != null)
-        {
             pressed = player.assignedGamepad.rightTrigger.wasPressedThisFrame;
-        }
         else if (GameManager.Instance.isOnKeyboard)
-        {
             pressed = Input.GetKeyDown(KeyCode.E);
-        }
 
-        if (!pressed) return;
+        if (!pressed)
+            return;
 
-        // FIRST PRESS → equip gun
+        // EQUIP (first press)
         if (!hasGunEquipped)
         {
             hasGunEquipped = true;
 
-            Transform hand = transform.Find("Hand");
-            if (hand != null)
-            {
-                activeGun.EquipGun(hand);
-            }
+            if (handHoldPoint != null)
+                activeGun.EquipGun(handHoldPoint);
 
             return;
         }
 
-        // SECOND PRESS → shoot
+        // FIRE + CONSUME (second press)
         activeGun.Fire();
 
-        // reset so it can't be reused
         hasGunEquipped = false;
         activeGun = null;
     }

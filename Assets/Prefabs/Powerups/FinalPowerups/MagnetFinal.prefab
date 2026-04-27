@@ -124,11 +124,11 @@ MeshCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 5036211334292771574, guid: e43d1a0fff40f68498301898b423810c, type: 3}
 --- !u!54 &7532943250088112178
@@ -170,6 +170,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9d1c7b47db8f1b4a9de5722a6ee58bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isHoldable: 0
   duration: 5
   puName: Magnet
   despawnTimerInSecs: 7
