@@ -164,11 +164,11 @@ MeshCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -2124705421725058983, guid: 0652af6e52d20784cb8a2ece6c6b6ab4, type: 3}
 --- !u!114 &8965107766393105382
@@ -202,6 +202,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68f46ff115f9fad498ce50c798141f12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isHoldable: 0
   duration: 10
   puName: Mega Pill
   despawnTimerInSecs: 7
@@ -216,3 +217,4 @@ MonoBehaviour:
   newGCOffset: 3
   growSound: {fileID: 8300000, guid: 39fee4244a81d4f41bd07c68a86624d0, type: 3}
   shrinkSound: {fileID: 0}
+  bigJumpSound: {fileID: 0}

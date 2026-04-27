@@ -22,6 +22,9 @@ public class CherryBomb : Cherry
     [SerializeField] private AudioClip fuseTickingSound;
     [SerializeField] private AudioClip explosionSound;
 
+    [Header("Explosion VFX")]
+    [SerializeField] private GameObject explosionVFXPrefab;
+
     private void Start()
     {
         if (audioSource == null) audioSource = GetComponent<AudioSource>();
@@ -69,6 +72,18 @@ public class CherryBomb : Cherry
 
     private void Explode()
     {
+        if (explosionVFXPrefab != null)
+        {
+            GameObject vfx = Instantiate(explosionVFXPrefab, transform.position, Quaternion.identity);
+
+            // scale to match explosion radius
+            float diameter = explosionRadius * 2f;
+            vfx.transform.localScale = Vector3.one * diameter;
+
+            // destroy after a short time (VFX Graph doesn't auto-destroy)
+            Destroy(vfx, 2f);
+        }
+
         // 1. Do the physics push and kill the players
         Collider[] hits = Physics.OverlapSphere(transform.position, explosionRadius);
         foreach (Collider h in hits)

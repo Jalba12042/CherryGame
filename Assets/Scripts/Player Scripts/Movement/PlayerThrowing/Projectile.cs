@@ -124,6 +124,10 @@ public class Projectile : MonoBehaviour
         {
             isAiming = false;
             currentPower = 0f;
+
+            if (landingMarkerInstance != null)
+                landingMarkerInstance.SetActive(false);
+
             return;
         }
 
@@ -367,6 +371,9 @@ public class Projectile : MonoBehaviour
         owner.animator.SetBool("isPickingUp", false);
 
         currentPower = 0f;
+
+        if (landingMarkerInstance != null)
+            landingMarkerInstance.SetActive(false);
     }
 
     public void DisableThrowing()
@@ -378,6 +385,9 @@ public class Projectile : MonoBehaviour
 
         if (owner != null)
             owner.animator.SetBool("isAiming", false);
+
+        if (landingMarkerInstance != null)
+            landingMarkerInstance.SetActive(false);
     }
 
     public void EnableThrowing()
