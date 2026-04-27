@@ -95,6 +95,16 @@ public class CherryBomb : Cherry
             if (rb == null)
                 continue;
 
+            if (h.CompareTag("Killable"))
+            {
+                Destroy(h.gameObject);
+                continue;
+            }
+
+            Cherry cherry = h.GetComponent<Cherry>();
+            if (cherry != null)
+                cherry.StartCoroutine(TemporarilyIgnoreBasket(1));
+         
             rb.AddExplosionForce(explosionForce, transform.position, explosionRadius, upwardModifier, ForceMode.Impulse);
 
             PlayerKill pk = rb.GetComponent<PlayerKill>();

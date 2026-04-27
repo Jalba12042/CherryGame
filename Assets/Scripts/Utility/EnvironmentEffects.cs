@@ -14,6 +14,9 @@ public class EnvironmentEffects : MonoBehaviour
         {
             if (exception != null && rb == exception) continue;
 
+            PlayerEffects pe = rb.GetComponent<PlayerEffects>();
+            if (pe != null && pe.isBig) continue;
+
             GroundCheck gc = rb.GetComponent<GroundCheck>();
             if (gc != null && gc.isGrounded)
             {
@@ -34,7 +37,7 @@ public class EnvironmentEffects : MonoBehaviour
                 {
                     StartCoroutine(cherry.TemporarilyIgnoreBasket(2f));
                 }
-                rb.AddForce(force * rb.mass, ForceMode.Impulse);
+                rb.AddForce(force, ForceMode.VelocityChange);
             }              
         }
     } 

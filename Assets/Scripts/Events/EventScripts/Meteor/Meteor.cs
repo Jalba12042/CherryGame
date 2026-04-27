@@ -23,6 +23,8 @@ public class Meteor : MonoBehaviour
 
     private AudioSource audioSource;
 
+    private bool exploded = false;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -48,6 +50,11 @@ public class Meteor : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
+        if (exploded)
+            return;
+
+        exploded = true;
+
         // SOUND FIX: Play at Camera position so the player always hears the impact
         if (crashSound != null)
         {
