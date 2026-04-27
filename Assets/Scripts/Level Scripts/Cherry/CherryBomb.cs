@@ -77,6 +77,12 @@ public class CherryBomb : Cherry
             if (rb == null)
                 continue;
 
+            if (h.CompareTag("Killable"))
+            {
+                Destroy(h.gameObject);
+                continue;
+            }
+         
             rb.AddExplosionForce(explosionForce, transform.position, explosionRadius, upwardModifier, ForceMode.Impulse);
 
             PlayerKill pk = rb.GetComponent<PlayerKill>();
