@@ -113,6 +113,14 @@ public class PlayerGrab : MonoBehaviour
         if (!canGrab || grabbedPlayer != null || nearbyPlayer == null || isGrabbed)
             return false;
 
+        float distance = Vector3.Distance(transform.position, nearbyPlayer.transform.position);
+        if (distance > pickupRange)
+        {
+            nearbyPlayer = null; // clear stale reference
+            return false;
+        }
+
+
         PlayerEffects pe = nearbyPlayer.GetComponent<PlayerEffects>();
         if (pe != null && pe.isBig)
             return false;
