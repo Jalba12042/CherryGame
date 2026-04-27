@@ -93,6 +93,16 @@ public class PlayerEffects : MonoBehaviour
                 StartCoroutine(Stun(stunDuration, rb, otherChar));
             }
         }
+
+        if (collision.gameObject.CompareTag("Player") && isBig)
+        {
+            PlayerKill pk = collision.gameObject.GetComponent<PlayerKill>();
+
+            if (pk != null)
+            {
+                pk.killPlayer();
+            }
+        }
     }
     public IEnumerator Stun(float duration, Rigidbody rb, Playermovement pm)
     {

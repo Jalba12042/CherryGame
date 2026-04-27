@@ -12,7 +12,8 @@ public class ZombieAttack : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             PlayerKill pk = other.GetComponent<PlayerKill>();
-            if (!pk.currDead)
+            PlayerEffects pe = other.GetComponent<PlayerEffects>();
+            if (!pk.currDead && !pe.isBig)
             {
                 pk.killPlayer();
 
