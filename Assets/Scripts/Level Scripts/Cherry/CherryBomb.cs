@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
+[RequireComponent(typeof(AudioSource))] // Automatically adds an Audio Source if you forget!
 public class CherryBomb : Cherry
 {
     private bool fuseLit = false;
@@ -16,8 +17,15 @@ public class CherryBomb : Cherry
     [SerializeField] private Material normalMaterial;
     [SerializeField] private Material flashingMaterial;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip fuseTickingSound;
+    [SerializeField] private AudioClip explosionSound;
+
     private void Start()
     {
+        if (audioSource == null) audioSource = GetComponent<AudioSource>();
+
         if (fuseVFX != null)
             fuseVFX.SetActive(false);
 
@@ -26,7 +34,7 @@ public class CherryBomb : Cherry
     }
 
     private void Update()
-    {   
+    {
         if (isHeld)
         {
             if (fuseVFX != null)
@@ -39,19 +47,29 @@ public class CherryBomb : Cherry
         if (isHeld && !fuseLit)
         {
             fuseLit = true;
+
+            // --- NEW: Play the ticking sound the exact frame the fuse is lit! ---
+            if (fuseTickingSound != null)
+            {
+                audioSource.clip = fuseTickingSound;
+                audioSource.loop = true; // Loops the ticking until it explodes
+                audioSource.Play();
+            }
+
             StartCoroutine(LightFuse());
         }
     }
 
     private IEnumerator LightFuse()
     {
-        Debug.Log("OH FUCK CH-CH-CH-CH-CH-CH-CHERRY BOMB"); // change this to our fuse effect
+        Debug.Log("Fuse lit! Ticking down...");
         yield return new WaitForSeconds(fuseTime);
         Explode();
     }
 
     private void Explode()
     {
+        // 1. Do the physics push and kill the players
         Collider[] hits = Physics.OverlapSphere(transform.position, explosionRadius);
         foreach (Collider h in hits)
         {
@@ -69,7 +87,24 @@ public class CherryBomb : Cherry
                 pk.killPlayer();
         }
 
-        Destroy(gameObject);
+        // 2. Play Explosion Sound (and stop the ticking!)
+        float destroyDelay = 0.1f; // Fallback delay
+        if (explosionSound != null)
+        {
+            audioSource.Stop();
+            audioSource.PlayOneShot(explosionSound);
+            destroyDelay = explosionSound.length; // Set delay to exactly how long the boom is
+        }
+
+        // 3. Make the bomb INVISIBLE and UNTOUCHABLE while the sound finishes playing
+        if (cherryRenderer != null) cherryRenderer.enabled = false;
+        if (fuseVFX != null) fuseVFX.SetActive(false);
+
+        Collider col = GetComponent<Collider>();
+        if (col != null) col.enabled = false;
+
+        // 4. Finally, destroy the object after the sound is totally done
+        Destroy(gameObject, destroyDelay);
     }
 
     void SetCherryMaterial(Material mat)

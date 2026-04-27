@@ -7,6 +7,11 @@ public class SprinklerBehaviour : MonoBehaviour
     public GameObject sprinklerEffect;
     public GameObject rippleEffect;
 
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip spraySound;   // Plays when water turns on
+    public AudioClip rippleSound;  // Plays when the big wave bursts
+
     private bool ripplePlayed = false;
 
     public void Activate()
@@ -22,6 +27,12 @@ public class SprinklerBehaviour : MonoBehaviour
         if (sprinklerEffect != null)
             sprinklerEffect.SetActive(true);
 
+        // --- PLAY SPRAY SOUND ---
+        if (audioSource != null && spraySound != null)
+        {
+            audioSource.PlayOneShot(spraySound);
+        }
+
         yield return new WaitForSeconds(1.5f);
 
         // burst ripple ONCE
@@ -30,6 +41,12 @@ public class SprinklerBehaviour : MonoBehaviour
             ripplePlayed = true;
 
             rippleEffect.SetActive(true);
+
+            // --- PLAY RIPPLE BURST SOUND ---
+            if (audioSource != null && rippleSound != null)
+            {
+                audioSource.PlayOneShot(rippleSound);
+            }
 
             ParticleSystem ps = rippleEffect.GetComponent<ParticleSystem>();
             if (ps != null)
@@ -51,5 +68,4 @@ public class SprinklerBehaviour : MonoBehaviour
     {
         Debug.Log("Ripple hit: " + other.name);
     }
-
 }

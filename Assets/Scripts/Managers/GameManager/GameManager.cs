@@ -13,7 +13,8 @@ public class GameManager : MonoBehaviour
     public int playerCount;
     public int[] controllerAssignments;
 
-    // Stores the total score between rounds for each player
+    // --- THE SCOREBOARD MEMORY BANK ---
+    // This safely remembers everyone's wins across all scene reloads!
     public int[] playerTotalScores;
 
     [SerializeField] private TMP_Text timerText;
@@ -36,25 +37,6 @@ public class GameManager : MonoBehaviour
     }
     public GameState currGameState;
 
-    /*private void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject); // Persist across scenes
-
-            playerTotalScores = new int[playerCount];
-            for (int i = 0; i < playerCount; i++)
-                playerTotalScores[i] = 0;
-
-            SceneManager.sceneLoaded += OnSceneLoaded; // Listen for scene changes
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }*/
-
     private void Awake()
     {
         if (Instance == null)
@@ -62,17 +44,17 @@ public class GameManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject); // Persist across scenes
 
-            if (playerCount > 0)
-            {
-                playerTotalScores = new int[playerCount];
-                controllerAssignments = new int[playerCount];
+            // --- THE BULLETPROOF FIX ---
+            // ALWAYS create 4 slots so the Scoreboard never crashes when testing!
+            playerTotalScores = new int[4];
+            controllerAssignments = new int[4];
 
-                for (int i = 0; i < playerCount; i++)
-                {
-                    playerTotalScores[i] = 0;
-                    controllerAssignments[i] = -1; // means “unassigned”
-                }
+            for (int i = 0; i < 4; i++)
+            {
+                playerTotalScores[i] = 0;
+                controllerAssignments[i] = -1; // means “unassigned”
             }
+            // ---------------------------
 
             SceneManager.sceneLoaded += OnSceneLoaded; // Listen for scene changes
         }
@@ -81,7 +63,6 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
