@@ -1169,23 +1169,57 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   screamSFX:
-  - {fileID: 8300000, guid: 173cacb253efb5e4bb30b2f66b379bc2, type: 3}
-  - {fileID: 8300000, guid: a0a61bf852c6c8143807b46154a52d14, type: 3}
-  - {fileID: 8300000, guid: 2f090fae77ee76c4693afa9e6ad9b494, type: 3}
-  - {fileID: 8300000, guid: 2d917212d0daa804995fd930a3dd7199, type: 3}
-  - {fileID: 8300000, guid: ac21c67678a8f9f4eb92cf4dbdbacbec, type: 3}
-  - {fileID: 8300000, guid: aee90140812c5894bb1340a2f0e8ba81, type: 3}
-  - {fileID: 8300000, guid: 1c1909040b8116549a893eb2ff40943b, type: 3}
-  - {fileID: 8300000, guid: 27c83409ff158c8458eba1015e53a5a9, type: 3}
-  - {fileID: 8300000, guid: a1ecee58e296f4b40bac871e31fe1a00, type: 3}
-  - {fileID: 8300000, guid: aac597d22936ad64bb8cac683e9cd3d7, type: 3}
-  - {fileID: 8300000, guid: 644fe15c5ba7c6e4a879fa718d0848df, type: 3}
-  - {fileID: 8300000, guid: 2f7c60d46ad64a642b937d925ccf5163, type: 3}
-  - {fileID: 8300000, guid: 598dda1070d3f4f449166a43525766e3, type: 3}
-  - {fileID: 8300000, guid: cb26efe310773284b939d72bac7c0dac, type: 3}
-  - {fileID: 8300000, guid: 2eea8d9035a9a984c97f2b333d4f8346, type: 3}
-  - {fileID: 8300000, guid: 604f215b68c3c584eb3ac0cf3f916155, type: 3}
-  - {fileID: 8300000, guid: e51c691b59347ae4dab7e7dca0d3d964, type: 3}
+  - screamName: DarrellScream1
+    clip: {fileID: 8300000, guid: 173cacb253efb5e4bb30b2f66b379bc2, type: 3}
+    volumeBooster: 0.769
+  - screamName: DarrellScream2
+    clip: {fileID: 8300000, guid: a0a61bf852c6c8143807b46154a52d14, type: 3}
+    volumeBooster: 0.769
+  - screamName: DarrellScream3
+    clip: {fileID: 8300000, guid: 2f090fae77ee76c4693afa9e6ad9b494, type: 3}
+    volumeBooster: 0.769
+  - screamName: JaiScream1
+    clip: {fileID: 8300000, guid: 2d917212d0daa804995fd930a3dd7199, type: 3}
+    volumeBooster: 0.814
+  - screamName: JaiScream2
+    clip: {fileID: 8300000, guid: ac21c67678a8f9f4eb92cf4dbdbacbec, type: 3}
+    volumeBooster: 0.814
+  - screamName: JaiScream3
+    clip: {fileID: 8300000, guid: aee90140812c5894bb1340a2f0e8ba81, type: 3}
+    volumeBooster: 0.814
+  - screamName: JaiScream4
+    clip: {fileID: 8300000, guid: 1c1909040b8116549a893eb2ff40943b, type: 3}
+    volumeBooster: 0.814
+  - screamName: KevinScream1
+    clip: {fileID: 8300000, guid: e51c691b59347ae4dab7e7dca0d3d964, type: 3}
+    volumeBooster: 0.741
+  - screamName: MaxScream1
+    clip: {fileID: 8300000, guid: 27c83409ff158c8458eba1015e53a5a9, type: 3}
+    volumeBooster: 0.705
+  - screamName: MaxScream2
+    clip: {fileID: 8300000, guid: a1ecee58e296f4b40bac871e31fe1a00, type: 3}
+    volumeBooster: 0.705
+  - screamName: MaxScream3
+    clip: {fileID: 8300000, guid: aac597d22936ad64bb8cac683e9cd3d7, type: 3}
+    volumeBooster: 0.633
+  - screamName: MaxScream4
+    clip: {fileID: 8300000, guid: 644fe15c5ba7c6e4a879fa718d0848df, type: 3}
+    volumeBooster: 0.633
+  - screamName: RossScream1
+    clip: {fileID: 8300000, guid: 2f7c60d46ad64a642b937d925ccf5163, type: 3}
+    volumeBooster: 0.633
+  - screamName: RossScream1
+    clip: {fileID: 8300000, guid: 598dda1070d3f4f449166a43525766e3, type: 3}
+    volumeBooster: 0.633
+  - screamName: VictorScream1
+    clip: {fileID: 8300000, guid: cb26efe310773284b939d72bac7c0dac, type: 3}
+    volumeBooster: 0.633
+  - screamName: VictorScream2
+    clip: {fileID: 8300000, guid: 2eea8d9035a9a984c97f2b333d4f8346, type: 3}
+    volumeBooster: 0.633
+  - screamName: VictorScream3
+    clip: {fileID: 8300000, guid: 604f215b68c3c584eb3ac0cf3f916155, type: 3}
+    volumeBooster: 0.633
   minPitch: 1
   maxPitch: 2
   screamVolume: 1
@@ -1204,7 +1238,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.721
   m_Pitch: 1
   Loop: 0
   Mute: 0

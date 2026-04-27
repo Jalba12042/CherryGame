@@ -2,33 +2,32 @@
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using System.Collections; // NEW: We need this for the Coroutine!
+using System.Collections;
 
 [RequireComponent(typeof(AudioSource))]
 public class LocalMenuController : MonoBehaviour
 {
-    [Header("Menu Buttons (2P, 3P, 4P in order)")]
+    [Header("Menu Buttons (2P, 3P, 4P, and BACK in order)")]
     public LocalSelectable[] buttons;
 
-    [Header("Next Scene")]
+    [Header("Scenes")]
     [SerializeField] private string connectSceneName = "ControllerConnectScene";
+    [SerializeField] private string mainMenuSceneName = "MainMenu";
 
     [Header("UI Sound Effects")]
     public AudioClip navigateSound;
     public AudioClip selectSound;
     public AudioClip backSound;
 
-    // --- NEW: TRANSITION SETTINGS ---
     [Header("Transition Settings")]
-    public Animator transitionAnimator;     // Drag your animation object here!
-    public string transitionTrigger = "Exit"; // The name of the Trigger in your Animator
-    public float transitionWaitTime = 1.0f;   // How long to wait before loading the scene
+    public MenuExitOrchestrator exitOrchestrator; // Points to your AnimationManager
+    public GameObject[] puppetsToHide;            // Drop your animated characters here!
 
     private AudioSource audioSource;
     private int currentIndex = 0;
     private bool canMove = true;
     private float deadzone = 0.5f;
-    private bool isTransitioning = false; // NEW: Locks the controls during the animation!
+    private bool isTransitioning = false;
 
     void Awake()
     {
@@ -43,7 +42,6 @@ public class LocalMenuController : MonoBehaviour
 
     void Update()
     {
-        // NEW: If the transition is playing, ignore all controller input!
         if (isTransitioning) return;
 
         if (Gamepad.all.Count == 0 || buttons == null || buttons.Length == 0) return;
@@ -95,7 +93,7 @@ public class LocalMenuController : MonoBehaviour
         if (gamepad.buttonEast.wasPressedThisFrame)
         {
             PlaySound(backSound);
-            SceneManager.LoadScene("MainMenu");
+            StartExitSequence(mainMenuSceneName);
         }
     }
 
@@ -110,38 +108,49 @@ public class LocalMenuController : MonoBehaviour
 
     void SelectOption(int index)
     {
-        if (isTransitioning) return; // Double check so they don't trigger it twice
+        if (isTransitioning) return;
 
+        // Check if they clicked the BACK Button
+        if (index == buttons.Length - 1)
+        {
+            StartExitSequence(mainMenuSceneName);
+            return;
+        }
+
+        // Otherwise, it's a player count button (0 = 2P, 1 = 3P, 2 = 4P)
         int players = index + 2;
 
         if (GameManager.Instance != null)
             GameManager.Instance.playerCount = players;
-        else
-            Debug.LogWarning("GameManager.Instance is null. Ensure it exists before loading the next scene.");
 
-        // --- NEW: START THE TRANSITION ANIMATION INSTEAD OF LOADING INSTANTLY ---
-        StartCoroutine(TransitionToNextScene());
+        StartExitSequence(connectSceneName);
     }
 
     // --- THE MAGIC TRICK ---
-    IEnumerator TransitionToNextScene()
+    private void StartExitSequence(string targetScene)
     {
-        isTransitioning = true; // Lock the controllers!
+        if (isTransitioning) return;
+        isTransitioning = true; // Lock controls
 
-        // 1. Play the animation
-        if (transitionAnimator != null)
+        // 1. INSTANTLY hide the puppets without any animation
+        if (puppetsToHide != null)
         {
-            transitionAnimator.SetTrigger(transitionTrigger);
+            foreach (GameObject puppet in puppetsToHide)
+            {
+                if (puppet != null) puppet.SetActive(false);
+            }
         }
 
-        // 2. Wait for the animation to finish
-        yield return new WaitForSeconds(transitionWaitTime);
-
-        // 3. Finally, load the Controller Connect scene!
-        if (!string.IsNullOrEmpty(connectSceneName))
-            SceneManager.LoadScene(connectSceneName);
+        // 2. Tell the Orchestrator to drop the signs/hill and load the scene
+        if (exitOrchestrator != null)
+        {
+            exitOrchestrator.ExitThenLoad(targetScene);
+        }
         else
-            Debug.LogError("LocalMenuController: connectSceneName is empty.");
+        {
+            // Fallback just in case
+            SceneManager.LoadScene(targetScene);
+        }
     }
 
     private void PlaySound(AudioClip clip)

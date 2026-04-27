@@ -2,15 +2,8 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 using System.Collections.Generic;
-
-[System.Serializable]
-public class VictoryPuppet
-{
-    public string colorName;
-    public int colorIndex;
-    public GameObject puppetGroup;
-}
 
 public class WinScript : MonoBehaviour
 {
@@ -20,99 +13,146 @@ public class WinScript : MonoBehaviour
     public TextMeshProUGUI winnerText;
     public string shopSceneName = "Shop";
 
+    [Header("Scoreboard Flow")]
+    public GameObject scoreboardClipboard;
+    public ScoreboardUI scoreboardUI;
+
+    [Header("Ready Up UI")]
+    public GameObject pressAButtonPrompt;
+    public Image[] playerReadyIcons;          // The colored faces
+    public GameObject[] playerReadyBackgrounds; // NEW: Drag your 4 White Boxes here!
+    public Sprite[] colorIcons;
+
     [Header("Name Mapping")]
     public string[] availableNames;
 
-    [Header("Puppet Animations")]
-    public VictoryPuppet[] colorPuppets;
-
-    // --- NEW: This is now a list so you can drop in as many tie animations as you want! ---
-    public GameObject[] tiePuppetGroups;
+    private bool[] playerReady = new bool[4];
+    private int readyCount = 0;
+    private bool isScoreboardVisible = false;
 
     void Start()
     {
-        // 1. Turn off ALL puppets first so the screen is completely clean
-        TurnOffAllPuppets();
-
-        // 2. Figure out who won based on the list from RoundManager
         bool isTie = winningPlayers.Count > 1;
         int winnerID = winningPlayers.Count > 0 ? winningPlayers[0] : 0;
 
+        if (!isTie && winningPlayers.Count > 0 && GameManager.Instance != null)
+        {
+            if (winnerID < GameManager.Instance.playerTotalScores.Length)
+            {
+                GameManager.Instance.playerTotalScores[winnerID]++;
+            }
+        }
+
         if (isTie)
         {
-            // --- IT'S A TIE ---
             if (winnerText != null) winnerText.text = "IT'S A TIE!";
-
-            // --- NEW: Pick a random tie animation from the list! ---
-            if (tiePuppetGroups != null && tiePuppetGroups.Length > 0)
-            {
-                int randomIndex = Random.Range(0, tiePuppetGroups.Length);
-                if (tiePuppetGroups[randomIndex] != null)
-                {
-                    tiePuppetGroups[randomIndex].SetActive(true);
-                }
-            }
         }
         else
         {
-            // --- SOMEONE WON ---
             string winName = "PLAYER " + (winnerID + 1);
-            int winColorIndex = 0;
-
-            // 3. Grab their custom data from the GameManager's Memory Bank!
             if (GameManager.Instance != null && GameManager.Instance.playerCustomizations.Count > winnerID)
             {
                 var data = GameManager.Instance.playerCustomizations[winnerID];
-                winColorIndex = data.colorIndex;
-
                 if (availableNames != null && data.nameIndex >= 0 && data.nameIndex < availableNames.Length)
                 {
                     winName = availableNames[data.nameIndex];
                 }
             }
-
-            // Set the Name Text on the screen
             if (winnerText != null) winnerText.text = winName + " WINS!";
+        }
 
-            // 4. Turn on the correct colored puppet!
-            bool foundPuppet = false;
-            foreach (VictoryPuppet vp in colorPuppets)
+        // Show the Scoreboard
+        if (scoreboardClipboard != null)
+        {
+            scoreboardClipboard.SetActive(true);
+            if (scoreboardUI != null) scoreboardUI.UpdateScoreboard();
+        }
+
+        // Setup the Ready Up UI & Hide extra white boxes!
+        if (pressAButtonPrompt != null) pressAButtonPrompt.SetActive(true);
+
+        int totalPlayers = GameManager.Instance != null ? GameManager.Instance.playerCount : 4;
+
+        for (int i = 0; i < 4; i++)
+        {
+            bool isPlaying = i < totalPlayers;
+
+            // Hides the White Box if they aren't playing!
+            if (playerReadyBackgrounds != null && i < playerReadyBackgrounds.Length && playerReadyBackgrounds[i] != null)
             {
-                if (vp.colorIndex == winColorIndex)
+                playerReadyBackgrounds[i].SetActive(isPlaying);
+            }
+
+            // Keep the face hidden until they press A
+            if (playerReadyIcons != null && i < playerReadyIcons.Length && playerReadyIcons[i] != null)
+            {
+                playerReadyIcons[i].gameObject.SetActive(false);
+            }
+            playerReady[i] = false;
+        }
+
+        readyCount = 0;
+        isScoreboardVisible = true;
+    }
+
+    private void Update()
+    {
+        if (!isScoreboardVisible || GameManager.Instance == null) return;
+
+        int totalPlayers = GameManager.Instance.playerCount;
+
+        if (GameManager.Instance.isOnKeyboard)
+        {
+            if (Keyboard.current != null && (Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.enterKey.wasPressedThisFrame))
+            {
+                if (!playerReady[0]) ReadyUpPlayer(0);
+            }
+        }
+        else
+        {
+            var controllers = Gamepad.all.ToArray();
+            for (int c = 0; c < controllers.Length; c++)
+            {
+                Gamepad pad = controllers[c];
+                if (pad == null) continue;
+
+                if (pad.buttonSouth.wasPressedThisFrame)
                 {
-                    if (vp.puppetGroup != null) vp.puppetGroup.SetActive(true);
-                    foundPuppet = true;
-                    break;
+                    for (int i = 0; i < totalPlayers; i++)
+                    {
+                        if (GameManager.Instance.controllerAssignments[i] == c)
+                        {
+                            if (!playerReady[i]) ReadyUpPlayer(i);
+                        }
+                    }
                 }
             }
+        }
 
-            // Fallback: If you forgot to drag a puppet into the inspector, just use the first one
-            if (!foundPuppet && colorPuppets.Length > 0 && colorPuppets[0].puppetGroup != null)
-            {
-                colorPuppets[0].puppetGroup.SetActive(true);
-            }
+        if (readyCount >= totalPlayers && totalPlayers > 0)
+        {
+            isScoreboardVisible = false;
+            SceneManager.LoadScene(shopSceneName);
         }
     }
 
-    private void TurnOffAllPuppets()
+    private void ReadyUpPlayer(int playerIndex)
     {
-        // --- NEW: Turn off EVERY tie animation in the list ---
-        if (tiePuppetGroups != null)
+        playerReady[playerIndex] = true;
+        readyCount++;
+
+        if (playerReadyIcons[playerIndex] != null)
         {
-            foreach (GameObject tieGroup in tiePuppetGroups)
+            playerReadyIcons[playerIndex].gameObject.SetActive(true);
+
+            if (GameManager.Instance.playerCustomizations.Count > playerIndex)
             {
-                if (tieGroup != null) tieGroup.SetActive(false);
+                int colorIndex = GameManager.Instance.playerCustomizations[playerIndex].colorIndex;
+                if (colorIndex >= 0 && colorIndex < colorIcons.Length)
+                {
+                    playerReadyIcons[playerIndex].sprite = colorIcons[colorIndex];
+                }
             }
         }
-
-        foreach (VictoryPuppet vp in colorPuppets)
-        {
-            if (vp.puppetGroup != null) vp.puppetGroup.SetActive(false);
-        }
-    }
-
-    public void LoadShop()
-    {
-        SceneManager.LoadScene(shopSceneName);
     }
 }

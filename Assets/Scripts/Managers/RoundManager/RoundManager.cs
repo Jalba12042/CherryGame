@@ -40,7 +40,7 @@ public class RoundManager : MonoBehaviour
     [SerializeField] private GameObject playerPrefab;
 
     [Header("Max Score to Win Game")]
-    [SerializeField] private int maxScore = 5;
+    [SerializeField] private int maxScore = 3;
 
     public GameObject[] playerObjects;
     public List<GameObject> powerupsInPlay;

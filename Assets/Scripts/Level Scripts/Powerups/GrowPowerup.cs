@@ -21,9 +21,14 @@ public class GrowPowerup : Powerup
     private float originalGCDist;
     private float originalGCOffset;
 
+    // --- NEW: PHYSICS VARIABLES FOR JUMP DETECTION ---
+    private Rigidbody rb;
+    private bool wasGrounded;
+
     [Header("Audio")]
     public AudioClip growSound;
     public AudioClip shrinkSound;
+    public AudioClip bigJumpSound; // NEW: Drag your heavy jump sound here!
     private AudioSource fxSource;
 
     protected override void powerUpEffect()
@@ -33,6 +38,10 @@ public class GrowPowerup : Powerup
         gc = playerModel.GetComponent<GroundCheck>();
         playerEffects = playerModel.GetComponent<PlayerEffects>();
         screamScript = playerModel.GetComponentInChildren<Scream>();
+
+        // Grab the Rigidbody to track jumping upward momentum
+        rb = pc.GetComponent<Rigidbody>();
+        if (rb == null) rb = playerModel.GetComponentInParent<Rigidbody>();
 
         fxSource = gameObject.AddComponent<AudioSource>();
         fxSource.playOnAwake = false;
@@ -70,7 +79,42 @@ public class GrowPowerup : Powerup
         }
 
         pc.moveSpeed *= speedMultiplier;
+
+        // Assume we start grounded when they pick it up
+        wasGrounded = true;
+
         StartCoroutine(Grow());
+    }
+
+    // --- NEW: JUMP DETECTION LOOP ---
+    private void Update()
+    {
+        if (gc == null || rb == null || playerEffects == null) return;
+
+        // Only check for jumps if the player is currently BIG
+        if (playerEffects.isBig)
+        {
+            // NOTE: Assuming your GroundCheck script uses a boolean named "isGrounded". 
+            // If it's named something else (like "grounded"), just change it below!
+            bool currentlyGrounded = gc.isGrounded;
+
+            // If we WERE on the ground, but now we are NOT, AND we are moving UP (Velocity Y > 0)
+            if (wasGrounded && !currentlyGrounded && rb.linearVelocity.y > 0.1f)
+            {
+                PlayBigJumpSound();
+            }
+
+            wasGrounded = currentlyGrounded;
+        }
+    }
+
+    private void PlayBigJumpSound()
+    {
+        if (bigJumpSound != null && fxSource != null)
+        {
+            // PlayOneShot allows multiple jumps to overlap naturally without cutting each other off
+            fxSource.PlayOneShot(bigJumpSound, 1.0f);
+        }
     }
 
     private IEnumerator Grow()

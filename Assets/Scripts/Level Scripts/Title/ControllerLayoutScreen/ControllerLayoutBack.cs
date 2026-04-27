@@ -5,13 +5,18 @@ using System.Collections;
 
 public class ControllerLayoutBack : MonoBehaviour
 {
-    [Header("Play exit via this orchestrator")]
-    public MenuExitOrchestrator exitOrchestrator;   // point to your existing one
-    public string sceneToLoad = "Main Menu";        // Title scene name
+    [Header("1. B Button Animation (Plays FIRST)")]
+    public Animator bButtonAnimator;          // Drag the B Button object here!
+    public string bButtonTrigger = "Exit";    // Ensure your animator uses this trigger name
+    public float delayAfterBPressed = 0.3f;   // How long to wait before the rest of the screen fades
+
+    [Header("2. Play exit via this orchestrator (Plays SECOND)")]
+    public MenuExitOrchestrator exitOrchestrator;
+    public string sceneToLoad = "Main Menu";
 
     [Header("When can player press Back?")]
-    public bool armOnStart = false;                 // set true to use a simple delay
-    public float delayBeforeInput = 0.8f;           // used only if armOnStart = true
+    public bool armOnStart = false;
+    public float delayBeforeInput = 0.8f;
 
     private bool armed = false;
     private bool fired = false;
@@ -20,7 +25,6 @@ public class ControllerLayoutBack : MonoBehaviour
     {
         if (armOnStart)
             StartCoroutine(ArmAfterDelay(delayBeforeInput));
-        // Otherwise: call ArmInput() from an Animation Event at the end of your layout intro
     }
 
     IEnumerator ArmAfterDelay(float s)
@@ -43,11 +47,27 @@ public class ControllerLayoutBack : MonoBehaviour
         {
             fired = true;
 
-            if (exitOrchestrator != null)
-                exitOrchestrator.ExitThenLoad(sceneToLoad);
-            else
-                SceneManager.LoadScene(sceneToLoad); // fallback if you forgot to wire it
+            // Start the custom 2-step exit sequence!
+            StartCoroutine(ExitSequence());
         }
+    }
+
+    IEnumerator ExitSequence()
+    {
+        // STEP 1: Play the B Button fade out animation first!
+        if (bButtonAnimator != null)
+        {
+            bButtonAnimator.SetTrigger(bButtonTrigger);
+        }
+
+        // STEP 2: Wait for a split second so the player sees the B button fade
+        yield return new WaitForSeconds(delayAfterBPressed);
+
+        // STEP 3: Trigger the rest of the screen to fade out and load the scene
+        if (exitOrchestrator != null)
+            exitOrchestrator.ExitThenLoad(sceneToLoad);
+        else
+            SceneManager.LoadScene(sceneToLoad); // fallback
     }
 
     bool BackPressed()
@@ -58,7 +78,7 @@ public class ControllerLayoutBack : MonoBehaviour
             Keyboard.current.backspaceKey.wasPressedThisFrame))
             return true;
 
-        // Gamepad “B / Circle” is typical back; allow Start/Select too if you want
+        // Gamepad “B / Circle” is typical back
         var pad = Gamepad.current;
         if (pad != null)
             return pad.buttonEast.wasPressedThisFrame ||
