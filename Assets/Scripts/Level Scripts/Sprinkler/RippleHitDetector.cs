@@ -56,6 +56,12 @@ public class RippleHitDetector : MonoBehaviour
                         player.isKnockedBack = true;
                         StartCoroutine(EndKnockback(player, 0.25f));
 
+                        Projectile proj = player.GetComponent<Projectile>();
+                        if (proj != null)
+                        {
+                            proj.ForceResetCherry();
+                        }
+
                         // --- PLAY HIT SOUND ---
                         if (audioSource != null && splashHitSound != null)
                         {
