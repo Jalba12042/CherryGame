@@ -4,11 +4,14 @@ using UnityEngine;
 
 public class Powerup : MonoBehaviour
 {
+    [Header("Powerup Type")]
+    [SerializeField] protected bool isHoldable = false;
+
     [SerializeField] protected float duration;
     [SerializeField] protected string puName;
     [SerializeField] protected int despawnTimerInSecs = 7;
 
-    public int powerUpID; 
+    public int powerUpID;
 
     protected Playermovement pc;
     protected PlayerPowerupHandler powerupHandler;
@@ -16,15 +19,16 @@ public class Powerup : MonoBehaviour
     protected PlayerEffects pe;
     protected bool canDespawn = true;
 
-    private Coroutine activeTimer;
+    protected Coroutine activeTimer;
     private bool isActive;
+    protected Coroutine despawnRoutine;
 
     private void Awake()
     {
-        StartCoroutine(despawnTimer());
+        despawnRoutine = StartCoroutine(despawnTimer());
     }
 
-    private IEnumerator despawnTimer()
+    public IEnumerator despawnTimer()
     {
         yield return new WaitForSeconds(despawnTimerInSecs);
         if (canDespawn)
@@ -35,6 +39,12 @@ public class Powerup : MonoBehaviour
     }
     public void Activate(PlayerPowerupHandler handler)
     {
+        if (despawnRoutine != null)
+        {
+            StopCoroutine(despawnRoutine);
+            despawnRoutine = null;
+        }
+
         canDespawn = false;
         powerupHandler = handler;
         pc = handler.GetComponent<Playermovement>();
@@ -50,11 +60,14 @@ public class Powerup : MonoBehaviour
             isActive = true;
 
             // remove it from the power ups that are in play
-            RoundManager.Instance.powerupsInPlay.Remove(gameObject); 
-            
+            RoundManager.Instance.powerupsInPlay.Remove(gameObject);
+
             // visually hide gameobject
-            GetComponent<Collider>().enabled = false;
-            GetComponent<MeshRenderer>().enabled = false;
+            if (!isHoldable)
+            {
+                GetComponent<Collider>().enabled = false;
+                GetComponent<MeshRenderer>().enabled = false;
+            }
         }
 
         if (activeTimer != null)
@@ -98,7 +111,7 @@ public class Powerup : MonoBehaviour
     // Passes old powerup information into new one when its picked up if it is implemented by sub class (implemented out of desperation)
     protected virtual void passOldPowerupInfo(Powerup oldPu)
     {
-        
+
     }
 
     protected virtual IEnumerator StartTimer()
@@ -151,11 +164,19 @@ public class Powerup : MonoBehaviour
 
     protected virtual void powerUpEnd()
     {
-        powerupHandler.currPowerups[powerUpID] = false;
-        if (powerupHandler.activePowerupInstances[powerUpID] == this)
+        if (powerupHandler != null)
         {
-            powerupHandler.activePowerupInstances[powerUpID] = null;
+            if (powerUpID < powerupHandler.currPowerups.Count)
+                powerupHandler.currPowerups[powerUpID] = false;
+
+            if (powerupHandler.activePowerupInstances != null &&
+                powerupHandler.activePowerupInstances.ContainsKey(powerUpID) &&
+                powerupHandler.activePowerupInstances[powerUpID] == this)
+            {
+                powerupHandler.activePowerupInstances[powerUpID] = null;
+            }
         }
-        Debug.Log($"Powerup ended: {puName} for {pc.name}");
+
+        Debug.Log($"Powerup ended: {puName} for {pc?.name}");
     }
 }

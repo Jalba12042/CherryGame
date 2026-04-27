@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 4505279978238919257}
   - component: {fileID: 6614761369101612507}
   - component: {fileID: 4508569035273778343}
+  - component: {fileID: 1122040047430569154}
   m_Layer: 0
   m_Name: CanOWormsFinal
   m_TagString: Untagged
@@ -176,3 +177,24 @@ MonoBehaviour:
   spinSpeed: 50
   swaySpeed: 1
   swayAmount: 10
+--- !u!114 &1122040047430569154
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3941481109912277205}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85975c5fc7fa15546aeea944be30a8ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  duration: 0
+  puName: Can Of Worms
+  despawnTimerInSecs: 7
+  powerUpID: 6
+  targetTag: Cherry
+  destroyDelay: 3
+  spreadRadius: 5
+  spreadDelay: 1
+  maxInfections: 10

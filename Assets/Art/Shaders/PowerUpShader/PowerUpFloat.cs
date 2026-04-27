@@ -14,6 +14,7 @@ public class PowerUpFloat : MonoBehaviour
     public float swayAmount = 10f;     
 
     private Vector3 startPos;
+    private bool isHeld = false;
 
     void Start()
     {
@@ -22,7 +23,9 @@ public class PowerUpFloat : MonoBehaviour
 
     void Update()
     {
-        
+
+        if (isHeld) return;
+
         float yOffset = Mathf.Sin(Time.time * floatSpeed) * floatHeight;
         transform.position = startPos + new Vector3(0f, yOffset, 0f);
 
@@ -34,5 +37,10 @@ public class PowerUpFloat : MonoBehaviour
 
       
         transform.rotation = Quaternion.Euler(sway, spin, 0f);
+    }
+
+    public void SetHeld(bool held)
+    {
+        isHeld = held;
     }
 }

@@ -7,6 +7,10 @@ public class PlayerPowerupHandler : MonoBehaviour
     private Playermovement player;
     private Powerup nearbyPowerup;
     private float originalMoveSpeed;
+    private bool rtConsumedThisPress;
+
+    [Header("Hand Reference")]
+    public Transform handHoldPoint;
 
     [Header("Powerup State")]
     public List<bool> currPowerups;
@@ -22,6 +26,10 @@ public class PlayerPowerupHandler : MonoBehaviour
     [Header("Taser Audio")]
     [SerializeField] private AudioSource taserAudioSource;
     [SerializeField] private AudioClip taserClip;
+
+    [Header("Gun State")]
+    public bool hasGunEquipped = false;
+    public GunPowerup activeGun;
 
     void Start()
     {
@@ -48,21 +56,43 @@ public class PlayerPowerupHandler : MonoBehaviour
 
     void Update()
     {
-        if (nearbyPowerup != null && player.assignedGamepad != null)
+        bool rtPressed = false;
+
+        if (player.assignedGamepad != null)
+            rtPressed = player.assignedGamepad.rightTrigger.wasPressedThisFrame;
+        else if (GameManager.Instance.isOnKeyboard)
+            rtPressed = Input.GetKeyDown(KeyCode.E);
+
+        if (rtPressed)
         {
-            if (player.assignedGamepad.rightTrigger.wasPressedThisFrame)
-            {
-                nearbyPowerup.Activate(this);
-                nearbyPowerup = null;
-            }
+            HandleRT();
         }
-        else if (nearbyPowerup != null && GameManager.Instance.isOnKeyboard)
+
+        HandleGunInput();
+    }
+
+    private void HandleRT()
+    {
+        // pickup gun from ground
+        if (nearbyPowerup is GunPowerup gun)
         {
-            if (Input.GetKeyDown(KeyCode.E))
-            {
-                nearbyPowerup.Activate(this);
-                nearbyPowerup = null;
-            }
+            activeGun = gun;
+            nearbyPowerup = null;
+            return;
+        }
+
+        // equip or fire gun
+        if (activeGun != null)
+        {
+            HandleGunInput();
+            return;
+        }
+
+        // fallback: normal powerup
+        if (nearbyPowerup != null)
+        {
+            nearbyPowerup.Activate(this);
+            nearbyPowerup = null;
         }
     }
 
@@ -167,5 +197,39 @@ public class PlayerPowerupHandler : MonoBehaviour
         // Reset UI
         if (FaceCamManager.Instance != null)
             FaceCamManager.Instance.HidePowerUp(player.playerIndex);
+    }
+
+
+    private void HandleGunInput()
+    {
+        if (activeGun == null)
+            return;
+
+        bool pressed = false;
+
+        if (player.assignedGamepad != null)
+            pressed = player.assignedGamepad.rightTrigger.wasPressedThisFrame;
+        else if (GameManager.Instance.isOnKeyboard)
+            pressed = Input.GetKeyDown(KeyCode.E);
+
+        if (!pressed)
+            return;
+
+        // EQUIP (first press)
+        if (!hasGunEquipped)
+        {
+            hasGunEquipped = true;
+
+            if (handHoldPoint != null)
+                activeGun.EquipGun(handHoldPoint);
+
+            return;
+        }
+
+        // FIRE + CONSUME (second press)
+        activeGun.Fire();
+
+        hasGunEquipped = false;
+        activeGun = null;
     }
 }
