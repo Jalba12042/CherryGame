@@ -13,6 +13,7 @@ public class DirtMound : MonoBehaviour
 
     private bool hasFinished = false; // NEW: Stops the finish logic from running multiple times
 
+
     public enum DirtMode
     {
         Rising,
@@ -44,6 +45,7 @@ public class DirtMound : MonoBehaviour
 
         startPos = transform.position;
 
+
         if (mode == DirtMode.Rising)
         {
             targetPos = startPos + Vector3.up * riseHeight;
@@ -70,6 +72,7 @@ public class DirtMound : MonoBehaviour
 
     void Update()
     {
+
         if (hasFinished) return;
 
         transform.position = Vector3.MoveTowards(

@@ -88,6 +88,13 @@ public class PlayerPowerupHandler : MonoBehaviour
             return;
         }
 
+        if (nearbyPowerup is Taser taser)
+        {
+            taser.EquipTaser(handHoldPoint);
+            nearbyPowerup = null;
+            return;
+        }
+
         // fallback: normal powerup
         if (nearbyPowerup != null)
         {
@@ -141,24 +148,37 @@ public class PlayerPowerupHandler : MonoBehaviour
     {
         isTased = true;
 
+        Rigidbody rb = GetComponent<Rigidbody>();
+
+        Vector3 storedVelocity = Vector3.zero;
+        RigidbodyConstraints originalConstraints = RigidbodyConstraints.None;
+
+        if (rb != null)
+        {
+            storedVelocity = rb.linearVelocity;
+            originalConstraints = rb.constraints;
+
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+
+            rb.constraints = RigidbodyConstraints.FreezeAll;
+        }
+
         if (taserVFX != null)
             taserVFX.SetActive(true);
 
-        if (taserAudioSource != null && taserClip != null)
-            taserAudioSource.PlayOneShot(taserClip);
-
-        // --- NEW CLEAN UI LOGIC ---
-        if (FaceCamManager.Instance != null) FaceCamManager.Instance.ShowPowerUp(player.playerIndex, "Taser");
-
         yield return new WaitForSeconds(duration);
+
+        if (rb != null)
+        {
+            rb.constraints = originalConstraints;
+            rb.linearVelocity = storedVelocity;
+        }
 
         if (taserVFX != null)
             taserVFX.SetActive(false);
 
         isTased = false;
-
-        // --- NEW CLEAN UI LOGIC ---
-        if (FaceCamManager.Instance != null) FaceCamManager.Instance.HidePowerUp(player.playerIndex);
     }
 
     public void ClearAllPowerups()

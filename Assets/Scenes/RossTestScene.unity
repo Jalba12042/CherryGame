@@ -1470,6 +1470,10 @@ PrefabInstance:
       value: RampCirclePath
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 5963327041b88fe4b97cc98422fd565d, type: 3}
+      propertyPath: m_Layer
+      value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 5963327041b88fe4b97cc98422fd565d, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
@@ -5004,7 +5008,7 @@ GameObject:
   - component: {fileID: 405656785}
   - component: {fileID: 405656784}
   - component: {fileID: 405656783}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: RampCurvePath (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8834,7 +8838,7 @@ GameObject:
   - component: {fileID: 838271928}
   - component: {fileID: 838271927}
   - component: {fileID: 838271926}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: RampCurvePath (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13453,7 +13457,7 @@ MeshCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
@@ -14584,7 +14588,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1413787442}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: PathColliders
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -16874,6 +16878,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: e9e95e087a1469f469c2c4e30a211280, type: 3}
       propertyPath: m_Name
       value: LeftCurvePath
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: e9e95e087a1469f469c2c4e30a211280, type: 3}
+      propertyPath: m_Layer
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -19214,7 +19222,7 @@ GameObject:
   - component: {fileID: 1868329863}
   - component: {fileID: 1868329862}
   - component: {fileID: 1868329861}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: RampCurvePath (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -20023,13 +20031,43 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ea42fdbda4aeb454a9f85440b056e043, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1985176737}
   m_SourcePrefab: {fileID: 100100000, guid: ea42fdbda4aeb454a9f85440b056e043, type: 3}
 --- !u!4 &1985176735 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ea42fdbda4aeb454a9f85440b056e043, type: 3}
   m_PrefabInstance: {fileID: 1985176734}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1985176736 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: ea42fdbda4aeb454a9f85440b056e043, type: 3}
+  m_PrefabInstance: {fileID: 1985176734}
+  m_PrefabAsset: {fileID: 0}
+--- !u!64 &1985176737
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1985176736}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -5495902117074765545, guid: ea42fdbda4aeb454a9f85440b056e043, type: 3}
 --- !u!1 &2015488515
 GameObject:
   m_ObjectHideFlags: 0
@@ -20574,6 +20612,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 8addf99d032d0bb44b838685119e3807, type: 3}
       propertyPath: m_Name
       value: Ramp
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 8addf99d032d0bb44b838685119e3807, type: 3}
+      propertyPath: m_Layer
+      value: 16
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -21950,7 +21992,7 @@ GameObject:
   - component: {fileID: 1364598797871371570}
   - component: {fileID: 219388007612000294}
   - component: {fileID: 3291599654082518128}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: RightCurvePath
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -22209,7 +22251,7 @@ GameObject:
   - component: {fileID: 125384967996706758}
   - component: {fileID: 579561918456490528}
   - component: {fileID: 6251582722567310508}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: RampCurvePath
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -22846,7 +22888,7 @@ GameObject:
   - component: {fileID: 3310015075228133497}
   - component: {fileID: 3065088811395262264}
   - component: {fileID: 7949332330664925970}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: CirclePath
   m_TagString: Untagged
   m_Icon: {fileID: 0}

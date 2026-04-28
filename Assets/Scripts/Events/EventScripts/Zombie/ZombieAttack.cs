@@ -12,8 +12,11 @@ public class ZombieAttack : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             PlayerKill pk = other.GetComponent<PlayerKill>();
-            if (!pk.currDead)
+            PlayerEffects pe = other.GetComponent<PlayerEffects>();
+            if (!pk.currDead && !pe.isBig)
             {
+                Vector3 deathPos = other.transform.position;
+
                 pk.killPlayer();
 
                 // NEW: Play the bite sound right where the player died
@@ -22,8 +25,13 @@ public class ZombieAttack : MonoBehaviour
                     AudioSource.PlayClipAtPoint(biteKillSound, transform.position, 1f);
                 }
 
-                Zombie newZombie = Instantiate(zombiePrefab, transform.position, Quaternion.identity)
-                .GetComponent<Zombie>();
+                Zombie zombieRef = zombiePrefab.GetComponent<Zombie>();
+
+                Vector3 spawnPos = zombieRef.GetGroundPosition(deathPos);
+                spawnPos.y += 0.05f;
+
+                Zombie newZombie = Instantiate(zombiePrefab, spawnPos, Quaternion.identity)
+                    .GetComponent<Zombie>();
 
                 newZombie.InitAsPlayerZombie();
             }

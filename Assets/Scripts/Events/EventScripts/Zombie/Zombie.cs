@@ -54,7 +54,7 @@ public class Zombie : MonoBehaviour
     public float spawnRadius;
 
     [Header("Ground Detection")]
-    [SerializeField] private LayerMask groundLayer;
+    public LayerMask groundLayer;
 
     [Header("Rise Pose")]
     [SerializeField] private int risePose;
@@ -491,7 +491,7 @@ public class Zombie : MonoBehaviour
         return groundY; // fallback
     }
 
-    private Vector3 GetGroundPosition(Vector3 origin)
+    public Vector3 GetGroundPosition(Vector3 origin)
     {
         Ray ray = new Ray(origin + Vector3.up * 2f, Vector3.down);
 
