@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 
 public enum UFOState { Approaching, Hovering, Abducting, Leaving }
@@ -31,6 +31,9 @@ public class UFO : MonoBehaviour
     public AudioClip hoverSound;
     public AudioClip abductSound;
     private AudioSource audioSource;
+
+    [Header("Beam")]
+    [SerializeField] private Transform beam; // assign your beam object
 
     private void Awake()
     {
@@ -137,6 +140,14 @@ public class UFO : MonoBehaviour
     {
         currentState = nextState;
         stateTimer = 0f;
+
+        if (beam != null)
+        {
+            beam.gameObject.SetActive(
+                currentState == UFOState.Hovering ||
+                currentState == UFOState.Abducting
+            );
+        }
 
         if (currentState == UFOState.Approaching)
         {
