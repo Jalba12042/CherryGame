@@ -17,14 +17,14 @@ public class CanOfWormsEffect : Powerup
         ActivateWorms();
 
         // instant-use cleanup
-        powerupHandler.currPowerups[powerUpID] = false;
+        /*powerupHandler.currPowerups[powerUpID] = false;
 
         if (powerupHandler.activePowerupInstances[powerUpID] == this)
         {
             powerupHandler.activePowerupInstances[powerUpID] = null;
         }
 
-        Destroy(gameObject);
+        Destroy(gameObject);*/
     }
 
     protected override IEnumerator StartTimer()

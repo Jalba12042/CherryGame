@@ -58,7 +58,7 @@ public class PlayerPowerupHandler : MonoBehaviour
         }
         else if (nearbyPowerup != null && GameManager.Instance.isOnKeyboard)
         {
-            if (Input.GetKeyDown(KeyCode.E))
+            if (Input.GetKeyDown(KeyCode.F))
             {
                 nearbyPowerup.Activate(this);
                 nearbyPowerup = null;

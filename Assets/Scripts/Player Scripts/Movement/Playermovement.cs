@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Netcode;
 
 [RequireComponent(typeof(Rigidbody))]
-public class Playermovement : MonoBehaviour
+public class Playermovement : NetworkBehaviour
 {
     [Header("Player Settings")]
     public int playerID; // NEW: Added this so the UI knows who is picking up the power-up!
@@ -86,6 +87,7 @@ public class Playermovement : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (!IsOwner) return;
         if (!canMove || isKnockedBack) return;
 
         // --- Movement ---
