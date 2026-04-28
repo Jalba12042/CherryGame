@@ -67,6 +67,7 @@ public class Zombie : MonoBehaviour
     public AudioClip[] moanSounds;
     public float minMoanTime = 3f;
     public float maxMoanTime = 8f;
+    [Range(0f, 1f)] public float moanVolume = 1f; // --- NEW: SLIDER TO ADJUST MOAN LOUDNESS ---
 
     private float moanTimer;
     private AudioSource audioSource;
@@ -148,7 +149,8 @@ public class Zombie : MonoBehaviour
             if (moanTimer <= 0f)
             {
                 int randomMoan = Random.Range(0, moanSounds.Length);
-                audioSource.PlayOneShot(moanSounds[randomMoan]);
+                // --- NEW: WE APPLY THE CUSTOM VOLUME SLIDER HERE! ---
+                audioSource.PlayOneShot(moanSounds[randomMoan], moanVolume);
                 moanTimer = Random.Range(minMoanTime, maxMoanTime);
             }
         }
@@ -318,11 +320,8 @@ public class Zombie : MonoBehaviour
             float step = moveSpeed * Time.fixedDeltaTime;
             float clampedStep = Mathf.Min(step, distance);
 
-            //Vector3 newPosition = rb.position + direction * clampedStep;
-
             Vector3 movement = direction * clampedStep;
 
-            // apply knockback
             movement += knockbackVelocity * Time.fixedDeltaTime;
 
             Vector3 newPosition = rb.position + movement;
@@ -402,7 +401,6 @@ public class Zombie : MonoBehaviour
     {
         hitbox.SetActive(true);
 
-        // --- ATTACK SOUND ---
         if (attackSwingSound != null && audioSource != null)
         {
             audioSource.PlayOneShot(attackSwingSound);
@@ -431,7 +429,6 @@ public class Zombie : MonoBehaviour
         }
     }
 
-    // THIS IS THE INTRO DIGGING LOGIC
     public void InitNormalZombie()
     {
         isInitialized = true;
@@ -459,7 +456,6 @@ public class Zombie : MonoBehaviour
 
         ChangeState(ZombieState.Rising);
 
-        // --- INTRO SOUND ---
         if (riseSound != null)
             audioSource.PlayOneShot(riseSound);
     }

@@ -11,6 +11,10 @@ public class MagnetPowerup : Powerup
     [Header("Attachment")]
     public string handPointName = "MagnetPoint";
 
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip magnetActivateSound; // Plays when the magnet turns on!
+
     private Coroutine magnetRoutine;
     private Transform handPoint;
 
@@ -18,6 +22,13 @@ public class MagnetPowerup : Powerup
     {
         base.powerUpEffect();
         AttachToHand();
+
+        // --- PLAY MAGNET SOUND ---
+        if (audioSource != null && magnetActivateSound != null)
+        {
+            audioSource.PlayOneShot(magnetActivateSound);
+        }
+
         magnetRoutine = StartCoroutine(MagnetRoutine());
 
         // --- NEW CLEAN UI LOGIC ---

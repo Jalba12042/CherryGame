@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
+using System.Collections;
 using System.Collections.Generic;
 
 public class WinScript : MonoBehaviour
@@ -19,12 +20,19 @@ public class WinScript : MonoBehaviour
 
     [Header("Ready Up UI")]
     public GameObject pressAButtonPrompt;
-    public Image[] playerReadyIcons;          // The colored faces
-    public GameObject[] playerReadyBackgrounds; // NEW: Drag your 4 White Boxes here!
+    public Image[] playerReadyIcons;
+    public GameObject[] playerReadyBackgrounds;
     public Sprite[] colorIcons;
 
     [Header("Name Mapping")]
     public string[] availableNames;
+
+    [Header("Outro Animations")]
+    public Animator clipboardAnimator;
+    public Animator toShopTextAnimator;
+    public Animator buttonAAnimator;
+    public Animator[] headIconAnimators;
+    public float waitBeforeNextScene = 1.5f;
 
     private bool[] playerReady = new bool[4];
     private int readyCount = 0;
@@ -32,9 +40,13 @@ public class WinScript : MonoBehaviour
 
     void Start()
     {
+        // Snap time back to 100% normal speed!
+        Time.timeScale = 1f;
+
         bool isTie = winningPlayers.Count > 1;
         int winnerID = winningPlayers.Count > 0 ? winningPlayers[0] : 0;
 
+        // Add the point to the GameManager
         if (!isTie && winningPlayers.Count > 0 && GameManager.Instance != null)
         {
             if (winnerID < GameManager.Instance.playerTotalScores.Length)
@@ -43,6 +55,7 @@ public class WinScript : MonoBehaviour
             }
         }
 
+        // Set Winner Text
         if (isTie)
         {
             if (winnerText != null) winnerText.text = "IT'S A TIE!";
@@ -68,7 +81,7 @@ public class WinScript : MonoBehaviour
             if (scoreboardUI != null) scoreboardUI.UpdateScoreboard();
         }
 
-        // Setup the Ready Up UI & Hide extra white boxes!
+        // Setup the Ready Up UI
         if (pressAButtonPrompt != null) pressAButtonPrompt.SetActive(true);
 
         int totalPlayers = GameManager.Instance != null ? GameManager.Instance.playerCount : 4;
@@ -77,13 +90,11 @@ public class WinScript : MonoBehaviour
         {
             bool isPlaying = i < totalPlayers;
 
-            // Hides the White Box if they aren't playing!
             if (playerReadyBackgrounds != null && i < playerReadyBackgrounds.Length && playerReadyBackgrounds[i] != null)
             {
                 playerReadyBackgrounds[i].SetActive(isPlaying);
             }
 
-            // Keep the face hidden until they press A
             if (playerReadyIcons != null && i < playerReadyIcons.Length && playerReadyIcons[i] != null)
             {
                 playerReadyIcons[i].gameObject.SetActive(false);
@@ -129,10 +140,11 @@ public class WinScript : MonoBehaviour
             }
         }
 
+        // Check if everyone is ready to trigger the Outro
         if (readyCount >= totalPlayers && totalPlayers > 0)
         {
             isScoreboardVisible = false;
-            SceneManager.LoadScene(shopSceneName);
+            StartCoroutine(PlayOutroAndLoadShop());
         }
     }
 
@@ -154,5 +166,47 @@ public class WinScript : MonoBehaviour
                 }
             }
         }
+    }
+
+    private IEnumerator PlayOutroAndLoadShop()
+    {
+        // --- NEW: TELL THE MUSIC TO FADE OUT ---
+        if (GameplayMusicManager.Instance != null)
+        {
+            GameplayMusicManager.Instance.FadeOutToShop(waitBeforeNextScene);
+        }
+
+        // 1. Instantly hide the "Ready" icons and backgrounds
+        for (int i = 0; i < 4; i++)
+        {
+            if (playerReadyIcons != null && i < playerReadyIcons.Length && playerReadyIcons[i] != null)
+            {
+                playerReadyIcons[i].gameObject.SetActive(false);
+            }
+
+            if (playerReadyBackgrounds != null && i < playerReadyBackgrounds.Length && playerReadyBackgrounds[i] != null)
+            {
+                playerReadyBackgrounds[i].SetActive(false);
+            }
+        }
+
+        // 2. Play Animators Outro
+        if (clipboardAnimator != null) clipboardAnimator.SetTrigger("Outro");
+        if (toShopTextAnimator != null) toShopTextAnimator.SetTrigger("Outro");
+        if (buttonAAnimator != null) buttonAAnimator.SetTrigger("Outro");
+
+        if (headIconAnimators != null)
+        {
+            foreach (Animator anim in headIconAnimators)
+            {
+                if (anim != null) anim.SetTrigger("Outro");
+            }
+        }
+
+        // 3. Wait for animations and music fade
+        yield return new WaitForSeconds(waitBeforeNextScene);
+
+        // 4. Load Shop
+        SceneManager.LoadScene(shopSceneName);
     }
 }

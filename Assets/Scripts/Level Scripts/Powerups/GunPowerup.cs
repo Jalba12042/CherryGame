@@ -17,6 +17,10 @@ public class GunPowerup : Powerup
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private float bulletSpeed = 25f;
 
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip shootSound;
+
     private void Awake()
     {
         if (!isHoldable)
@@ -74,6 +78,14 @@ public class GunPowerup : Powerup
     {
         hasShot = true;
 
+        // --- 1. PLAY SHOOT SOUND ---
+        float destroyDelay = 0f;
+        if (audioSource != null && shootSound != null)
+        {
+            audioSource.PlayOneShot(shootSound);
+            destroyDelay = shootSound.length; // Find out exactly how long the sound file is!
+        }
+
         GameObject bullet = Instantiate(bulletPrefab, barrel.position, barrel.rotation);
 
         Rigidbody rb = bullet.GetComponent<Rigidbody>();
@@ -96,7 +108,16 @@ public class GunPowerup : Powerup
 
         powerUpEnd();
 
-        Destroy(gameObject);
+        // --- 2. HIDE THE GUN INSTANTLY ---
+        // We turn off the mesh so it looks like it was destroyed!
+        foreach (var r in GetComponentsInChildren<Renderer>())
+        {
+            r.enabled = false;
+        }
+
+        // --- 3. DESTROY AFTER SOUND FINISHES ---
+        // If there's no sound, destroyDelay is 0, so it destroys instantly.
+        Destroy(gameObject, destroyDelay);
 
         yield break;
     }

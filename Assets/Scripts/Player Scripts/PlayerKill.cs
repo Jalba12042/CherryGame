@@ -15,6 +15,10 @@ public class PlayerKill : MonoBehaviour
 
     [SerializeField] private GameObject confettiPrefab;
 
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip deathSound;
+
     private void Awake()
     {
         pm = GetComponent<Playermovement>();
@@ -75,6 +79,12 @@ public class PlayerKill : MonoBehaviour
         if (currDead) return;
 
         currDead = true;
+
+        // --- PLAY DEATH SOUND ---
+        if (audioSource != null && deathSound != null)
+        {
+            audioSource.PlayOneShot(deathSound);
+        }
 
         Vector3 deathPosition = transform.position;
 

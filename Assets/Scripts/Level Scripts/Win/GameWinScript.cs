@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Collections;
 
 [System.Serializable]
 public class FinalVictoryPuppet
@@ -15,8 +16,8 @@ public class FinalVictoryPuppet
 
 public class GameWinScript : MonoBehaviour
 {
-    public TMP_Text winnerText; // assign in Inspector to display winner
-    public Button[] menuButtons; // Shop button etc.
+    public TMP_Text winnerText;
+    public Button[] menuButtons;
     private int currentIndex = 0;
 
     private bool canMove = true;
@@ -27,17 +28,33 @@ public class GameWinScript : MonoBehaviour
     public static List<int> winningPlayers = new List<int>();
 
     [Header("Name Mapping")]
-    [Tooltip("Copy the exact same list of names from your Customization UI here!")]
     public string[] availableNames;
 
     [Header("Victory Animations")]
     public FinalVictoryPuppet[] colorPuppets;
 
+    [Header("Audio Polish")]
+    public AudioSource bgmAudioSource;    // Drag the object playing the current BGM here
+    public AudioSource sfxSource;       // Drag an AudioSource for the "Celebrate" sound here
+    public AudioClip celebrateSound;    // Drag your "Yay!" sound effect here
+    public float musicFadeDuration = 2f;
+
     void Start()
     {
         TurnOffAllPuppets();
 
-        // Safety fallback just in case the list is empty
+        // 1. Play the Celebrate Sound!
+        if (sfxSource != null && celebrateSound != null)
+        {
+            sfxSource.PlayOneShot(celebrateSound);
+        }
+
+        // 2. Start fading out the background music
+        if (bgmAudioSource != null)
+        {
+            StartCoroutine(FadeOutMusic());
+        }
+
         if (winningPlayers == null || winningPlayers.Count == 0)
         {
             winningPlayers = new List<int> { 0 };
@@ -47,14 +64,12 @@ public class GameWinScript : MonoBehaviour
 
         if (isTie)
         {
-            // --- IT'S A TIE ---
             string winnersString = "";
             for (int i = 0; i < winningPlayers.Count; i++)
             {
                 int pID = winningPlayers[i];
                 string pName = "Player " + (pID + 1);
 
-                // Check Memory Bank for custom name
                 if (GameManager.Instance != null && GameManager.Instance.playerCustomizations.Count > pID)
                 {
                     int nameIdx = GameManager.Instance.playerCustomizations[pID].nameIndex;
@@ -74,12 +89,10 @@ public class GameWinScript : MonoBehaviour
         }
         else
         {
-            // --- SOMEONE WON ---
             int winnerID = winningPlayers[0];
             string winName = "PLAYER " + (winnerID + 1);
             int winColorIndex = 0;
 
-            // Grab their custom data from the GameManager
             if (GameManager.Instance != null && GameManager.Instance.playerCustomizations.Count > winnerID)
             {
                 var data = GameManager.Instance.playerCustomizations[winnerID];
@@ -93,29 +106,38 @@ public class GameWinScript : MonoBehaviour
 
             if (winnerText != null) winnerText.text = winName.ToUpper() + " WINS THE GAME!";
 
-            // Turn on correct color puppet
+            // --- THE FIX: Match the winner's color exactly ---
             bool foundPuppet = false;
-            if (colorPuppets != null)
+            foreach (FinalVictoryPuppet vp in colorPuppets)
             {
-                foreach (FinalVictoryPuppet vp in colorPuppets)
+                if (vp.colorIndex == winColorIndex)
                 {
-                    if (vp.colorIndex == winColorIndex)
-                    {
-                        if (vp.puppetGroup != null) vp.puppetGroup.SetActive(true);
-                        foundPuppet = true;
-                        break;
-                    }
+                    if (vp.puppetGroup != null) vp.puppetGroup.SetActive(true);
+                    foundPuppet = true;
+                    break;
                 }
             }
 
-            // Fallback: If no puppet matches, use the first one
-            if (!foundPuppet && colorPuppets != null && colorPuppets.Length > 0 && colorPuppets[0].puppetGroup != null)
+            if (!foundPuppet && colorPuppets.Length > 0)
             {
                 colorPuppets[0].puppetGroup.SetActive(true);
             }
         }
 
         HighlightButton();
+    }
+
+    private IEnumerator FadeOutMusic()
+    {
+        float startVol = bgmAudioSource.volume;
+        float elapsed = 0;
+        while (elapsed < musicFadeDuration)
+        {
+            elapsed += Time.deltaTime;
+            bgmAudioSource.volume = Mathf.Lerp(startVol, 0, elapsed / musicFadeDuration);
+            yield return null;
+        }
+        bgmAudioSource.Stop();
     }
 
     private void TurnOffAllPuppets()
@@ -135,7 +157,6 @@ public class GameWinScript : MonoBehaviour
         var gamepad = Gamepad.all[0];
         Vector2 move = gamepad.leftStick.ReadValue();
 
-        // Navigation
         if (canMove)
         {
             if (move.y > deadzone)
@@ -152,12 +173,8 @@ public class GameWinScript : MonoBehaviour
             }
         }
 
-        if (Mathf.Abs(move.y) < 0.2f)
-        {
-            canMove = true;
-        }
+        if (Mathf.Abs(move.y) < 0.2f) canMove = true;
 
-        // Confirm selection
         if (gamepad.buttonSouth.wasPressedThisFrame)
         {
             menuButtons[currentIndex].onClick.Invoke();
@@ -177,6 +194,7 @@ public class GameWinScript : MonoBehaviour
 
     public void GoToLocal()
     {
+        // When going back to the menu, make sure we aren't carrying over weird music states
         SceneManager.LoadScene(localSceneName);
     }
 }

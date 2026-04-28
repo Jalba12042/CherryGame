@@ -18,7 +18,8 @@ public class ScoreboardUI : MonoBehaviour
 
     [Header("Color Data Database")]
     public ShopColorData[] availableColors;
-    public string[] availableNames;
+
+    // NOTE: I removed the availableNames list from here so it doesn't conflict!
 
     void Start()
     {
@@ -29,6 +30,10 @@ public class ScoreboardUI : MonoBehaviour
     {
         int safePlayerCount = 4;
         if (GameManager.Instance != null) safePlayerCount = Mathf.Min(GameManager.Instance.playerCount, 4);
+
+        // --- NEW: GRAB THE NAMES LIST DIRECTLY FROM WIN SCRIPT! ---
+        WinScript winManager = FindFirstObjectByType<WinScript>();
+        string[] masterNameList = (winManager != null && winManager.availableNames != null) ? winManager.availableNames : new string[0];
 
         for (int pIndex = 0; pIndex < 4; pIndex++)
         {
@@ -48,20 +53,20 @@ public class ScoreboardUI : MonoBehaviour
             // --- PLAYER IS ACTIVE ---
             var pData = GameManager.Instance.playerCustomizations[pIndex];
 
-            // Set Name
-            if (playerRows[pIndex].playerNameText != null && pData.nameIndex >= 0 && pData.nameIndex < availableNames.Length)
+            // Set Name (Using the master list from WinScript!)
+            if (playerRows[pIndex].playerNameText != null && pData.nameIndex >= 0 && pData.nameIndex < masterNameList.Length)
             {
-                playerRows[pIndex].playerNameText.text = availableNames[pData.nameIndex];
+                playerRows[pIndex].playerNameText.text = masterNameList[pData.nameIndex];
                 playerRows[pIndex].playerNameText.gameObject.SetActive(true);
             }
 
             // Get Color Data
             ShopColorData colorInfo = GetColorData(pData.colorIndex);
-            Sprite playerTallySprite = null; // Will hold your custom colored tally mark!
+            Sprite playerTallySprite = null;
 
             if (colorInfo != null)
             {
-                playerTallySprite = colorInfo.tallyMarkSprite; // Grab the pre-drawn sprite!
+                playerTallySprite = colorInfo.tallyMarkSprite;
 
                 if (playerRows[pIndex].headIconImage != null)
                 {
@@ -80,14 +85,13 @@ public class ScoreboardUI : MonoBehaviour
                     bool showTally = i < wins;
                     playerRows[pIndex].tallyMarks[i].SetActive(showTally);
 
-                    // If the tally is showing, swap out the picture!
                     if (showTally && playerTallySprite != null)
                     {
                         Image tallyImage = playerRows[pIndex].tallyMarks[i].GetComponent<Image>();
                         if (tallyImage != null)
                         {
-                            tallyImage.sprite = playerTallySprite; // Slap the Pink/Cyan/Green image on it!
-                            tallyImage.color = Color.white; // Force color to white so Unity doesn't tint your drawing
+                            tallyImage.sprite = playerTallySprite;
+                            tallyImage.color = Color.white;
                         }
                     }
                 }

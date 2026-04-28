@@ -1223,7 +1223,7 @@ MonoBehaviour:
   minPitch: 1
   maxPitch: 2
   screamVolume: 1
-  aSource: {fileID: 0}
+  aSource: {fileID: 8424408169569885518}
   faceAnimator: {fileID: 4811179803429699165}
 --- !u!82 &8424408169569885518
 AudioSource:
@@ -1238,7 +1238,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
-  m_Volume: 0.721
+  m_Volume: 0.26
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -6724,7 +6724,7 @@ MonoBehaviour:
   stunCanvas: {fileID: 4487468673559137699}
   stunTimerText: {fileID: 7428297024344021340}
   grabSource: {fileID: 2632603940568999422}
-  grabClip: {fileID: 8300000, guid: 5bde7209d137a854cb758783121d5bd2, type: 3}
+  grabClip: {fileID: 0}
   dropClip: {fileID: 8300000, guid: 10335e0f8a2462f4a9a65ae22f317080, type: 3}
   throwForceForward: 200
   throwForceUp: 12
@@ -6743,7 +6743,7 @@ MonoBehaviour:
   handHoldPoint: {fileID: 136122321391519697}
   pickupSource: {fileID: 2632603940568999422}
   pickupClip: {fileID: 8300000, guid: 5bde7209d137a854cb758783121d5bd2, type: 3}
-  dropClip: {fileID: 8300000, guid: 10335e0f8a2462f4a9a65ae22f317080, type: 3}
+  dropClip: {fileID: 0}
   cherryLayer:
     serializedVersion: 2
     m_Bits: 8192
@@ -6851,6 +6851,8 @@ MonoBehaviour:
   respawnDuration: 5
   ps: {fileID: 0}
   confettiPrefab: {fileID: 2645986973580408525, guid: 07ba8d0b9475b49529d137b1c4f85c0e, type: 3}
+  audioSource: {fileID: 6851546816297629260}
+  deathSound: {fileID: 8300000, guid: b4abdddaf814545489463816b81bb2a8, type: 3}
 --- !u!114 &4015052594939071282
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6907,7 +6909,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.15
   m_Pitch: 1
   Loop: 0
   Mute: 0

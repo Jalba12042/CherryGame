@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-[RequireComponent(typeof(AudioSource))] // Automatically adds an Audio Source if you forget!
+[RequireComponent(typeof(AudioSource))]
 public class CherryBomb : Cherry
 {
     private bool fuseLit = false;
@@ -30,27 +30,30 @@ public class CherryBomb : Cherry
             fuseVFX.SetActive(false);
 
         if (cherryRenderer != null && normalMaterial != null)
-            cherryRenderer.material = normalMaterial;
+            SetCherryMaterial(normalMaterial);
     }
 
     private void Update()
     {
-        if (isHeld)
+        if (isHeld && !fuseLit)
         {
+            fuseLit = true;
+
+            // 1. Move visuals inside here so they only trigger ONCE (prevents massive lag!)
             if (fuseVFX != null)
                 fuseVFX.SetActive(true);
 
             if (cherryRenderer != null && flashingMaterial != null)
                 SetCherryMaterial(flashingMaterial);
-        }
 
-        if (isHeld && !fuseLit)
-        {
-            fuseLit = true;
-
-            // --- NEW: Play the ticking sound the exact frame the fuse is lit! ---
-            if (fuseTickingSound != null)
+            // 2. Play the ticking sound!
+            if (audioSource != null && fuseTickingSound != null)
             {
+                // --- THE FIX: Force 2D sound and max volume so it's always loud and clear! ---
+                audioSource.spatialBlend = 0f;
+                audioSource.volume = 1f;
+                // -----------------------------------------------------------------------------
+
                 audioSource.clip = fuseTickingSound;
                 audioSource.loop = true; // Loops the ticking until it explodes
                 audioSource.Play();
@@ -89,9 +92,9 @@ public class CherryBomb : Cherry
 
         // 2. Play Explosion Sound (and stop the ticking!)
         float destroyDelay = 0.1f; // Fallback delay
-        if (explosionSound != null)
+        if (audioSource != null && explosionSound != null)
         {
-            audioSource.Stop();
+            audioSource.Stop(); // Force the ticking loop to stop!
             audioSource.PlayOneShot(explosionSound);
             destroyDelay = explosionSound.length; // Set delay to exactly how long the boom is
         }

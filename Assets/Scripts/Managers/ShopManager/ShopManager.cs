@@ -34,10 +34,11 @@ public class ShopManager : MonoBehaviour
 
     [Header("Audio & FX")]
     public AudioSource audioSource;
+    public AudioSource bgmAudioSource;
     public AudioClip rouletteTickSound;
     public AudioClip rouletteWinnerSound;
-    public AudioClip coinInsertSound;      // Sound when a player locks their vote!
-    public Animator coinSlotAnimator;      // Trigger a coin drop animation!
+    public AudioClip coinInsertSound;
+    public Animator coinSlotAnimator;
 
     [Header("Vote Cast Images (The 16 Tied Slots)")]
     public Image[] item1VoteSlots;
@@ -52,12 +53,12 @@ public class ShopManager : MonoBehaviour
     private int amtOfItems;
     private int[] playerVotes;
     private bool[] isSoldOut = new bool[4];
-    private bool introFinished = false; // Blocks input during intro
+    private bool introFinished = false;
 
     public Image[,] playerNumHighlights = new Image[4, 4];
     private int[] currentIndexes = new int[4];
     private bool[] canMove = new bool[4];
-    private bool[] lockedIn = new bool[4]; // Tracks who has locked their vote
+    private bool[] lockedIn = new bool[4];
 
     private int[] itemVotes;
     private List<ItemData> powerUps;
@@ -67,7 +68,12 @@ public class ShopManager : MonoBehaviour
     {
         // --- THE FIX: Snap time back to 100% normal speed! ---
         Time.timeScale = 1f;
-        // -----------------------------------------------------
+
+        // --- NEW: Automatically hide the timer when the scene starts ---
+        if (timerText != null)
+        {
+            timerText.gameObject.SetActive(false);
+        }
 
         setupItems();
 
@@ -79,8 +85,8 @@ public class ShopManager : MonoBehaviour
         for (int i = 0; i < 4; i++)
         {
             currentIndexes[i] = 0;
-            canMove[i] = false;  // Start everyone frozen!
-            lockedIn[i] = false; // Nobody is locked in yet
+            canMove[i] = false;
+            lockedIn[i] = false;
         }
 
         playerVotes = new int[4];
@@ -119,13 +125,18 @@ public class ShopManager : MonoBehaviour
         introFinished = true;
         HighlightKeypad();
 
+        // --- NEW: Turn the timer visually ON right before it starts! ---
+        if (timerText != null)
+        {
+            timerText.gameObject.SetActive(true);
+        }
+
         // 3. Start the actual voting timer
         StartCoroutine(StartShopTimer());
     }
 
     private void Update()
     {
-        // Only update text if the intro is finished
         if (introFinished)
         {
             timerText.text = $"{shopTimerDurationInSecs - (int)timer}";
@@ -159,13 +170,12 @@ public class ShopManager : MonoBehaviour
 
     private void HandleInput()
     {
-        // Safety checks to prevent background lag!
         if (!introFinished) return;
         if (GameManager.Instance == null) return;
 
         if (GameManager.Instance.isOnKeyboard)
         {
-            if (Keyboard.current != null && !lockedIn[0]) // Only read input if NOT locked in
+            if (Keyboard.current != null && !lockedIn[0])
             {
                 if (canMove[0])
                 {
@@ -224,9 +234,8 @@ public class ShopManager : MonoBehaviour
 
             for (int i = 0; i < safePlayerCount; i++)
             {
-                if (lockedIn[i]) continue; // Skips their controller entirely if they are locked in!
+                if (lockedIn[i]) continue;
 
-                // Extra safety checks for controllers
                 if (GameManager.Instance.controllerAssignments == null) continue;
                 if (i >= GameManager.Instance.controllerAssignments.Length) continue;
 
@@ -276,7 +285,6 @@ public class ShopManager : MonoBehaviour
     {
         if (vIndex < powerUps.Count && !isSoldOut[vIndex])
         {
-            // Play Coin Sound and Animation!
             if (audioSource != null && coinInsertSound != null)
             {
                 audioSource.PlayOneShot(coinInsertSound);
@@ -292,9 +300,8 @@ public class ShopManager : MonoBehaviour
             itemVotes[vIndex]++;
             playerVotes[pIndex] = vIndex;
 
-            lockedIn[pIndex] = true; // Player is permanently locked out of moving!
+            lockedIn[pIndex] = true;
 
-            // Instantly hide their highlight box so they know they are locked!
             for (int b = 0; b < numberIconObjects.Length; b++)
             {
                 if (playerNumHighlights[pIndex, b] != null) playerNumHighlights[pIndex, b].enabled = false;
@@ -387,14 +394,13 @@ public class ShopManager : MonoBehaviour
 
     private void HighlightKeypad()
     {
-        if (!introFinished) return; // Keep highlights hidden during intro!
+        if (!introFinished) return;
 
         int safePlayerCount = 4;
         if (GameManager.Instance != null) safePlayerCount = Mathf.Min(GameManager.Instance.playerCount, 4);
 
         for (int p = 0; p < safePlayerCount; p++)
         {
-            // Only hide highlights if they aren't locked in
             if (!lockedIn[p])
             {
                 for (int b = 0; b < numberIconObjects.Length; b++)
@@ -406,7 +412,6 @@ public class ShopManager : MonoBehaviour
 
         for (int p = 0; p < safePlayerCount; p++)
         {
-            // Only turn on the current highlight if they haven't locked their vote
             if (!lockedIn[p])
             {
                 int current = Mathf.Clamp(currentIndexes[p], 0, itemSlots.Length - 1);
@@ -506,7 +511,19 @@ public class ShopManager : MonoBehaviour
             if (itemSlots[finalWinnerIndex] != null)
                 itemSlots[finalWinnerIndex].color = Color.green;
 
-            yield return new WaitForSeconds(1.5f);
+            float fadeTime = 1.5f;
+            float elapsed = 0f;
+            float startVol = (bgmAudioSource != null) ? bgmAudioSource.volume : 0f;
+
+            while (elapsed < fadeTime)
+            {
+                elapsed += Time.deltaTime;
+                if (bgmAudioSource != null)
+                {
+                    bgmAudioSource.volume = Mathf.Lerp(startVol, 0f, elapsed / fadeTime);
+                }
+                yield return null;
+            }
         }
 
         if (addedPowerUp != null)
@@ -531,7 +548,6 @@ public class ShopManager : MonoBehaviour
         List<ItemData> availableItems = new List<ItemData>();
         foreach (ItemData item in powerUpRegistry)
         {
-            // Extra safety check in case you test without a RoundManager
             if (RoundManager.Instance == null || !RoundManager.Instance.powerUpsInRotation.Contains(item.powerup))
             {
                 availableItems.Add(item);

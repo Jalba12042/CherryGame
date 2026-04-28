@@ -21,15 +21,15 @@ public class GrowPowerup : Powerup
     private float originalGCDist;
     private float originalGCOffset;
 
-    // --- NEW: PHYSICS VARIABLES FOR JUMP DETECTION ---
     private Rigidbody rb;
     private bool wasGrounded;
 
     [Header("Audio")]
+    [SerializeField] private AudioSource fxSource; // NEW: Slot for your AudioSource component!
     public AudioClip growSound;
     public AudioClip shrinkSound;
-    public AudioClip bigJumpSound; // NEW: Drag your heavy jump sound here!
-    private AudioSource fxSource;
+    public AudioClip bigJumpSound;
+    [Range(0f, 1f)] public float masterPowerupVolume = 1f; // NEW: Volume slider
 
     protected override void powerUpEffect()
     {
@@ -39,26 +39,29 @@ public class GrowPowerup : Powerup
         playerEffects = playerModel.GetComponent<PlayerEffects>();
         screamScript = playerModel.GetComponentInChildren<Scream>();
 
-        // Grab the Rigidbody to track jumping upward momentum
         rb = pc.GetComponent<Rigidbody>();
         if (rb == null) rb = playerModel.GetComponentInParent<Rigidbody>();
 
-        fxSource = gameObject.AddComponent<AudioSource>();
-        fxSource.playOnAwake = false;
-
-        if (screamScript != null && screamScript.aSource != null)
+        // --- THE FIX: No longer adding a hidden component via code ---
+        if (fxSource != null)
         {
-            fxSource.outputAudioMixerGroup = screamScript.aSource.outputAudioMixerGroup;
+            fxSource.playOnAwake = false;
+
+            // Auto-route to the scream mixer if you forgot to set it up
+            if (screamScript != null && screamScript.aSource != null && fxSource.outputAudioMixerGroup == null)
+            {
+                fxSource.outputAudioMixerGroup = screamScript.aSource.outputAudioMixerGroup;
+            }
+
+            if (growSound != null)
+            {
+                fxSource.clip = growSound;
+                fxSource.pitch = 1.0f;
+                fxSource.volume = masterPowerupVolume;
+                fxSource.Play();
+            }
         }
 
-        if (growSound != null)
-        {
-            fxSource.clip = growSound;
-            fxSource.pitch = 1.0f;
-            fxSource.Play();
-        }
-
-        // --- NEW CLEAN UI LOGIC ---
         if (FaceCamManager.Instance != null) FaceCamManager.Instance.ShowPowerUp(pc.playerIndex, "Protein");
 
         originalSpeed = pc.moveSpeed;
@@ -79,26 +82,19 @@ public class GrowPowerup : Powerup
         }
 
         pc.moveSpeed *= speedMultiplier;
-
-        // Assume we start grounded when they pick it up
         wasGrounded = true;
 
         StartCoroutine(Grow());
     }
 
-    // --- NEW: JUMP DETECTION LOOP ---
     private void Update()
     {
         if (gc == null || rb == null || playerEffects == null) return;
 
-        // Only check for jumps if the player is currently BIG
         if (playerEffects.isBig)
         {
-            // NOTE: Assuming your GroundCheck script uses a boolean named "isGrounded". 
-            // If it's named something else (like "grounded"), just change it below!
             bool currentlyGrounded = gc.isGrounded;
 
-            // If we WERE on the ground, but now we are NOT, AND we are moving UP (Velocity Y > 0)
             if (wasGrounded && !currentlyGrounded && rb.linearVelocity.y > 0.1f)
             {
                 PlayBigJumpSound();
@@ -112,8 +108,7 @@ public class GrowPowerup : Powerup
     {
         if (bigJumpSound != null && fxSource != null)
         {
-            // PlayOneShot allows multiple jumps to overlap naturally without cutting each other off
-            fxSource.PlayOneShot(bigJumpSound, 1.0f);
+            fxSource.PlayOneShot(bigJumpSound, masterPowerupVolume);
         }
     }
 
@@ -121,7 +116,6 @@ public class GrowPowerup : Powerup
     {
         Vector3 targetSize = originalSize * scaleMultiplier;
         float elapsed = 0;
-
         float randPitch = Random.Range(grownMinPitch, grownMaxPitch);
 
         while (elapsed < growthTime)
@@ -133,7 +127,7 @@ public class GrowPowerup : Powerup
                 screamScript.aSource.pitch = Mathf.Lerp(screamScript.aSource.pitch, randPitch, elapsed / pitchTime);
             }
 
-            if (fxSource != null && fxSource.isPlaying)
+            if (fxSource != null && fxSource.isPlaying && fxSource.clip == growSound)
             {
                 fxSource.pitch = Mathf.Lerp(1.0f, 1.5f, elapsed / growthTime);
             }
@@ -152,10 +146,10 @@ public class GrowPowerup : Powerup
         {
             fxSource.clip = shrinkSound;
             fxSource.pitch = 1.5f;
+            fxSource.volume = masterPowerupVolume;
             fxSource.Play();
         }
 
-        // --- NEW CLEAN UI LOGIC ---
         if (FaceCamManager.Instance != null) FaceCamManager.Instance.HidePowerUp(pc.playerIndex);
 
         Vector3 startSize = playerModel.transform.localScale;
@@ -171,7 +165,7 @@ public class GrowPowerup : Powerup
                 screamScript.aSource.pitch = Mathf.Lerp(screamScript.aSource.pitch, randPitch, elapsed / pitchTime);
             }
 
-            if (fxSource != null && fxSource.isPlaying)
+            if (fxSource != null && fxSource.isPlaying && fxSource.clip == shrinkSound)
             {
                 fxSource.pitch = Mathf.Lerp(1.5f, 0.8f, elapsed / growthTime);
             }
@@ -182,7 +176,9 @@ public class GrowPowerup : Powerup
 
         playerModel.transform.localScale = originalSize;
         if (playerEffects != null) playerEffects.isBig = false;
-        Destroy(gameObject);
+
+        // Let the shrink sound finish before deleting
+        Destroy(gameObject, 0.5f);
     }
 
     protected override void powerUpEnd()
@@ -200,13 +196,23 @@ public class GrowPowerup : Powerup
             screamScript.maxPitch = ogMaxPitch;
         }
 
+        // Hide visuals before shrinking away
+        HideVisuals();
         StartCoroutine(Shrink());
+    }
+
+    private void HideVisuals()
+    {
+        Renderer[] renderers = GetComponentsInChildren<Renderer>();
+        foreach (Renderer r in renderers) r.enabled = false;
+
+        Collider col = GetComponent<Collider>();
+        if (col != null) col.enabled = false;
     }
 
     protected override void passOldPowerupInfo(Powerup oldPu)
     {
         GrowPowerup powerup = (GrowPowerup)oldPu;
-
         this.originalSpeed = powerup.originalSpeed;
         this.originalSize = powerup.originalSize;
         this.ogMinPitch = powerup.ogMinPitch;

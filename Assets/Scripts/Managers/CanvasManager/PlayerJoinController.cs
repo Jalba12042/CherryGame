@@ -26,12 +26,16 @@ public class PlayerJoinController : MonoBehaviour
     private bool canInteract = false; // Locks the controllers during the intro
 
     [Header("Outro Transition Settings")]
-    public Animator boxAnimator;           // Drag the Box object here (needs an Animator)
-    public AudioSource sfxSource;          // AudioSource to play the sound
-    public AudioClip catThrowSound;        // The cat yeet sound!
-    public Image backgroundImage;          // The background image behind the box
-    public Sprite loadingScreenSprite;     // The new background to swap to
-    public float timeToWaitForThrow = 1.5f;// How long the throw animation takes
+    public Animator boxAnimator;
+    public GameObject closedBoxObject;
+    public GameObject openBoxObject;
+    public GameObject[] extraObjectsToHide; // NEW: Drag Clouds, Tapes, and Planes here!
+    public AudioSource sfxSource;
+    public AudioClip catThrowSound;
+    public AudioClip hoverSound;
+    public Image backgroundImage;
+    public Sprite loadingScreenSprite;
+    public float timeToWaitForThrow = 1.5f;
 
     void Start()
     {
@@ -227,8 +231,6 @@ public class PlayerJoinController : MonoBehaviour
                 if (movement != null)
                 {
                     movement.enabled = false;
-                    // --- THE FIX IS RIGHT HERE ---
-                    // This tells the 3D model exactly which player it belongs to so the PowerUps know!
                     movement.playerID = player;
                 }
 
@@ -304,41 +306,65 @@ public class PlayerJoinController : MonoBehaviour
             timeLeft--;
         }
 
-        // Trigger the Throw Box Animation instead of loading the scene instantly!
         StartCoroutine(ThrowBoxTransition());
     }
 
-    // --- NEW: THE THROW TRANSITION ---
+    // --- THE THROW TRANSITION ---
     IEnumerator ThrowBoxTransition()
     {
-        canInteract = false; // Lock controllers
-        countdownPanel.SetActive(false); // Hide the numbers
+        canInteract = false;
+        countdownPanel.SetActive(false);
 
-        // 1. Play the Cat Sound!
-        if (sfxSource != null && catThrowSound != null)
+        // 1. THE SWAP MAGIC
+        if (openBoxObject != null) openBoxObject.SetActive(false);
+        if (closedBoxObject != null) closedBoxObject.SetActive(true);
+
+        // --- NEW: HIDE EXTRA JUNK! ---
+        // Vaporize the clouds, tapes, and 3D planes instantly!
+        if (extraObjectsToHide != null)
         {
-            sfxSource.PlayOneShot(catThrowSound);
+            foreach (GameObject obj in extraObjectsToHide)
+            {
+                if (obj != null) obj.SetActive(false);
+            }
         }
 
-        // 2. Trigger the Box Throw Animation!
+        // Instantly hide all player UI 
+        for (int i = 0; i < slots.Length; i++)
+        {
+            slots[i].joinPanel.SetActive(false);
+            slots[i].menuPanel.SetActive(false);
+            slots[i].readyPanel.SetActive(false);
+
+            if (slots[i].previewCamera != null) slots[i].previewCamera.gameObject.SetActive(false);
+            if (slots[i].previewImage != null) slots[i].previewImage.gameObject.SetActive(false);
+        }
+
+        // 2. Play the Sounds
+        if (sfxSource != null)
+        {
+            if (catThrowSound != null) sfxSource.PlayOneShot(catThrowSound);
+            if (hoverSound != null) sfxSource.PlayOneShot(hoverSound);
+        }
+
+        // 3. Trigger the Box Throw Animation
         if (boxAnimator != null)
         {
             boxAnimator.SetTrigger("ThrowRight");
         }
 
-        // 3. Wait for the box to fly off screen
+        // 4. Wait for the box to fly off screen
         yield return new WaitForSeconds(timeToWaitForThrow);
 
-        // 4. Swap the background image
+        // 5. Swap the background image
         if (backgroundImage != null && loadingScreenSprite != null)
         {
             backgroundImage.sprite = loadingScreenSprite;
         }
 
-        // Wait a tiny bit so the players actually see the new background
         yield return new WaitForSeconds(0.5f);
 
-        // 5. Finally, save the data and launch the game!
+        // 6. Launch the game!
         StartGame();
     }
 
@@ -354,7 +380,6 @@ public class PlayerJoinController : MonoBehaviour
     {
         if (GameManager.Instance == null) return;
 
-        // --- SAVE PLAYER COUNT + CONTROLLERS ---
         GameManager.Instance.playerCount = slots.Length;
         GameManager.Instance.controllerAssignments = new int[slots.Length];
 
@@ -363,14 +388,12 @@ public class PlayerJoinController : MonoBehaviour
             GameManager.Instance.controllerAssignments[i] = assignedControllers[i];
         }
 
-        // --- SAVE CUSTOMIZATION DATA ---
         GameManager.Instance.playerCustomizations.Clear();
 
         for (int i = 0; i < slots.Length; i++)
         {
             PlayerCustomizationData data = new PlayerCustomizationData();
 
-            // Get components from preview model + UI
             if (slots[i].spawnedModel != null)
             {
                 var customization = slots[i].spawnedModel.GetComponentInChildren<PlayerCustomization>();
@@ -393,13 +416,11 @@ public class PlayerJoinController : MonoBehaviour
             GameManager.Instance.playerCustomizations.Add(data);
         }
 
-        // --- LOAD GAME SCENE ---
         SceneManager.LoadScene(RoundManager.Instance.currRound.sceneName);
     }
 
     void HandleBackPress(int player)
     {
-        // If ready, just un-ready
         if (isReady[player])
         {
             isReady[player] = false;
@@ -407,14 +428,11 @@ public class PlayerJoinController : MonoBehaviour
             return;
         }
 
-        // --- INSTANT CLEANUP (NO ANIMATION) ---
         int controllerIndex = assignedControllers[player];
         assignedControllers[player] = -1;
 
-        // Turn the Join Panel back on
         slots[player].joinPanel.SetActive(true);
 
-        // Force the alpha to be 1 so it's fully visible instantly
         CanvasGroup cg = slots[player].joinPanel.GetComponent<CanvasGroup>();
         if (cg != null) cg.alpha = 1f;
 
