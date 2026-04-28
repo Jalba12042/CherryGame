@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using System.Collections;
 
 [System.Serializable]
 public class FinalVictoryPuppet
@@ -34,25 +33,28 @@ public class GameWinScript : MonoBehaviour
     public FinalVictoryPuppet[] colorPuppets;
 
     [Header("Audio Polish")]
-    public AudioSource bgmAudioSource;    // Drag the object playing the current BGM here
     public AudioSource sfxSource;       // Drag an AudioSource for the "Celebrate" sound here
     public AudioClip celebrateSound;    // Drag your "Yay!" sound effect here
     public float musicFadeDuration = 2f;
 
     void Start()
     {
+        // --- FIX 1: SNAP TIME BACK TO NORMAL ---
+        Time.timeScale = 1f;
+
         TurnOffAllPuppets();
 
-        // 1. Play the Celebrate Sound!
+        // Play the Celebrate Sound!
         if (sfxSource != null && celebrateSound != null)
         {
             sfxSource.PlayOneShot(celebrateSound);
         }
 
-        // 2. Start fading out the background music
-        if (bgmAudioSource != null)
+        // --- FIX 2: TELL THE GAMEPLAY MUSIC TO FADE OUT AND DIE ---
+        if (GameplayMusicManager.Instance != null)
         {
-            StartCoroutine(FadeOutMusic());
+            // We use the exact same fade method we built for the Shop!
+            GameplayMusicManager.Instance.FadeOutToShop(musicFadeDuration);
         }
 
         if (winningPlayers == null || winningPlayers.Count == 0)
@@ -106,38 +108,27 @@ public class GameWinScript : MonoBehaviour
 
             if (winnerText != null) winnerText.text = winName.ToUpper() + " WINS THE GAME!";
 
-            // --- THE FIX: Match the winner's color exactly ---
             bool foundPuppet = false;
-            foreach (FinalVictoryPuppet vp in colorPuppets)
+            if (colorPuppets != null)
             {
-                if (vp.colorIndex == winColorIndex)
+                foreach (FinalVictoryPuppet vp in colorPuppets)
                 {
-                    if (vp.puppetGroup != null) vp.puppetGroup.SetActive(true);
-                    foundPuppet = true;
-                    break;
+                    if (vp.colorIndex == winColorIndex)
+                    {
+                        if (vp.puppetGroup != null) vp.puppetGroup.SetActive(true);
+                        foundPuppet = true;
+                        break;
+                    }
                 }
-            }
 
-            if (!foundPuppet && colorPuppets.Length > 0)
-            {
-                colorPuppets[0].puppetGroup.SetActive(true);
+                if (!foundPuppet && colorPuppets.Length > 0 && colorPuppets[0].puppetGroup != null)
+                {
+                    colorPuppets[0].puppetGroup.SetActive(true);
+                }
             }
         }
 
         HighlightButton();
-    }
-
-    private IEnumerator FadeOutMusic()
-    {
-        float startVol = bgmAudioSource.volume;
-        float elapsed = 0;
-        while (elapsed < musicFadeDuration)
-        {
-            elapsed += Time.deltaTime;
-            bgmAudioSource.volume = Mathf.Lerp(startVol, 0, elapsed / musicFadeDuration);
-            yield return null;
-        }
-        bgmAudioSource.Stop();
     }
 
     private void TurnOffAllPuppets()
@@ -194,7 +185,12 @@ public class GameWinScript : MonoBehaviour
 
     public void GoToLocal()
     {
-        // When going back to the menu, make sure we aren't carrying over weird music states
+        // --- FIX 3: PREVENT MUSIC LEAK ---
+        // If the player presses 'A' really fast before the fade finishes, explicitly kill the music object here!
+        if (GameplayMusicManager.Instance != null)
+        {
+            Destroy(GameplayMusicManager.Instance.gameObject);
+        }
         SceneManager.LoadScene(localSceneName);
     }
 }
