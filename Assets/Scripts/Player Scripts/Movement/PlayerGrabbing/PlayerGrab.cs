@@ -15,6 +15,7 @@ public class PlayerGrab : MonoBehaviour
     private Rigidbody grabbedRigidbody;
     private Collider myCollider, grabbedCollider;
     private bool canGrab = true;
+    private PlayerPowerupHandler powerupHandler;
 
     private GameObject nearbyPlayer;
     [HideInInspector] public bool isGrabbed = false; // new flag for grabbed state
@@ -47,6 +48,7 @@ public class PlayerGrab : MonoBehaviour
     void Start()
     {
         player = GetComponent<Playermovement>();
+        powerupHandler = GetComponent<PlayerPowerupHandler>();
         myCollider = GetComponent<Collider>();
         animator = GetComponent<Animator>();
         myJiggles = GetComponentsInChildren<Jiggle>();
@@ -56,7 +58,134 @@ public class PlayerGrab : MonoBehaviour
 
     }
 
+    // Replace your Update() in PlayerGrab
     void Update()
+    {
+        if (player != null)
+            gamepad = player.assignedGamepad;
+
+        // Keep grabbed player at pickup target
+        if (grabbedPlayer != null && pickupTarget != null)
+        {
+            grabbedPlayer.transform.position = pickupTarget.position;
+            grabbedPlayer.transform.rotation = pickupTarget.rotation;
+        }
+
+        if (grabEscapeCooldown) return;
+
+        if (!GameManager.Instance.isOnKeyboard)
+        {
+            if (gamepad == null) return;
+
+            // Check powerup handler hasn't already consumed this RT press
+            PlayerPowerupHandler pph = player.GetComponent<PlayerPowerupHandler>();
+            bool rtAvailable = pph == null || !pph.rtConsumedThisFrame;
+
+            if (gamepad.rightTrigger.wasPressedThisFrame && rtAvailable)
+            {
+                if (grabbedPlayer == null)
+                    TryGrab();
+                else
+                    ReleaseGrab();
+            }
+
+            if (gamepad.leftTrigger.wasReleasedThisFrame && grabbedPlayer != null)
+                ThrowGrabbedPlayer();
+        }
+        else
+        {
+            PlayerPowerupHandler pph = player.GetComponent<PlayerPowerupHandler>();
+            bool rtAvailable = pph == null || !pph.rtConsumedThisFrame;
+
+            if (Input.GetKeyDown(KeyCode.E) && rtAvailable)
+            {
+                if (grabbedPlayer == null)
+                    TryGrab();
+                else
+                    ReleaseGrab();
+            }
+
+            if (Input.GetKeyUp(KeyCode.Q) && grabbedPlayer != null)
+                ThrowGrabbedPlayer();
+        }
+    }
+
+    // Replace your TryGrab() in PlayerGrab
+    public bool TryGrab()
+    {
+        if (!canGrab || grabbedPlayer != null || isGrabbed) return false;
+
+        // If nearbyPlayer is stale or null, do a live overlap scan as fallback
+        if (nearbyPlayer == null || Vector3.Distance(transform.position, nearbyPlayer.transform.position) > pickupRange)
+        {
+            nearbyPlayer = null;
+            Collider[] hits = Physics.OverlapSphere(transform.position, pickupRange);
+            float closest = float.MaxValue;
+            foreach (var hit in hits)
+            {
+                Playermovement pm = hit.GetComponent<Playermovement>();
+                if (pm == null || pm.playerIndex == player.playerIndex) continue;
+
+                float dist = Vector3.Distance(transform.position, hit.transform.position);
+                if (dist < closest)
+                {
+                    closest = dist;
+                    nearbyPlayer = hit.gameObject;
+                }
+            }
+        }
+
+        if (nearbyPlayer == null) return false;
+
+        PlayerEffects pe = nearbyPlayer.GetComponent<PlayerEffects>();
+        if (pe != null && pe.isBig) return false;
+
+        // Check the target isn't already grabbed by someone else
+        PlayerGrab targetGrab = nearbyPlayer.GetComponent<PlayerGrab>();
+        if (targetGrab != null && targetGrab.isGrabbed) return false;
+
+        grabbedPlayer = nearbyPlayer;
+
+        animator.SetBool("isGrabbing", true);
+
+        if (grabSource != null && grabClip != null)
+        {
+            grabSource.pitch = Random.Range(0.95f, 1.05f);
+            grabSource.PlayOneShot(grabClip);
+        }
+
+        grabbedRigidbody = grabbedPlayer.GetComponent<Rigidbody>();
+        if (grabbedRigidbody != null)
+            grabbedRigidbody.isKinematic = true;
+
+        grabbedCollider = grabbedPlayer.GetComponent<Collider>();
+        if (grabbedCollider != null)
+            Physics.IgnoreCollision(myCollider, grabbedCollider, true);
+
+        Playermovement movement = grabbedPlayer.GetComponent<Playermovement>();
+        if (movement != null)
+            movement.canMove = false;
+
+        if (targetGrab != null)
+            targetGrab.isGrabbed = true;
+
+        PlayerGrabbed grabbedScript = grabbedPlayer.GetComponent<PlayerGrabbed>();
+        if (grabbedScript != null)
+            grabbedScript.grabber = this;
+
+        Animator grabbedAnimator = grabbedPlayer.GetComponent<Animator>();
+        if (grabbedAnimator != null)
+            grabbedAnimator.SetBool("isGrabbed", true);
+
+        PlayerEscapeUI escapeUI = grabbedPlayer.GetComponent<PlayerEscapeUI>();
+        if (escapeUI != null)
+            escapeUI.StartBeingGrabbed(this);
+
+        SetMyJiggle(false);
+        return true;
+    }
+
+    /*void Update()
     {
         if (!GameManager.Instance.isOnKeyboard)
             gamepad = player.assignedGamepad;
@@ -113,12 +242,12 @@ public class PlayerGrab : MonoBehaviour
         if (!canGrab || grabbedPlayer != null || nearbyPlayer == null || isGrabbed)
             return false;
 
-        /*float distance = Vector3.Distance(transform.position, nearbyPlayer.transform.position);
+        float distance = Vector3.Distance(transform.position, nearbyPlayer.transform.position);
         if (distance > pickupRange)
         {
             nearbyPlayer = null; // clear stale reference
             return false;
-        }*/
+        }
 
 
         PlayerEffects pe = nearbyPlayer.GetComponent<PlayerEffects>();
@@ -170,7 +299,7 @@ public class PlayerGrab : MonoBehaviour
         
         SetMyJiggle(false);
         return true;
-    }
+    }*/
 
 
     public void ReleaseGrab()
@@ -315,16 +444,16 @@ public class PlayerGrab : MonoBehaviour
 
 
 
-    private void OnTriggerEnter(Collider other)
+    /*private void OnTriggerEnter(Collider other)
     {
         Playermovement pm = other.GetComponent<Playermovement>();
         if (pm != null && pm.playerIndex != player.playerIndex)
         {
             nearbyPlayer = other.gameObject;
         }
-    }
+    }*/
 
-    /*private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other)
     {
         Playermovement pm = other.GetComponent<Playermovement>();
         if (pm != null && pm.playerIndex != player.playerIndex)
@@ -341,7 +470,7 @@ public class PlayerGrab : MonoBehaviour
                     nearbyPlayer = other.gameObject;
             }
         }
-    }*/
+    }
 
     private void OnTriggerExit(Collider other)
     {
@@ -392,13 +521,26 @@ public class PlayerGrab : MonoBehaviour
         // If I'm being held → force the OTHER player to release me
         if (isGrabbed)
         {
-            PlayerGrab other = FindObjectOfType<PlayerGrab>(); // better: track who grabbed you
-            if (other != null)
+            PlayerGrabbed grabbedScript = GetComponent<PlayerGrabbed>();
+            if (grabbedScript != null && grabbedScript.grabber != null)
             {
-                other.ReleaseGrab();
+                grabbedScript.grabber.ReleaseGrab();
             }
 
             isGrabbed = false;
         }
+    }
+
+    // Add this new public method to PlayerGrab
+    public void ResetGrabState()
+    {
+        // Call this from your growth powerup's powerUpEnd()
+        isGrabbed = false;
+        grabEscapeCooldown = false;
+        canGrab = true;
+        nearbyPlayer = null;
+
+        if (grabbedPlayer != null)
+            ReleaseGrab();
     }
 }

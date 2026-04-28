@@ -31,6 +31,8 @@ public class PlayerPowerupHandler : MonoBehaviour
     public bool hasGunEquipped = false;
     public GunPowerup activeGun;
 
+    // In PlayerPowerupHandler, add this field:
+    [HideInInspector] public bool rtConsumedThisFrame = false;
     void Start()
     {
         player = GetComponent<Playermovement>();
@@ -56,6 +58,8 @@ public class PlayerPowerupHandler : MonoBehaviour
 
     void Update()
     {
+        rtConsumedThisFrame = false;
+
         bool rtPressed = false;
 
         if (player.assignedGamepad != null)
@@ -65,7 +69,11 @@ public class PlayerPowerupHandler : MonoBehaviour
 
         if (rtPressed)
         {
-            HandleRT();
+            if (nearbyPowerup != null || activeGun != null)
+            {
+                rtConsumedThisFrame = true;
+                HandleRT();
+            }
         }
 
         HandleGunInput();
