@@ -113,12 +113,12 @@ public class PlayerGrab : MonoBehaviour
         if (!canGrab || grabbedPlayer != null || nearbyPlayer == null || isGrabbed)
             return false;
 
-        float distance = Vector3.Distance(transform.position, nearbyPlayer.transform.position);
+        /*float distance = Vector3.Distance(transform.position, nearbyPlayer.transform.position);
         if (distance > pickupRange)
         {
             nearbyPlayer = null; // clear stale reference
             return false;
-        }
+        }*/
 
 
         PlayerEffects pe = nearbyPlayer.GetComponent<PlayerEffects>();
@@ -323,6 +323,25 @@ public class PlayerGrab : MonoBehaviour
             nearbyPlayer = other.gameObject;
         }
     }
+
+    /*private void OnTriggerEnter(Collider other)
+    {
+        Playermovement pm = other.GetComponent<Playermovement>();
+        if (pm != null && pm.playerIndex != player.playerIndex)
+        {
+            // Only set if not already holding someone closer
+            if (nearbyPlayer == null)
+                nearbyPlayer = other.gameObject;
+            else
+            {
+                // Pick whoever is closer
+                float distNew = Vector3.Distance(transform.position, other.transform.position);
+                float distCurrent = Vector3.Distance(transform.position, nearbyPlayer.transform.position);
+                if (distNew < distCurrent)
+                    nearbyPlayer = other.gameObject;
+            }
+        }
+    }*/
 
     private void OnTriggerExit(Collider other)
     {
