@@ -91,7 +91,7 @@ public class Playermovement : MonoBehaviour
         if (!canMove || isKnockedBack) return;
 
         // --- Movement ---
-        moveInput = GameManager.Instance.isOnKeyboard ? new Vector2(Input.GetAxis("HorizontalWASD"), Input.GetAxis("VerticalWASD")) : assignedGamepad.leftStick.ReadValue();
+        moveInput = InputManager.Instance.GetMove(playerID);
 
         HandleFootsteps();
 
@@ -156,23 +156,11 @@ public class Playermovement : MonoBehaviour
     private void Update()
     {
         // Jump input
-        if (!GameManager.Instance.isOnKeyboard)
+        if (allowJumpInput && gc.isGrounded && canMove && InputManager.Instance.GetJumpDown(playerID))
         {
-            if (allowJumpInput && gc.isGrounded && assignedGamepad.buttonSouth.wasPressedThisFrame && canMove)
-            {
-                DoJump();
-                animator.SetTrigger("Jump"); // fire animation immediately
-                isJumping = true;
-            }
-        }
-        else
-        {
-            if (allowJumpInput && gc.isGrounded && Input.GetKeyDown(KeyCode.Space) && canMove)
-            {
-                DoJump();
-                animator.SetTrigger("Jump");
-                isJumping = true;
-            }
+            DoJump();
+            animator.SetTrigger("Jump");
+            isJumping = true;
         }
 
         // Rotation
@@ -181,8 +169,7 @@ public class Playermovement : MonoBehaviour
 
     private void HandleRotation()
     {
-        Vector2 moveInput = GameManager.Instance.isOnKeyboard ? new Vector2(Input.GetAxis("HorizontalWASD"), Input.GetAxis("VerticalWASD")) : assignedGamepad.leftStick.ReadValue();
-        Vector2 aimInput = GameManager.Instance.isOnKeyboard ? new Vector2(Input.GetAxis("HorizontalArrows"), Input.GetAxis("VerticalArrows")) : assignedGamepad.rightStick.ReadValue();
+        Vector2 moveInput = InputManager.Instance.GetMove(playerID);
 
         isAiming = projectileScript != null && projectileScript.IsAiming();
 
@@ -290,7 +277,5 @@ public class Playermovement : MonoBehaviour
         yield return new WaitForSeconds(time);
         isKnockedBack = false;
     }
-
-    public Gamepad GetAssignedGamepad() => assignedGamepad;
 }
 

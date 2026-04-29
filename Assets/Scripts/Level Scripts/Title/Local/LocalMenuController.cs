@@ -29,6 +29,8 @@ public class LocalMenuController : MonoBehaviour
     private float deadzone = 0.5f;
     private bool isTransitioning = false;
 
+    private const int menuPlayerID = 1;
+
     void Awake()
     {
         audioSource = GetComponent<AudioSource>();
@@ -44,14 +46,9 @@ public class LocalMenuController : MonoBehaviour
     {
         if (isTransitioning) return;
 
-        if (Gamepad.all.Count == 0 || buttons == null || buttons.Length == 0) return;
+        if (buttons == null || buttons.Length == 0) return;
 
-        var gamepad = Gamepad.all[0];
-
-        Vector2 move = gamepad.leftStick.ReadValue();
-        float xInput = move.x;
-        if (gamepad.dpad.left.wasPressedThisFrame) xInput = -1;
-        if (gamepad.dpad.right.wasPressedThisFrame) xInput = 1;
+        float xInput = InputManager.Instance.GetMove(menuPlayerID).x;
 
         if (canMove)
         {
@@ -82,15 +79,15 @@ public class LocalMenuController : MonoBehaviour
         if (Mathf.Abs(xInput) < 0.2f)
             canMove = true;
 
-        // A / South = select
-        if (gamepad.buttonSouth.wasPressedThisFrame)
+        // Confirm
+        if (InputManager.Instance.GetConfirmDown(menuPlayerID))
         {
             PlaySound(selectSound);
             SelectOption(currentIndex);
         }
 
-        // B / East = back
-        if (gamepad.buttonEast.wasPressedThisFrame)
+        // Back
+        if (InputManager.Instance.GetBackDown(menuPlayerID))
         {
             PlaySound(backSound);
             StartExitSequence(mainMenuSceneName);

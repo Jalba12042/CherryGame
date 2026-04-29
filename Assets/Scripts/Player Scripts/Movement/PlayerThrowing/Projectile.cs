@@ -111,7 +111,7 @@ public class Projectile : MonoBehaviour
 
         if (owner == null) return;
 
-        var gamepad = owner.GetAssignedGamepad();
+        /*var gamepad; //= owner.GetAssignedGamepad();
         if (gamepad == null) return;
 
         launchPoint.forward = owner.transform.forward;
@@ -173,7 +173,7 @@ public class Projectile : MonoBehaviour
 
             isAiming = false;
             currentPower = 0f;
-        }
+        }*/
     }
 
     public void PickUpCherry(GameObject cherryObject)
