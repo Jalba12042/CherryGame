@@ -12,7 +12,7 @@ public class DirtMound : MonoBehaviour
     private Zombie zombie;
 
     private bool hasFinished = false; // NEW: Stops the finish logic from running multiple times
-
+    private Collider col;
 
     public enum DirtMode
     {
@@ -42,6 +42,10 @@ public class DirtMound : MonoBehaviour
     void Start()
     {
         if (audioSource == null) audioSource = GetComponent<AudioSource>();
+
+        col = GetComponent<Collider>();
+        if (col != null)
+            col.isTrigger = true;
 
         startPos = transform.position;
 
@@ -84,6 +88,9 @@ public class DirtMound : MonoBehaviour
         // When the dirt reaches its destination
         if (Vector3.Distance(transform.position, targetPos) < 0.01f)
         {
+            if (col != null)
+                col.isTrigger = false;
+
             hasFinished = true;
 
             // --- NEW: Instantly cut the audio the second the dirt stops moving! ---
@@ -96,6 +103,10 @@ public class DirtMound : MonoBehaviour
             {
                 if (zombie != null)
                     zombie.SetDirtFinished();
+            }
+            else if (mode == DirtMode.Sinking)
+            {
+                Destroy(gameObject);
             }
         }
     }

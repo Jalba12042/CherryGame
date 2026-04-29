@@ -61,7 +61,10 @@ public class PlayerDash : MonoBehaviour
             }
         }
 
-        if (!canDash || movement == null || !movement.canMove)
+        PlayerEffects effects = GetComponent<PlayerEffects>();
+        bool isBig = effects != null && effects.isBig;
+
+        if (!canDash || movement == null || !movement.canMove || isBig)
             return;
 
         bool dashPressed = false;

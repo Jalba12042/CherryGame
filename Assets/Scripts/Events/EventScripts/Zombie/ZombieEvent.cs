@@ -9,6 +9,8 @@ public class ZombieEvent : GameEvent
     public GameObject spawnLocation;
     public int amountOfZombies = 10;
 
+    public List<GameObject> activeDirtMounds = new List<GameObject>();
+
     public override IEnumerator Trigger()
     {
         isRunning = true;
@@ -117,6 +119,16 @@ public class ZombieEvent : GameEvent
         }*/
 
         yield return new WaitForSeconds(duration);
+
+
+        foreach (GameObject dirt in activeDirtMounds)
+        {
+            if (dirt != null)
+                Object.Destroy(dirt);
+        }
+
+        activeDirtMounds.Clear();
+
         isRunning = false;
     }
 }

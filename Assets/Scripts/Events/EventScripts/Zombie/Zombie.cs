@@ -446,6 +446,9 @@ public class Zombie : MonoBehaviour
             DirtMound dirtScript = spawnedDirt.GetComponent<DirtMound>();
             if (dirtScript != null)
                 dirtScript.Init(this);
+
+            if (myEvent != null)
+                myEvent.activeDirtMounds.Add(spawnedDirt);
         }
 
         Vector3 startPos = transform.position;
@@ -510,6 +513,9 @@ public class Zombie : MonoBehaviour
         Vector3 groundPos = GetGroundPosition(transform.position);
 
         exitDirt = Instantiate(dirtMoundPrefab, groundPos, Quaternion.identity);
+
+        if (myEvent != null)
+            myEvent.activeDirtMounds.Add(exitDirt);
 
         DirtMound dirtScript = exitDirt.GetComponent<DirtMound>();
         if (dirtScript != null)
