@@ -191,10 +191,10 @@ public class PlayerPowerupHandler : MonoBehaviour
 
     public void ClearAllPowerups()
     {
-        foreach (var kvp in activePowerupInstances)
-        {
-            Powerup pu = kvp.Value;
+        List<Powerup> powerups = new List<Powerup>(activePowerupInstances.Values);
 
+        foreach (Powerup pu in powerups)
+        {
             if (pu != null)
             {
                 pu.ForceStop();
@@ -203,7 +203,6 @@ public class PlayerPowerupHandler : MonoBehaviour
 
         activePowerupInstances.Clear();
 
-        // Reset flags
         for (int i = 0; i < currPowerups.Count; i++)
         {
             currPowerups[i] = false;
@@ -212,19 +211,24 @@ public class PlayerPowerupHandler : MonoBehaviour
         isSlowed = false;
         isTased = false;
 
-        // Reset movement
         if (player != null)
         {
             player.moveSpeed = originalMoveSpeed;
         }
 
-        // Turn off VFX
         if (taserVFX != null)
             taserVFX.SetActive(false);
 
-        // Reset UI
         if (FaceCamManager.Instance != null)
             FaceCamManager.Instance.HidePowerUp(player.playerIndex);
+
+        if (activeGun != null)
+        {
+            Destroy(activeGun.gameObject);
+            activeGun = null;
+        }
+
+        hasGunEquipped = false;
     }
 
 

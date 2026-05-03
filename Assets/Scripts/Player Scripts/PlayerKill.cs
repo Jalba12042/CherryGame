@@ -96,6 +96,12 @@ public class PlayerKill : MonoBehaviour
 
         ResetPlayerState();
 
+        PlayerPowerupHandler powerHandler = GetComponent<PlayerPowerupHandler>();
+        if (powerHandler != null)
+        {
+            powerHandler.ClearAllPowerups();
+        }
+
         FreezePlayer();
 
         GetComponentInChildren<Animator>().enabled = false;

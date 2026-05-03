@@ -65,8 +65,11 @@ public class Powerup : MonoBehaviour
             // visually hide gameobject
             if (!isHoldable)
             {
-                GetComponent<Collider>().enabled = false;
-                GetComponent<MeshRenderer>().enabled = false;
+                Collider col = GetComponent<Collider>();
+                if (col != null) col.enabled = false;
+
+                MeshRenderer mr = GetComponent<MeshRenderer>();
+                if (mr != null) mr.enabled = false;
             }
         }
 
@@ -142,6 +145,8 @@ public class Powerup : MonoBehaviour
 
     public void ForceStop()
     {
+        if (this == null || gameObject == null) return;
+
         if (activeTimer != null)
         {
             StopCoroutine(activeTimer);
@@ -173,10 +178,29 @@ public class Powerup : MonoBehaviour
                 powerupHandler.activePowerupInstances.ContainsKey(powerUpID) &&
                 powerupHandler.activePowerupInstances[powerUpID] == this)
             {
-                powerupHandler.activePowerupInstances[powerUpID] = null;
+                if (powerupHandler.activePowerupInstances.ContainsKey(powerUpID))
+                {
+                    powerupHandler.activePowerupInstances.Remove(powerUpID);
+                }
             }
         }
 
         Debug.Log($"Powerup ended: {puName} for {pc?.name}");
+    }
+
+    void OnEnable()
+    {
+        Collider col = GetComponent<Collider>();
+        if (col != null)
+        {
+            col.enabled = true;
+            col.isTrigger = true;
+        }
+
+        MeshRenderer mr = GetComponent<MeshRenderer>();
+        if (mr != null)
+        {
+            mr.enabled = true;
+        }
     }
 }
