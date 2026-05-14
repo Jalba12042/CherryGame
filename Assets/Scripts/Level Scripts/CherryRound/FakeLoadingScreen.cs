@@ -167,48 +167,55 @@ public class FakeLoadingScreen : MonoBehaviour
             return; // Stop checking controllers if mouse was clicked
         }
 
-        for (int c = 0; c < controllers.Length; c++)
+        var controllers = Gamepad.all;
+
+        for (int i = 0; i < totalPlayers; i++)
         {
-            Gamepad pad = controllers[c];
+            int deviceId = GameManager.Instance.controllerAssignments[i];
+            if (deviceId == -1) continue;
+
+            Gamepad pad = null;
+
+            foreach (var gp in controllers)
+            {
+                if (gp.deviceId == deviceId)
+                {
+                    pad = gp;
+                    break;
+                }
+            }
+
             if (pad == null) continue;
 
             if (pad.buttonSouth.wasPressedThisFrame)
             {
-                // Find which player owns this controller
-                for (int i = 0; i < totalPlayers; i++)
+                if (!playerReady[i])
                 {
-                    if (GameManager.Instance != null &&
-                        GameManager.Instance.controllerAssignments[i] == c)
+                    playerReady[i] = true;
+                    readyCount++;
+
+                    if (playerReadyIcons[i] != null)
                     {
-                        if (!playerReady[i])
+                        playerReadyIcons[i].gameObject.SetActive(true);
+
+                        if (GameManager.Instance != null &&
+                            GameManager.Instance.playerCustomizations.Count > i)
                         {
-                            playerReady[i] = true;
-                            readyCount++;
+                            int colorIndex = GameManager.Instance.playerCustomizations[i].colorIndex;
 
-                            if (playerReadyIcons[i] != null)
+                            if (colorIndex >= 0 && colorIndex < colorIcons.Length)
                             {
-                                playerReadyIcons[i].gameObject.SetActive(true);
-
-                                // Get color from GameManager
-                                if (GameManager.Instance != null &&
-                                    GameManager.Instance.playerCustomizations.Count > i)
-                                {
-                                    int colorIndex = GameManager.Instance.playerCustomizations[i].colorIndex;
-
-                                    if (colorIndex >= 0 && colorIndex < colorIcons.Length)
-                                    {
-                                        playerReadyIcons[i].sprite = colorIcons[colorIndex];
-                                    }
-                                }
+                                playerReadyIcons[i].sprite = colorIcons[colorIndex];
                             }
                         }
                     }
                 }
-                if (readyCount >= totalPlayers && totalPlayers > 0)
-                {
-                    BeginRound();
-                }
             }
+        }
+
+        if (readyCount >= totalPlayers && totalPlayers > 0)
+        {
+            BeginRound();
         }
     }
 

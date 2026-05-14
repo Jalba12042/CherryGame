@@ -121,21 +121,32 @@ public class WinScript : MonoBehaviour
         }
         else
         {
-            var controllers = Gamepad.all.ToArray();
-            for (int c = 0; c < controllers.Length; c++)
+            var controllers = Gamepad.all;
+
+            for (int i = 0; i < totalPlayers; i++)
             {
-                Gamepad pad = controllers[c];
+                //int deviceId = GameManager.Instance.controllerAssignments[i];
+                int deviceId = FindValidDeviceId(GameManager.Instance.controllerAssignments[i]);
+                GameManager.Instance.controllerAssignments[i] = deviceId;
+                if (deviceId == -1) continue;
+
+                Gamepad pad = null;
+
+                foreach (var gp in controllers)
+                {
+                    if (gp.deviceId == deviceId)
+                    {
+                        pad = gp;
+                        break;
+                    }
+                }
+
                 if (pad == null) continue;
 
                 if (pad.buttonSouth.wasPressedThisFrame)
                 {
-                    for (int i = 0; i < totalPlayers; i++)
-                    {
-                        if (GameManager.Instance.controllerAssignments[i] == c)
-                        {
-                            if (!playerReady[i]) ReadyUpPlayer(i);
-                        }
-                    }
+                    if (!playerReady[i])
+                        ReadyUpPlayer(i);
                 }
             }
         }
@@ -208,5 +219,34 @@ public class WinScript : MonoBehaviour
 
         // 4. Load Shop
         SceneManager.LoadScene(shopSceneName);
+    }
+
+    private int FindValidDeviceId(int storedDeviceId)
+    {
+        foreach (var pad in Gamepad.all)
+        {
+            if (pad.deviceId == storedDeviceId)
+                return storedDeviceId;
+        }
+
+        // device is gone, try to rebind to any unassigned controller
+        foreach (var pad in Gamepad.all)
+        {
+            bool alreadyUsed = false;
+
+            for (int i = 0; i < GameManager.Instance.controllerAssignments.Length; i++)
+            {
+                if (GameManager.Instance.controllerAssignments[i] == pad.deviceId)
+                {
+                    alreadyUsed = true;
+                    break;
+                }
+            }
+
+            if (!alreadyUsed)
+                return pad.deviceId;
+        }
+
+        return -1;
     }
 }

@@ -121,7 +121,13 @@ public class LocalMenuController : MonoBehaviour
         int players = index + 2;
 
         if (GameManager.Instance != null)
+        {
             GameManager.Instance.playerCount = players;
+
+            //Resets player score from previous game
+            GameManager.Instance.playerTotalScores = new int[4];
+            GameManager.Instance.playerCustomizations.Clear();
+        }
 
         StartExitSequence(connectSceneName);
     }
