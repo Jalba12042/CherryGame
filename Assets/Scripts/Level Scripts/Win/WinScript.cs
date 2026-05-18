@@ -2,7 +2,6 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using UnityEngine.InputSystem;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -112,35 +111,12 @@ public class WinScript : MonoBehaviour
 
         int totalPlayers = GameManager.Instance.playerCount;
 
-        if (GameManager.Instance.isOnKeyboard)
+        for (int i = 0; i < totalPlayers; i++)
         {
-            if (Keyboard.current != null && (Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.enterKey.wasPressedThisFrame))
-            {
-                if (!playerReady[0]) ReadyUpPlayer(0);
-            }
-        }
-        else
-        {
-            var controllers = Gamepad.all.ToArray();
-            for (int c = 0; c < controllers.Length; c++)
-            {
-                Gamepad pad = controllers[c];
-                if (pad == null) continue;
-
-                if (pad.buttonSouth.wasPressedThisFrame)
-                {
-                    for (int i = 0; i < totalPlayers; i++)
-                    {
-                        if (GameManager.Instance.controllerAssignments[i] == c)
-                        {
-                            if (!playerReady[i]) ReadyUpPlayer(i);
-                        }
-                    }
-                }
-            }
+            if (!playerReady[i] && InputManager.Instance.GetConfirmDown(i + 1))
+                ReadyUpPlayer(i);
         }
 
-        // Check if everyone is ready to trigger the Outro
         if (readyCount >= totalPlayers && totalPlayers > 0)
         {
             isScoreboardVisible = false;

@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
 using TMPro;
 
 public class PlayerEscapeUI : MonoBehaviour
@@ -15,7 +14,6 @@ public class PlayerEscapeUI : MonoBehaviour
     public float mashFillSpeed = 0.2f;   // How much bar fills per press
     public float escapeThreshold = 1f;   // Fill required to escape
 
-    private Gamepad assignedGamepad;
     private float fillAmount = 0f;
     private bool isBeingGrabbed = false;
 
@@ -61,16 +59,6 @@ public class PlayerEscapeUI : MonoBehaviour
         isBeingGrabbed = true;
         fillAmount = 0f;
         grabbedBy = grabber;
-
-        if (assignedGamepad == null && GameManager.Instance != null)
-        {
-            int controllerIndex = GameManager.Instance.controllerAssignments[playerIndex];
-
-            if (controllerIndex >= 0 && controllerIndex < Gamepad.all.Count)
-            {
-                assignedGamepad = Gamepad.all[controllerIndex];
-            }
-        }
 
         // Enable this player's world-space UI
         panelRoot.SetActive(true);
@@ -148,14 +136,7 @@ public class PlayerEscapeUI : MonoBehaviour
         if (!isBeingGrabbed)
             return;
 
-        /*if (assignedGamepad == null && Gamepad.all.Count > playerIndex)
-            assignedGamepad = Gamepad.all[playerIndex];*/
-
-        if (assignedGamepad == null)
-            return;
-
-        // Check Y button presses
-        if (assignedGamepad.buttonNorth.wasPressedThisFrame)
+        if (InputManager.Instance.GetEscapeDown(playerIndex + 1))
         {
             fillAmount += mashFillSpeed;
             fillAmount = Mathf.Clamp(fillAmount, 0f, escapeThreshold);

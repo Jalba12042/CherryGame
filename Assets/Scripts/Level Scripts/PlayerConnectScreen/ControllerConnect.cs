@@ -30,7 +30,6 @@ public class ControllerConnect : MonoBehaviour
     public Canvas playerCanvas;
 
     // Internal controller tracking
-    private Gamepad[] controllers;
     private int[] controllerPositions; // which slot each controller is in
     private bool[] stickLocked;        // prevents fast horizontal switching
     private bool gameStarted = false;  // prevents multiple scene loads
@@ -52,9 +51,8 @@ public class ControllerConnect : MonoBehaviour
             playButton.gameObject.SetActive(false);
 
         // Setup controller tracking
-        controllers = Gamepad.all.ToArray();
-        controllerPositions = new int[controllers.Length];
-        stickLocked = new bool[controllers.Length];
+        controllerPositions = new int[Gamepad.all.Count];
+        stickLocked = new bool[Gamepad.all.Count];
 
         ResetUI(); // reset slot visuals
     }
@@ -68,11 +66,11 @@ public class ControllerConnect : MonoBehaviour
             return;
 
         // Loop through all connected controllers
-        int count = Mathf.Min(controllers.Length, waitingSquares.Length);
+        int count = Mathf.Min(Gamepad.all.Count, waitingSquares.Length);
         for (int i = 0; i < count; i++)
         {
-            if (controllers[i] != null && waitingSquares[i] != null)
-                HandleController(controllers[i], ref controllerPositions[i], waitingSquares[i], i);
+            if (Gamepad.all[i] != null && waitingSquares[i] != null)
+                HandleController(Gamepad.all[i], ref controllerPositions[i], waitingSquares[i], i);
         }
 
         // Check how many slots are filled
@@ -88,10 +86,9 @@ public class ControllerConnect : MonoBehaviour
         {
             for (int i = 0; i < controllerPositions.Length; i++)
             {
-                if (controllerPositions[i] == 1) // slot 1 is Player 1
+                if (controllerPositions[i] == 1 && i < Gamepad.all.Count)
                 {
-                    var gamepad = controllers[i];
-                    if (gamepad != null && gamepad.buttonSouth.wasPressedThisFrame)
+                    if (Gamepad.all[i].buttonSouth.wasPressedThisFrame)
                     {
                         gameStarted = true;
                         OnPlayPressed();
@@ -195,9 +192,9 @@ public class ControllerConnect : MonoBehaviour
         waitingSquare.sprite = grayController;
 
         // --- Controller rumble feedback ---
-        Gamepad gamepad = controllers[controllerIndex];
-        if (gamepad != null)
+        if (controllerIndex < Gamepad.all.Count)
         {
+            Gamepad gamepad = Gamepad.all[controllerIndex];
             gamepad.SetMotorSpeeds(0.5f, 0.5f);
             StartCoroutine(StopRumble(gamepad, 0.2f));
         }
@@ -254,10 +251,10 @@ public class ControllerConnect : MonoBehaviour
         waitingSquare.sprite = grayController;
 
         // --- Controller rumble ---
-        Gamepad gamepad = controllers[controllerIndex];
-        if (gamepad != null)
+        if (controllerIndex < Gamepad.all.Count)
         {
-            gamepad.SetMotorSpeeds(0.5f, 0.5f); // lowFreq, highFreq
+            Gamepad gamepad = Gamepad.all[controllerIndex];
+            gamepad.SetMotorSpeeds(0.5f, 0.5f);
             StartCoroutine(StopRumble(gamepad, 0.2f));
         }
     }
@@ -296,13 +293,14 @@ public class ControllerConnect : MonoBehaviour
             GameManager.Instance.controllerAssignments[i] = -1;
 
         // Save controller → slot mapping
-        for (int i = 0; i < controllers.Length; i++)
+        for (int i = 0; i < controllerPositions.Length; i++)
         {
             int slot = controllerPositions[i];
-            if (slot > 0)
+            if (slot > 0 && i < Gamepad.all.Count)
             {
-                // slot is 1-based, so subtract 1
                 GameManager.Instance.controllerAssignments[slot - 1] = i;
+                if (InputManager.Instance != null)
+                    InputManager.Instance.AssignGamepad(slot, Gamepad.all[i]);
                 Debug.Log($"Assigned Controller {i} to Player {slot}");
             }
         }

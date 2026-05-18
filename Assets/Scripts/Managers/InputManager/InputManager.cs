@@ -139,6 +139,19 @@ public class InputManager : MonoBehaviour
         };
     }
 
+    public bool GetEscapeDown(int playerID)
+    {
+        if (!IsAssigned(playerID)) return false;
+
+        return CurrentMode switch
+        {
+            InputMode.Keyboard => Input.GetKeyDown(KeyCode.Q),
+            InputMode.Gamepad => GetPad(playerID)?.buttonNorth.wasPressedThisFrame ?? false,
+            InputMode.Arcade => false,
+            _ => false
+        };
+    }
+
     // ?? Buttons (held) ???????????????????????????????????????????
 
     public bool GetButton1Held(int playerID)

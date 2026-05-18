@@ -12,7 +12,6 @@ public class PlayerJoinController : MonoBehaviour
     public GameObject playerModelPrefab;
 
     private bool[] isReady;
-    private Gamepad[] controllers;
     private int[] assignedControllers;
 
     public GameObject countdownPanel;
@@ -45,11 +44,6 @@ public class PlayerJoinController : MonoBehaviour
     void Start()
     {
         Time.timeScale = 1f;
-
-        if (InputManager.CurrentMode == InputManager.InputMode.Gamepad)
-            controllers = Gamepad.all.ToArray();
-        else
-            controllers = new Gamepad[0];
 
         assignedControllers = new int[slots.Length];
         isReady = new bool[slots.Length];
@@ -169,69 +163,61 @@ public class PlayerJoinController : MonoBehaviour
             return;
         }
 
-        // Gamepad mode — poll each connected gamepad directly for join detection
-        for (int c = 0; c < controllers.Length; c++)
+        // Gamepad mode — assigned players go through InputManager; unassigned gamepads polled for join
+        for (int p = 0; p < slots.Length; p++)
         {
-            Gamepad pad = controllers[c];
-            if (pad == null) continue;
+            if (assignedControllers[p] == -1) continue;
+            int playerID = p + 1;
 
-            if (pad.buttonSouth.wasPressedThisFrame)
-            {
-                int playerIndex = GetPlayerIndexFromController(c);
-                if (playerIndex != -1)
-                    HandleReadyPress(playerIndex);
-                else
-                    TryAssignController(c);
-            }
+            if (InputManager.Instance.GetConfirmDown(playerID)) HandleReadyPress(p);
+            if (InputManager.Instance.GetBackDown(playerID)) HandleBackPress(p);
+            HandleCustomizationInputGamepad(p);
+        }
 
-            if (pad.buttonEast.wasPressedThisFrame)
-            {
-                int playerIndex = GetPlayerIndexFromController(c);
-                if (playerIndex != -1)
-                    HandleBackPress(playerIndex);
-                else if (GetAssignedPlayerCount() == 0)
-                    StartCoroutine(BackToMenuTransition());
-            }
+        for (int c = 0; c < Gamepad.all.Count; c++)
+        {
+            Gamepad pad = Gamepad.all[c];
+            if (pad == null || GetPlayerIndexFromController(c) != -1) continue;
 
-            HandleCustomizationInput(pad, c);
+            if (pad.buttonSouth.wasPressedThisFrame) TryAssignController(c);
+            if (pad.buttonEast.wasPressedThisFrame && GetAssignedPlayerCount() == 0)
+                StartCoroutine(BackToMenuTransition());
         }
     }
 
     // ── Customization input ───────────────────────────────────────
 
-    private void HandleCustomizationInput(Gamepad pad, int controllerIndex)
+    private void HandleCustomizationInputGamepad(int p)
     {
-        for (int p = 0; p < slots.Length; p++)
+        var ui = slots[p].customizationUI;
+        if (ui == null || slots[p].spawnedModel == null) return;
+
+        int playerID = p + 1;
+        Vector2 stick = InputManager.Instance.GetMove(playerID);
+
+        if (stick.y > 0.5f && !slots[p].stickInUse) { ui.MoveSelection(-1); slots[p].stickInUse = true; }
+        else if (stick.y < -0.5f && !slots[p].stickInUse) { ui.MoveSelection(1); slots[p].stickInUse = true; }
+        if (Mathf.Abs(stick.y) < 0.2f) slots[p].stickInUse = false;
+
+        int category = ui.GetCurrentCategoryIndex();
+        var customization = slots[p].spawnedModel.GetComponentInChildren<PlayerCustomization>();
+
+        if (InputManager.Instance.GetGrabDown(playerID))
         {
-            if (assignedControllers[p] != controllerIndex) continue;
-            var ui = slots[p].customizationUI;
-            if (ui == null || slots[p].spawnedModel == null) continue;
+            if (category == 0) ui.ChangeName(1, p);
+            else if (category == 1) ui.ChangeColor(1, slots[p].spawnedModel, p);
+            else if (category == 2) customization.ChangeHead(1);
+            else if (category == 3) customization.ChangeTorso(1);
+            else if (category == 4) customization.ChangeBottom(1);
+        }
 
-            Vector2 stick = pad.leftStick.ReadValue();
-            if (stick.y > 0.5f && !slots[p].stickInUse) { ui.MoveSelection(-1); slots[p].stickInUse = true; }
-            else if (stick.y < -0.5f && !slots[p].stickInUse) { ui.MoveSelection(1); slots[p].stickInUse = true; }
-            if (Mathf.Abs(stick.y) < 0.2f) slots[p].stickInUse = false;
-
-            int category = ui.GetCurrentCategoryIndex();
-            var customization = slots[p].spawnedModel.GetComponentInChildren<PlayerCustomization>();
-
-            if (pad.rightTrigger.wasPressedThisFrame)
-            {
-                if (category == 0) ui.ChangeName(1, p);
-                else if (category == 1) ui.ChangeColor(1, slots[p].spawnedModel, p);
-                else if (category == 2) customization.ChangeHead(1);
-                else if (category == 3) customization.ChangeTorso(1);
-                else if (category == 4) customization.ChangeBottom(1);
-            }
-
-            if (pad.leftTrigger.wasPressedThisFrame)
-            {
-                if (category == 0) ui.ChangeName(-1, p);
-                else if (category == 1) ui.ChangeColor(-1, slots[p].spawnedModel, p);
-                else if (category == 2) customization.ChangeHead(-1);
-                else if (category == 3) customization.ChangeTorso(-1);
-                else if (category == 4) customization.ChangeBottom(-1);
-            }
+        if (InputManager.Instance.GetThrowDown(playerID))
+        {
+            if (category == 0) ui.ChangeName(-1, p);
+            else if (category == 1) ui.ChangeColor(-1, slots[p].spawnedModel, p);
+            else if (category == 2) customization.ChangeHead(-1);
+            else if (category == 3) customization.ChangeTorso(-1);
+            else if (category == 4) customization.ChangeBottom(-1);
         }
     }
 
@@ -314,7 +300,8 @@ public class PlayerJoinController : MonoBehaviour
             if (assignedControllers[player] == -1)
             {
                 assignedControllers[player] = controllerIndex;
-                InputManager.Instance.AssignGamepad(player + 1, controllers[controllerIndex]);
+                if (controllerIndex < Gamepad.all.Count)
+                    InputManager.Instance.AssignGamepad(player + 1, Gamepad.all[controllerIndex]);
                 SetupPlayerSlot(player);
                 if (GameManager.Instance != null)
                     GameManager.Instance.controllerAssignments[player] = controllerIndex;

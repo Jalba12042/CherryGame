@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
 using TMPro;
 
 public class FakeLoadingScreen : MonoBehaviour
@@ -15,7 +14,6 @@ public class FakeLoadingScreen : MonoBehaviour
 
 
     [Header("Ready Up UI")]
-    private Gamepad[] controllers;
     public Image[] playerReadyIcons;
 
     private bool[] playerReady = new bool[4];
@@ -100,9 +98,6 @@ public class FakeLoadingScreen : MonoBehaviour
         }
 
         readyCount = 0;
-
-        // Grab controllers (optional fallback, not main system)
-        controllers = Gamepad.all.ToArray();
     }
 
     private void Update()
@@ -160,56 +155,37 @@ public class FakeLoadingScreen : MonoBehaviour
             return;
         }
 
-        // Check for Mouse Left Click to start
-        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        // Keyboard fallback
+        if (InputManager.Instance.GetConfirmDown(1) && GameManager.Instance.isOnKeyboard)
         {
             BeginRound();
-            return; // Stop checking controllers if mouse was clicked
+            return;
         }
 
-        for (int c = 0; c < controllers.Length; c++)
+        for (int i = 0; i < totalPlayers; i++)
         {
-            Gamepad pad = controllers[c];
-            if (pad == null) continue;
-
-            if (pad.buttonSouth.wasPressedThisFrame)
+            int playerID = i + 1;
+            if (!playerReady[i] && InputManager.Instance.GetConfirmDown(playerID))
             {
-                // Find which player owns this controller
-                for (int i = 0; i < totalPlayers; i++)
+                playerReady[i] = true;
+                readyCount++;
+
+                if (i < playerReadyIcons.Length && playerReadyIcons[i] != null)
                 {
-                    if (GameManager.Instance != null &&
-                        GameManager.Instance.controllerAssignments[i] == c)
+                    playerReadyIcons[i].gameObject.SetActive(true);
+
+                    if (GameManager.Instance.playerCustomizations.Count > i)
                     {
-                        if (!playerReady[i])
-                        {
-                            playerReady[i] = true;
-                            readyCount++;
-
-                            if (playerReadyIcons[i] != null)
-                            {
-                                playerReadyIcons[i].gameObject.SetActive(true);
-
-                                // Get color from GameManager
-                                if (GameManager.Instance != null &&
-                                    GameManager.Instance.playerCustomizations.Count > i)
-                                {
-                                    int colorIndex = GameManager.Instance.playerCustomizations[i].colorIndex;
-
-                                    if (colorIndex >= 0 && colorIndex < colorIcons.Length)
-                                    {
-                                        playerReadyIcons[i].sprite = colorIcons[colorIndex];
-                                    }
-                                }
-                            }
-                        }
+                        int colorIndex = GameManager.Instance.playerCustomizations[i].colorIndex;
+                        if (colorIndex >= 0 && colorIndex < colorIcons.Length)
+                            playerReadyIcons[i].sprite = colorIcons[colorIndex];
                     }
-                }
-                if (readyCount >= totalPlayers && totalPlayers > 0)
-                {
-                    BeginRound();
                 }
             }
         }
+
+        if (readyCount >= totalPlayers && totalPlayers > 0)
+            BeginRound();
     }
 
     public void BeginRound()

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -52,7 +51,7 @@ public class GameManager : MonoBehaviour
             for (int i = 0; i < 4; i++)
             {
                 playerTotalScores[i] = 0;
-                controllerAssignments[i] = -1; // means “unassigned”
+                controllerAssignments[i] = -1; // means ï¿½unassignedï¿½
             }
             // ---------------------------
 
@@ -87,12 +86,10 @@ public class GameManager : MonoBehaviour
         }
 
         // Only allow controller navigation outside of rounds
-        if (currGameState != GameState.Round && menuButtons != null && menuButtons.Length > 0 && Gamepad.all.Count > 0)
+        if (currGameState != GameState.Round && menuButtons != null && menuButtons.Length > 0 && InputManager.Instance != null)
         {
-            var gamepad = Gamepad.all[0];
-            Vector2 move = gamepad.leftStick.ReadValue();
+            Vector2 move = InputManager.Instance.GetMove(1);
 
-            // Navigation
             if (canMove)
             {
                 if (move.y > deadzone)
@@ -112,11 +109,8 @@ public class GameManager : MonoBehaviour
             if (Mathf.Abs(move.y) < 0.2f)
                 canMove = true;
 
-            // Confirm selection
-            if (gamepad.buttonSouth.wasPressedThisFrame)
-            {
+            if (InputManager.Instance.GetConfirmDown(1))
                 menuButtons[currentIndex].onClick.Invoke();
-            }
         }
     }
 
