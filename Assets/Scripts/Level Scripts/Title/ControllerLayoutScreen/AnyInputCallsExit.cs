@@ -70,22 +70,7 @@ public class BackInputToAnimatorTrigger : MonoBehaviour
 
     bool BackPressed()
     {
-        // keyboard
-        if (Keyboard.current != null &&
-            (Keyboard.current.escapeKey.wasPressedThisFrame ||
-             Keyboard.current.backspaceKey.wasPressedThisFrame))
-            return true;
-
-        // gamepad (B / Circle recommended for "back")
-        var pad = Gamepad.current;
-        if (pad != null)
-        {
-            if (pad.buttonEast.wasPressedThisFrame ||   // B / Circle
-                pad.selectButton.wasPressedThisFrame ||  // View / Select (optional)
-                pad.startButton.wasPressedThisFrame)     // Menu / Start (optional)
-                return true;
-        }
-        return false;
+        return InputManager.Instance != null && InputManager.Instance.GetBackDown(1);
     }
 
     IEnumerator WaitByTimeThenLoad()

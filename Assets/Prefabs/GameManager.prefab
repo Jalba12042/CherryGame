@@ -207,7 +207,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4624435413218560890}
-  - component: {fileID: 6131499946005035553}
+  - component: {fileID: 6692159242759764655}
   m_Layer: 0
   m_Name: RoundManager
   m_TagString: Untagged
@@ -230,7 +230,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1756422733421096794}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6131499946005035553
+--- !u!114 &6692159242759764655
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -245,7 +245,7 @@ MonoBehaviour:
   currRoundProgress: 0
   currRoundDurationInSecs: 0
   currRoundProgressNormalized: 0
-  currRound: {fileID: 0}
+  currRound: {fileID: 11400000, guid: 4e72d7c2a3959b44c9ab620218cefceb, type: 2}
   currRoundActive: 0
   currRoundScores: 
   roundList:
@@ -253,17 +253,21 @@ MonoBehaviour:
   timerBackgroundUI: {fileID: 0}
   powerUpsInRotation: []
   allowRepeats: 1
-  shopSceneName: MaxTestScene2
-  controllerSceneName: 
-  winSceneName: 
-  gameWinSceneName: 
-  startTimerInSeconds: 0
-  playerPrefab: {fileID: 0}
-  maxScore: 5
+  shopSceneName: Shop
+  controllerSceneName: ControllerConnectScene
+  winSceneName: WinScene
+  gameWinSceneName: GameWinScene
+  startTimerInSeconds: 5
+  playerPrefab: {fileID: 5896580224650156824, guid: a4941385819267443921cc5940722af2, type: 3}
+  maxScore: 3
   playerObjects: []
   powerupsInPlay: []
   currPlayerSpawn: {fileID: 0}
-  playerFaceRenderTextures: []
+  playerFaceRenderTextures:
+  - {fileID: 8400000, guid: 397254725f2d65349911e6944795ac40, type: 2}
+  - {fileID: 8400000, guid: 1d02e6dddda724b4eb84608103489b14, type: 2}
+  - {fileID: 8400000, guid: 6c54f91ae386f174baca2cf84cc6f32f, type: 2}
+  - {fileID: 8400000, guid: 26e76149f6ad54340be36ff765578a93, type: 2}
   roundsWon: 00000000000000000000000000000000
   sprinklerManager: {fileID: 0}
 --- !u!1 &5707912695095907388

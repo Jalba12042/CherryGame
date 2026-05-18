@@ -112,9 +112,9 @@ public class PlayerKill : MonoBehaviour
             r.enabled = false;
         }
 
-        PlayerCherry playerCherry = GetComponent<PlayerCherry>();
-        if (playerCherry != null)
-            playerCherry.CancelAimAndDrop();
+        PlayerInteract interact = GetComponent<PlayerInteract>();
+        if (interact != null)
+            interact.CancelAimAndDrop();
 
         pm.canMove = false;
         gameObject.layer = LayerMask.NameToLayer("Default");
@@ -129,15 +129,15 @@ public class PlayerKill : MonoBehaviour
 
     void ResetPlayerState()
     {
-        // Cherry system full reset
-        GetComponent<PlayerCherry>()?.ForceDrop();
         GetComponent<Projectile>()?.ForceResetCherry();
 
-        // Drop someone you're holding
-        GetComponent<PlayerGrab>()?.ForceRelease();
-
-        // Break out if you're being held
-        GetComponent<PlayerGrabbed>()?.ReleaseGrabbedPlayer();
+        PlayerInteract interact = GetComponent<PlayerInteract>();
+        if (interact != null)
+        {
+            interact.ForceDrop();
+            interact.ForceRelease();
+            interact.ReleaseIfGrabbed();
+        }
     }
 
     void FreezePlayer()

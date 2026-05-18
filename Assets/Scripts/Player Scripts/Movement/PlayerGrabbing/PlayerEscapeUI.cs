@@ -29,7 +29,7 @@ public class PlayerEscapeUI : MonoBehaviour
     //private GameObject currentPanel;
     public GameObject panelRoot;  
 
-    private PlayerGrab grabbedBy; // the grabber
+    private PlayerInteract grabbedBy;
 
     void Start()
     {
@@ -56,7 +56,7 @@ public class PlayerEscapeUI : MonoBehaviour
 
     // Called by grabber when player is grabbed
     // Called by grabber when player is grabbed
-    public void StartBeingGrabbed(PlayerGrab grabber)
+    public void StartBeingGrabbed(PlayerInteract grabber)
     {
         isBeingGrabbed = true;
         fillAmount = 0f;
@@ -170,10 +170,8 @@ public class PlayerEscapeUI : MonoBehaviour
 
     private void Escape()
     {
-        Debug.Log($"[EscapeUI] Escape triggered for grabbed player {playerIndex}, grabbed by player {grabbedBy.GetComponent<Playermovement>().playerIndex}");
         StopBeingGrabbed();
 
-        // Tell grabber to release this player and start cooldown
         if (grabbedBy != null)
         {
             grabbedBy.StartCoroutine(grabbedBy.GrabCooldown());

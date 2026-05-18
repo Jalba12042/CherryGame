@@ -60,12 +60,7 @@ public class PlayerPowerupHandler : MonoBehaviour
     {
         rtConsumedThisFrame = false;
 
-        bool rtPressed = false;
-
-        if (player.assignedGamepad != null)
-            rtPressed = player.assignedGamepad.rightTrigger.wasPressedThisFrame;
-        else if (GameManager.Instance.isOnKeyboard)
-            rtPressed = Input.GetKeyDown(KeyCode.E);
+        bool rtPressed = InputManager.Instance.GetGrabDown(player.playerID);
 
         if (rtPressed)
         {
@@ -237,12 +232,7 @@ public class PlayerPowerupHandler : MonoBehaviour
         if (activeGun == null)
             return;
 
-        bool pressed = false;
-
-        if (player.assignedGamepad != null)
-            pressed = player.assignedGamepad.rightTrigger.wasPressedThisFrame;
-        else if (GameManager.Instance.isOnKeyboard)
-            pressed = Input.GetKeyDown(KeyCode.E);
+        bool pressed = InputManager.Instance.GetGrabDown(player.playerID);
 
         if (!pressed)
             return;

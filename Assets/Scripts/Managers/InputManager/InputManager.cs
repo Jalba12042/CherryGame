@@ -7,7 +7,7 @@ public class InputManager : MonoBehaviour
 
     public enum InputMode { Keyboard, Gamepad, Arcade }
 
-    // Evaluates live every time it's accessed — no stale state
+    // Evaluates live every time it's accessed ï¿½ no stale state
     public static InputMode CurrentMode
     {
         get
@@ -43,10 +43,11 @@ public class InputManager : MonoBehaviour
     public bool IsAssigned(int playerID)
     {
         if (playerID < 1 || playerID > 4) return false;
+        int idx = playerID - 1;
         return CurrentMode switch
         {
             InputMode.Keyboard => playerID == 1,
-            InputMode.Gamepad => assignedGamepads[playerID - 1] != null,
+            InputMode.Gamepad => assignedGamepads[idx] != null || idx < Gamepad.all.Count,
             InputMode.Arcade => true,
             _ => false
         };
@@ -233,6 +234,6 @@ public class InputManager : MonoBehaviour
     {
         int idx = playerID - 1;
         if (idx < 0 || idx >= assignedGamepads.Length) return null;
-        return assignedGamepads[idx];
+        return assignedGamepads[idx] ?? (idx < Gamepad.all.Count ? Gamepad.all[idx] : null);
     }
 }

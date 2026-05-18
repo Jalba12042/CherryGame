@@ -12,6 +12,9 @@ public class PlayerCustomization : MonoBehaviour
 
     public Material[] colorMaterials;
 
+    // Used by RoundManager to auto-assign a player-identity color on spawn
+    public Material[] playerMaterials;
+
     private int currentHeadIndex = -1;
     private int currentTorsoIndex = -1;
     private int currentBottomIndex = -1;
@@ -106,6 +109,13 @@ public class PlayerCustomization : MonoBehaviour
             currentBottomIndex = max;
 
         EnableOne(bottomOptions, currentBottomIndex);
+    }
+
+    // Replaces PlayerColorAssigner.AssignColor()
+    public void AssignColor(int playerIndex)
+    {
+        if (playerMaterials == null || playerIndex >= playerMaterials.Length) return;
+        ApplyBodyMaterial(playerMaterials[playerIndex], playerIndex);
     }
 
     public void ApplyFromData(PlayerCustomizationData data)
