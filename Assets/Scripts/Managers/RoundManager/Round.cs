@@ -5,7 +5,6 @@ using UnityEngine;
 public class Round : ScriptableObject
 {
     public List<GameObject> goalObjects;
-    //public List<GameObject> powerupsInPlay;
     public float roundTimeInSeconds;
     public string sceneName;
     public GameObject startTimerUI;
@@ -13,6 +12,9 @@ public class Round : ScriptableObject
 
     public virtual IEnumerator StartGoal()
     {
+        if (startTimerUI == null)
+            Debug.LogError($"[Round] '{name}' is missing a StartTimer UI! Tag a GameObject with 'StartTimer' in the scene.");
+
         yield return null;
     }
 
@@ -23,6 +25,9 @@ public class Round : ScriptableObject
 
     public virtual void setValues()
     {
-        return;
+        startTimerUI = GameObject.FindWithTag("StartTimer");
+
+        if (startTimerUI == null)
+            Debug.LogError($"[Round] '{name}' could not find a GameObject tagged 'StartTimer' in the scene.");
     }
 }

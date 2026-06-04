@@ -2,6 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum Tide
+{
+    RollingInSpawn,
+    RollingOutDrag,
+    RollingIn,
+    RollingOut
+}
+
 public class Ocean : MonoBehaviour
 {
     [Header("Positions")]
@@ -16,8 +24,10 @@ public class Ocean : MonoBehaviour
 
     [Header("Shell Spawning")]
     [SerializeField] private GameObject[] shellPrefabs;
-    public bool spawning = true;
-
+    [SerializeField] private int minSpawns = 1;
+    [SerializeField] private int maxSpawns = 5;
+    public List<GameObject> currShells;
+ 
     [Header("Drag Settings")]
     public float dragStrength = 1f;
     public LayerMask draggableLayers;
@@ -26,30 +36,87 @@ public class Ocean : MonoBehaviour
 
     private List<Rigidbody> caughtObjects = new List<Rigidbody>();
     private Vector3 lastPosition;
+    private bool roundStarted = false;
 
-    private void Start()
+    private void Update()
     {
-        StartCoroutine(TideCycle());
+        if (RoundManager.Instance.currRoundActive && !roundStarted)
+        {
+            roundStarted = true;
+            StartCoroutine(TideCycle());
+        }
+       
     }
 
     public IEnumerator TideCycle()
     {
-        while (tideRolling)
+        Bounds b = GetComponent<Collider>().bounds;
+        while (RoundManager.Instance.currRoundActive)
         {
-            // Roll In
+            // Roll In and Spawn Shells
+            int randSpawns = Random.Range(minSpawns, maxSpawns + 1);
+
+            for (int i = 0; i < randSpawns; i++)
+            {
+                float randX = Random.Range(b.min.x, b.max.x);
+                float randZ = Random.Range(b.min.z, b.max.z);
+
+                int randShellIndex = Random.Range(0, shellPrefabs.Length);
+                currShells.Add(Instantiate(shellPrefabs[randShellIndex], new Vector3(randX, transform.position.y, randZ), Quaternion.identity));
+            }
+
             float t = 0;
             lastPosition = transform.position;
             while (t < rollInDuration)
             {
                 t += Time.deltaTime;
-                transform.position = Vector3.Lerp(startPoint.position, inPoint.position, Mathf.SmoothStep(0, 1, t / rollInDuration));
+                Vector3 newPosition = Vector3.Lerp(startPoint.position, inPoint.position, Mathf.SmoothStep(0, 1, t / rollInDuration));
+
+                Vector3 tideMovement = newPosition - lastPosition;
+                lastPosition = newPosition;
+                transform.position = newPosition;
+
+                foreach (Rigidbody rb in caughtObjects)
+                {
+                    if (rb == null) continue;
+                    rb.MovePosition(rb.position + tideMovement * dragStrength);
+                }
+
                 yield return null;
             }
 
             // Stay
             yield return new WaitForSeconds(stayDuration);
 
-            // Roll Out — drag caught objects
+            // Roll Out — DON'T drag caught objects
+            t = 0;
+            lastPosition = transform.position;
+            while (t < rollOutDuration)
+            {
+                t += Time.deltaTime;
+                Vector3 newPosition = Vector3.Lerp(inPoint.position, startPoint.position, Mathf.SmoothStep(0, 1, t / rollOutDuration));
+
+                lastPosition = newPosition;
+                transform.position = newPosition;
+
+                yield return null;
+            }
+
+            yield return new WaitForSeconds(waveWaitDuration);
+
+            t = 0;
+            lastPosition = transform.position;
+            while (t < rollInDuration)
+            {
+                t += Time.deltaTime;
+                Vector3 newPosition = Vector3.Lerp(startPoint.position, inPoint.position, Mathf.SmoothStep(0, 1, t / rollInDuration));
+
+                lastPosition = newPosition;
+                transform.position = newPosition;
+
+                yield return null;
+            }
+
             t = 0;
             lastPosition = transform.position;
             while (t < rollOutDuration)
@@ -70,7 +137,12 @@ public class Ocean : MonoBehaviour
                 yield return null;
             }
 
+            for(int i = 0; i < caughtObjects.Count; i++)
+            {
+                Destroy(caughtObjects[i].gameObject);
+            }
             caughtObjects.Clear();
+
             yield return new WaitForSeconds(waveWaitDuration);
         }
     }

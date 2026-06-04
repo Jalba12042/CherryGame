@@ -25,6 +25,8 @@ public class CherryRound : Round
 
     public override void setValues()
     {
+        base.setValues();
+
         GameObject basketContainer = GameObject.FindWithTag("BasketContainer");
         bc = basketContainer.GetComponent<BasketContainer>();
 
@@ -35,10 +37,6 @@ public class CherryRound : Round
         powerupSpawnArea = GameObject.FindWithTag("PowerUpSpawnArea");
 
         goldenSpawnArea = GameObject.FindWithTag("GoldenSpawn");
-
-        // start timer
-        startTimerUI = GameObject.FindWithTag("StartTimer");
-        startTimerUI.SetActive(false);
 
         if (goalObjects == null)
         {
