@@ -77,6 +77,9 @@ public class Playermovement : MonoBehaviour
     private float dashTimer;
     private float dashCooldownTimer = 0f;
 
+    [Header("Event Effects")]
+    public bool controlsReversed = false;
+
     // ===== SHARED =====
 
     [HideInInspector] public Gamepad assignedGamepad;
@@ -121,7 +124,17 @@ public class Playermovement : MonoBehaviour
 
         if (!canMove || isKnockedBack) return;
 
-        moveInput = InputManager.Instance.GetMove(playerID);
+        /*moveInput = InputManager.Instance.GetMove(playerID);
+
+        if (controlsReversed)
+        {
+            moveInput *= -1f;
+        }*/
+
+        Vector2 rawInput = InputManager.Instance.GetMove(playerID);
+
+        moveInput = controlsReversed ? -rawInput : rawInput;
+
         HandleFootsteps();
 
         Transform cam = Camera.main.transform;
@@ -168,7 +181,8 @@ public class Playermovement : MonoBehaviour
 
     private void HandleRotation()
     {
-        Vector2 input = InputManager.Instance.GetMove(playerID);
+        //Vector2 input = InputManager.Instance.GetMove(playerID);
+        Vector2 input = moveInput;
         isAiming = projectileScript != null && projectileScript.IsAiming();
 
         Transform cam = Camera.main.transform;

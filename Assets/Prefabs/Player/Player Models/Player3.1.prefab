@@ -6540,15 +6540,6 @@ PrefabInstance:
       addedObject: {fileID: 671919915021707683}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 7264247946588991192}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 41535873979419944}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 6879232424249437865}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 3618199223766623653}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
       insertIndex: -1
@@ -6556,9 +6547,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
       insertIndex: -1
       addedObject: {fileID: 681611170488943673}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 965572915104794789}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8418022934129561261}
@@ -6657,8 +6645,8 @@ MonoBehaviour:
   dashCooldown: 1
   allowAirDash: 1
   dashHitForce: 10
-  dashBarObject: {fileID: 0}
-  dashFillImage: {fileID: 0}
+  dashBarObject: {fileID: 3498107191574877255}
+  dashFillImage: {fileID: 4200027873175720021}
   dashSource: {fileID: 0}
   dashSound: {fileID: 0}
   dashSmoke: {fileID: 8703286763366023698}
@@ -6693,42 +6681,6 @@ MonoBehaviour:
   cooldownBarObject: {fileID: 9155980566481354558}
   cooldownFillImage: {fileID: 6857324007123549090}
   canThrowEnabled: 1
---- !u!114 &7264247946588991192
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5896580224650156824}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f76de651bce4952498518b3f5e4f7845, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &41535873979419944
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5896580224650156824}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03617f6875bf5c64db776d0afba89b56, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &6879232424249437865
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5896580224650156824}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6fb1046b27d4ce641b9923d648364394, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &3618199223766623653
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6778,18 +6730,6 @@ MonoBehaviour:
   - BlinkingLeft
   minChangeTime: 1
   maxChangeTime: 3
---- !u!114 &965572915104794789
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5896580224650156824}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6f82cab6043fe5a4f80d6b8e1e731531, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &8418022934129561261
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7038,18 +6978,18 @@ MonoBehaviour:
   escapeCooldownTime: 1
   throwForceForward: 25
   throwForceUp: 12
-  grabSource: {fileID: 0}
+  grabSource: {fileID: 2632603940568999422}
   grabClip: {fileID: 0}
   grabDropClip: {fileID: 0}
   stunCanvas: {fileID: 4487468673559137699}
-  stunTimerText: {fileID: 0}
+  stunTimerText: {fileID: 6871179782641695204}
   faceAnimator: {fileID: 0}
-  handHoldPoint: {fileID: 5128470514157377116}
+  handHoldPoint: {fileID: 136122321391519697}
   cherryLayer:
     serializedVersion: 2
     m_Bits: 8192
   pickupRadius: 3
-  pickupSource: {fileID: 0}
+  pickupSource: {fileID: 2632603940568999422}
   pickupClip: {fileID: 0}
   cherryDropClip: {fileID: 0}
   isGrabbed: 0
