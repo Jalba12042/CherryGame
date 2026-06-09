@@ -185,4 +185,33 @@ public class WinScript : MonoBehaviour
         // 4. Load Shop
         SceneManager.LoadScene(shopSceneName);
     }
+
+    private int FindValidDeviceId(int storedDeviceId)
+    {
+        foreach (var pad in Gamepad.all)
+        {
+            if (pad.deviceId == storedDeviceId)
+                return storedDeviceId;
+        }
+
+        // device is gone, try to rebind to any unassigned controller
+        foreach (var pad in Gamepad.all)
+        {
+            bool alreadyUsed = false;
+
+            for (int i = 0; i < GameManager.Instance.controllerAssignments.Length; i++)
+            {
+                if (GameManager.Instance.controllerAssignments[i] == pad.deviceId)
+                {
+                    alreadyUsed = true;
+                    break;
+                }
+            }
+
+            if (!alreadyUsed)
+                return pad.deviceId;
+        }
+
+        return -1;
+    }
 }

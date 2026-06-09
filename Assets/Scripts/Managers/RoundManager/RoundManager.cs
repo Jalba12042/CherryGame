@@ -1,9 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using Unity.Multiplayer.Center.NetcodeForGameObjectsExample.DistributedAuthority;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
-using TMPro;
 
 public class RoundManager : MonoBehaviour
 {
@@ -206,7 +207,7 @@ public class RoundManager : MonoBehaviour
         {
             for (int i = 0; i < GameManager.Instance.playerCount; i++)
             {
-                int assignedControllerIndex = GameManager.Instance.controllerAssignments[i];
+                //int assignedControllerIndex = GameManager.Instance.controllerAssignments[i];        
 
                 GameObject playerObj = Instantiate(playerPrefab, currPlayerSpawn.spawnPoints[i].position, Quaternion.identity);
 
@@ -243,9 +244,13 @@ public class RoundManager : MonoBehaviour
                 player.initialSpawnPosition = currPlayerSpawn.spawnPoints[i].position;
                 player.GetComponent<PlayerEscapeUI>().playerIndex = i;
 
-                if (assignedControllerIndex >= 0 && assignedControllerIndex < UnityEngine.InputSystem.Gamepad.all.Count)
-                    player.assignedGamepad = UnityEngine.InputSystem.Gamepad.all[assignedControllerIndex];
- 
+                Gamepad assignedGamepad = GameManager.Instance.GetAssignedGamepad(i);
+
+                if (assignedGamepad != null)
+                {
+                    player.assignedGamepad = assignedGamepad;
+                }
+
 
                 Camera faceCam = player.GetComponentInChildren<Camera>();
                 if (faceCam != null && i < playerFaceRenderTextures.Length)
@@ -396,4 +401,5 @@ public class RoundManager : MonoBehaviour
 
         Debug.Log("BasketContainer found after scene load: " + basketContainer);
     }
+
 }

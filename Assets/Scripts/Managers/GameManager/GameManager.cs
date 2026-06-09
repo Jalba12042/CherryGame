@@ -129,4 +129,19 @@ public class GameManager : MonoBehaviour
     {
         RoundManager.Instance.switchRoundScene();
     }
+
+    public Gamepad GetAssignedGamepad(int playerIndex)
+    {
+        int savedDeviceId = controllerAssignments[playerIndex];
+
+        foreach (Gamepad gamepad in Gamepad.all)
+        {
+            if (gamepad.deviceId == savedDeviceId)
+            {
+                return gamepad;
+            }
+        }
+
+        return null;
+    }
 }
