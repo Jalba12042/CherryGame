@@ -4,6 +4,7 @@ using System.Collections;
 public class CanOfWormsEffect : Powerup
 {
     [Header("Targeting")]
+    public string targetTag = "Cherry";
 
     [Header("Infection Settings")]
     public float destroyDelay = 3f;

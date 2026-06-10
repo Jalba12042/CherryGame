@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Basket : MonoBehaviour
@@ -8,16 +9,26 @@ public class Basket : MonoBehaviour
     {
         numItemsInBasket = 0;
     }
-
     private void OnTriggerEnter(Collider other)
     {
-        Cherry cherry = other.GetComponent<Cherry>();
-        if (cherry != null) numItemsInBasket += cherry.pointValue;
+        if (other.gameObject.tag == "Cherry")
+        {
+            numItemsInBasket++;
+        }
+        if (other.gameObject.tag == "GoldenCherry")
+        {
+            numItemsInBasket += 3;
+        }
     }
-
     private void OnTriggerExit(Collider other)
     {
-        Cherry cherry = other.GetComponent<Cherry>();
-        if (cherry != null) numItemsInBasket -= cherry.pointValue;
+        if (other.gameObject.tag == "Cherry")
+        {
+            numItemsInBasket--;
+        }
+        if (other.gameObject.tag == "GoldenCherry")
+        {
+            numItemsInBasket -= 3;
+        }
     }
 }

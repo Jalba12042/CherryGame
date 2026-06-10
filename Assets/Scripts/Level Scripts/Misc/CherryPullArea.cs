@@ -62,9 +62,11 @@ public class CherryPullArea : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (!other.CompareTag("Cherry")) return;
+
         Cherry cherry = other.GetComponent<Cherry>();
-        if (cherry == null) return;
-        if (cherry.ignoreBasketPull) return;
+        if (cherry != null && cherry.ignoreBasketPull)
+            return; // skip pulling this cherry
 
         Rigidbody rb = other.GetComponent<Rigidbody>();
         if (rb == null) return;
@@ -90,8 +92,11 @@ public class CherryPullArea : MonoBehaviour
         while (rb != null)
         {
             Cherry ch = rb.GetComponent<Cherry>();
-            if (ch == null) continue;
-            if (ch.ignoreBasketPull) continue;
+            if (ch == null)
+                continue;
+
+            if (ch.ignoreBasketPull)
+                continue;
 
             Vector3 direction = snapPoint.position - rb.position;
             float distance = direction.magnitude;
