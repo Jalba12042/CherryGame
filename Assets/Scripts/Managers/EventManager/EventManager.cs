@@ -21,7 +21,7 @@ public class EventManager : MonoBehaviour
     public GameObject cherryAnimatedUI;
     public GameObject ufoAnimatedUI;
     public GameObject zombieAnimatedUI;
-    public GameObject mirrorAnimatedUI;
+    public GameObject mirrorAnimatedUI; // Perfectly added!
 
     [Header("Text UI (Restored for RoundManager)")]
     public GameObject eventTextObj;
@@ -50,7 +50,8 @@ public class EventManager : MonoBehaviour
         // This finds your images even if they are greyed out/turned off!
         if (meteorAnimatedUI == null || cherryAnimatedUI == null || ufoAnimatedUI == null || zombieAnimatedUI == null || mirrorAnimatedUI == null)
         {
-            Canvas[] allCanvases = FindObjectsOfType<Canvas>();
+            // Updated to use the faster, warning-free FindObjectsByType
+            Canvas[] allCanvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
             foreach (Canvas canvas in allCanvases)
             {
                 Transform[] allUIElements = canvas.GetComponentsInChildren<Transform>(true);
@@ -162,7 +163,6 @@ public class EventManager : MonoBehaviour
         {
             activeUI = ufoAnimatedUI;
         }
-        // FIXED: Now says "Zombie Apocalypse!" to match your error log exactly
         else if (triggeredEvent.eventName == "Zombie Apocalypse!")
         {
             activeUI = zombieAnimatedUI;
