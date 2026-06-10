@@ -107,7 +107,7 @@ public class PlayerJoinController : MonoBehaviour
 
     void Update()
     {
-        controllers = Gamepad.all.ToArray();
+        //controllers = Gamepad.all.ToArray();
 
         if (!canInteract) return;
 
@@ -308,7 +308,8 @@ public class PlayerJoinController : MonoBehaviour
                 if (GameManager.Instance != null)
                     GameManager.Instance.controllerAssignments[player] = controllerIndex;
                 //assignedControllers[player] = controllerIndex;
-                assignedControllers[player] = controllers[controllerIndex].deviceId;
+                //assignedControllers[player] = controllers[controllerIndex].deviceId;
+                assignedControllers[player] = Gamepad.all[controllerIndex].deviceId;
                 slots[player].joinPanel.SetActive(false);
                 slots[player].menuPanel.SetActive(true);
                 slots[player].customizationUI.gameObject.SetActive(true);
@@ -328,7 +329,8 @@ public class PlayerJoinController : MonoBehaviour
 
                 //if (GameManager.Instance != null) GameManager.Instance.controllerAssignments[player] = controllerIndex;
                 if (GameManager.Instance != null)
-                    GameManager.Instance.controllerAssignments[player] = controllers[controllerIndex].deviceId;
+                    //GameManager.Instance.controllerAssignments[player] = controllers[controllerIndex].deviceId;
+                    GameManager.Instance.controllerAssignments[player] = Gamepad.all[controllerIndex].deviceId;
                 return;
             }
         }
@@ -523,7 +525,8 @@ public class PlayerJoinController : MonoBehaviour
 
     int GetPlayerIndexFromController(int controllerIndex)
     {
-        Gamepad pad = controllers[controllerIndex];
+        //Gamepad pad = controllers[controllerIndex];
+        Gamepad pad = Gamepad.all[controllerIndex];
 
         if (pad == null)
             return -1;

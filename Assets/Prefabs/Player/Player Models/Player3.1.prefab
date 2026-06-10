@@ -6650,6 +6650,7 @@ MonoBehaviour:
   dashSource: {fileID: 0}
   dashSound: {fileID: 0}
   dashSmoke: {fileID: 8703286763366023698}
+  controlsReversed: 0
   animator: {fileID: 0}
   initialSpawnPosition: {x: 0, y: 0, z: 0}
 --- !u!114 &671919915021707683
@@ -6680,6 +6681,7 @@ MonoBehaviour:
   throwCooldown: 4
   cooldownBarObject: {fileID: 9155980566481354558}
   cooldownFillImage: {fileID: 6857324007123549090}
+  aimThreshold: 0.2
   canThrowEnabled: 1
 --- !u!114 &3618199223766623653
 MonoBehaviour:
@@ -6976,7 +6978,7 @@ MonoBehaviour:
   pickupRange: 2
   grabCooldownTime: 1
   escapeCooldownTime: 1
-  throwForceForward: 25
+  throwForceForward: 130
   throwForceUp: 12
   grabSource: {fileID: 2632603940568999422}
   grabClip: {fileID: 0}
@@ -6994,6 +6996,7 @@ MonoBehaviour:
   cherryDropClip: {fileID: 0}
   isGrabbed: 0
   grabber: {fileID: 0}
+  throwHoldThreshold: 0.2
 --- !u!4 &6529952096185074082 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 453412f0d8412442b82d4e87810f0875, type: 3}

@@ -62,6 +62,13 @@ public class PlayerInteract : MonoBehaviour
     private GameObject nearbyPlayer;
     private bool ltWasHeld = false;
 
+
+    private bool rtHeld = false;
+    private float rtHoldTime = 0f;
+
+    [SerializeField]
+    private float throwHoldThreshold = 0.2f;
+
     private GameObject heldCherry;
     private float cherryPickupCooldown = 0f;
 
@@ -97,22 +104,54 @@ public class PlayerInteract : MonoBehaviour
 
         if (grabEscapeCooldown) return;
 
-        bool rtAvailable = powerupHandler == null || !powerupHandler.rtConsumedThisFrame;
+        /*bool rtAvailable = powerupHandler == null || !powerupHandler.rtConsumedThisFrame;
         if (InputManager.Instance.GetGrabDown(player.playerID) && rtAvailable)
-            OnInteractPressed();
+            OnInteractPressed();*/
 
-        bool ltHeld = InputManager.Instance.GetButton2Held(player.playerID);
-        bool ltReleased = ltWasHeld && !ltHeld;
-        ltWasHeld = ltHeld;
+        bool rt = InputManager.Instance.GetButton1Held(player.playerID);
 
-        if (ltReleased && grabbedPlayer != null)
-            ThrowGrabbedPlayer();
+        if (rt)
+        {
+            rtHeld = true;
+            rtHoldTime += Time.deltaTime;
+        }
+        else if (rtHeld)
+        {
+            bool wasHold = rtHoldTime >= throwHoldThreshold;
+
+            if (wasHold)
+            {
+                if (grabbedPlayer != null)
+                {
+                    ThrowGrabbedPlayer();
+                }
+            }
+            else
+            {
+                OnInteractPressed();
+            }
+
+            rtHeld = false;
+            rtHoldTime = 0f;
+        }
     }
 
     private void OnInteractPressed()
     {
-        if (grabbedPlayer != null) { ReleaseGrab(); return; }
-        if (heldCherry != null) { CancelAimAndDrop(); return; }
+        if (grabbedPlayer != null)
+        {
+            ReleaseGrab();
+            return;
+        }
+        if (heldCherry != null) 
+        {
+            if (!projectileScript.IsAiming())
+            {
+                CancelAimAndDrop();
+            }
+
+            return;
+        }
         if (TryGrab()) return;
         HandlePickup();
     }
