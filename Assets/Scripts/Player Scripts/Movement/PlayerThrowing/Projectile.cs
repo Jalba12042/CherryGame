@@ -55,14 +55,25 @@ public class Projectile : MonoBehaviour
     private bool isHoldingCherry = false;
     private bool isAiming = false;
     private bool pendingThrow = false;
+    private int ownerPlayerID = -1;
 
     private float currentPower = 0f;
+
+    private float rtHoldTime = 0f;
+    [SerializeField] private float aimThreshold = 0.2f;
 
     public bool IsAiming() => isAiming;
     public bool IsThrowPending() => pendingThrow;
 
     //private TrailRenderer cherryTrail;
     public bool canThrowEnabled = true;
+
+    public void SetOwner(Playermovement player, int playerID)
+    {
+        owner = player;
+        ownerPlayerID = playerID;
+    }
+
 
     void Start()
     {
@@ -85,94 +96,82 @@ public class Projectile : MonoBehaviour
     {
         if (!canThrowEnabled)
         {
-            // disable ONLY throwing, NOT everything
             isAiming = false;
             return;
         }
 
+        // Cooldown tick — unchanged
         if (!canThrow)
         {
             throwCooldownTimer -= Time.deltaTime;
             throwCooldownTimer = Mathf.Max(0, throwCooldownTimer);
 
             if (cooldownFillImage != null)
-            {
                 cooldownFillImage.fillAmount = throwCooldownTimer / throwCooldown;
-            }
 
             if (throwCooldownTimer <= 0)
             {
                 canThrow = true;
-
                 if (cooldownBarObject != null)
                     cooldownBarObject.SetActive(false);
             }
         }
 
-        if (owner == null) return;
-
-        var gamepad = owner.GetAssignedGamepad();
-        if (gamepad == null) return;
-
-        launchPoint.forward = owner.transform.forward;
-
-
-        float ltValue = gamepad.leftTrigger.ReadValue();
-        //float rtValue = gamepad.rightTrigger.ReadValue();
-
+        if (owner == null || ownerPlayerID < 0) return;
         if (!isHoldingCherry)
         {
             isAiming = false;
             currentPower = 0f;
-
             if (landingMarkerInstance != null)
                 landingMarkerInstance.SetActive(false);
-
             return;
         }
 
-        // HOLD LT
-        if (ltValue > 0.2f)
+        launchPoint.forward = owner.transform.forward;
+
+        // HOLD throw button
+        if (InputManager.Instance.GetButton1Held(ownerPlayerID))
         {
-            isAiming = true;
-            owner.animator.SetBool("isAiming", true);
+            rtHoldTime += Time.deltaTime;
 
-            currentPower = Mathf.Lerp(currentPower, ltValue, Time.deltaTime * 8f);
+            if (rtHoldTime >= aimThreshold)
+            {
+                isAiming = true;
+                owner.animator.SetBool("isAiming", true);
 
-            //if (lineRenderer != null)
-                //lineRenderer.enabled = true;
-
-            DrawTrajectory(currentPower);
+                currentPower = Mathf.Lerp(currentPower, 1f, Time.deltaTime * 8f);
+                DrawTrajectory(currentPower);
+            }
         }
-        // RELEASE LT
-        else if (isAiming && ltValue <= 0.2f && canThrow)
+        // RELEASE throw button
+        else
         {
-            //if (lineRenderer != null)
-                //lineRenderer.enabled = false;
+            rtHoldTime = 0f;
 
-            if (landingMarkerInstance != null)
-                landingMarkerInstance.SetActive(false);
+            if (isAiming && canThrow)
+            {
+                if (landingMarkerInstance != null)
+                    landingMarkerInstance.SetActive(false);
 
-            float finalPower = Mathf.Max(currentPower, 0.25f);
+                float finalPower = Mathf.Max(currentPower, 0.25f);
 
-            pendingThrow = true;
-            //owner.GetComponent<PlayerCherry>()?.NotifyThrowStarted();
+                pendingThrow = true;
 
-            // START COOLDOWN
-            canThrow = false;
-            throwCooldownTimer = throwCooldown;
+                canThrow = false;
+                throwCooldownTimer = throwCooldown;
 
-            if (cooldownBarObject != null)
-                cooldownBarObject.SetActive(true);
+                if (cooldownBarObject != null)
+                    cooldownBarObject.SetActive(true);
 
-            owner.animator.SetTrigger("doThrow");
-            owner.animator.SetBool("isAiming", false);
-            owner.animator.SetBool("isPickingUp", false);
+                owner.animator.SetTrigger("doThrow");
+                owner.animator.SetBool("isAiming", false);
+                owner.animator.SetBool("isPickingUp", false);
 
-            owner.StartCoroutine(DelayedThrow(finalPower));
+                owner.StartCoroutine(DelayedThrow(finalPower));
 
-            isAiming = false;
-            currentPower = 0f;
+                isAiming = false;
+                currentPower = 0f;
+            }
         }
     }
 
@@ -353,7 +352,7 @@ public class Projectile : MonoBehaviour
             ThrowCherry(power);
 
         pendingThrow = false;
-        owner.GetComponent<PlayerCherry>()?.NotifyThrowEnded();
+        owner.GetComponent<PlayerInteract>()?.NotifyThrowEnded();
     }
 
     public void SetOwner(Playermovement player)

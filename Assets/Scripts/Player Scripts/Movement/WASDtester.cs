@@ -27,11 +27,11 @@ public class WASDtester : MonoBehaviour
 
     void Update()
     {
-        // Gather input (fixed camera)
-        input.x = Input.GetAxisRaw("Horizontal");
-        input.y = Input.GetAxisRaw("Vertical");
+        Vector2 move = InputManager.Instance.GetMove(1);
+        input.x = move.x;
+        input.y = move.y;
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (InputManager.Instance.GetJumpDown(1))
             tryJump = true;
     }
 

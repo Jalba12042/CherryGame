@@ -24,12 +24,10 @@ public class Scream : MonoBehaviour
 
     private Playermovement player;
     public AudioSource aSource;
-    private Gamepad gp;
     [SerializeField] private Animator faceAnimator;
 
     private Coroutine screamRoutine;
     private bool currentlyScreaming;
-
     private void TryScream()
     {
         // 1. If we are already screaming, ignore the button press entirely.
@@ -59,31 +57,11 @@ public class Scream : MonoBehaviour
             faceAnimator = GetComponent<Animator>();
     }
 
-    private void Start()
-    {
-        if (player != null)
-        {
-            gp = player.assignedGamepad;
-        }
-    }
-
     private void Update()
     {
-        if (!GameManager.Instance.isOnKeyboard)
-        {
-            // buttonEast is the 'B' button on Xbox / Circle on PlayStation!
-            if (gp != null && gp.buttonEast.wasPressedThisFrame)
-            {
-                TryScream();
-            }
-        }
-        else
-        {
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                TryScream();
-            }
-        }
+        if (player == null) return;
+        if (InputManager.Instance.GetScreamDown(player.playerID))
+            TryScream();
     }
 
     private IEnumerator HandleScream()

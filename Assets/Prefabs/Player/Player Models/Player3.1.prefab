@@ -1989,6 +1989,7 @@ MonoBehaviour:
   - {fileID: 2100000, guid: e1b4522549d535c4cac36d22fe1f0f6c, type: 2}
   - {fileID: 2100000, guid: 5ba9268898ffd7d479c567eefbc053b1, type: 2}
   - {fileID: 2100000, guid: 383a6e5776b4ed34b8c3c15dfff93815, type: 2}
+  playerMaterials: []
 --- !u!1 &2631031105549758130
 GameObject:
   m_ObjectHideFlags: 0
@@ -6539,15 +6540,6 @@ PrefabInstance:
       addedObject: {fileID: 671919915021707683}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 7264247946588991192}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 41535873979419944}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 6879232424249437865}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 3618199223766623653}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
       insertIndex: -1
@@ -6555,9 +6547,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
       insertIndex: -1
       addedObject: {fileID: 681611170488943673}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 965572915104794789}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8418022934129561261}
@@ -6582,6 +6571,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3831512609517769558}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2050650156954134365}
   m_SourcePrefab: {fileID: 100100000, guid: 453412f0d8412442b82d4e87810f0875, type: 3}
 --- !u!1 &5896580224650156824 stripped
 GameObject:
@@ -6638,8 +6630,6 @@ MonoBehaviour:
   gc: {fileID: 0}
   rotationSpeed: 10
   aimRotationMultiplier: 0.25
-  handHoldPoint: {fileID: 136122321391519697}
-  cherryPrefab: {fileID: 7949051319438289543, guid: 2ac301d897576f64e9f79d9fa776a3a6, type: 3}
   projectileScript: {fileID: 671919915021707683}
   screenShake: {fileID: 0}
   canMove: 1
@@ -6650,6 +6640,17 @@ MonoBehaviour:
   brickClip: {fileID: 8300000, guid: 54b1acc4529844b4faf63a39ed37ba9b, type: 3}
   jumpSource: {fileID: 5328333779117456093}
   jumpClip: {fileID: 8300000, guid: 0c7ba6e3982c0e44fab96199169756df, type: 3}
+  dashForce: 100
+  dashDuration: 0.15
+  dashCooldown: 1
+  allowAirDash: 1
+  dashHitForce: 10
+  dashBarObject: {fileID: 3498107191574877255}
+  dashFillImage: {fileID: 4200027873175720021}
+  dashSource: {fileID: 0}
+  dashSound: {fileID: 0}
+  dashSmoke: {fileID: 8703286763366023698}
+  controlsReversed: 0
   animator: {fileID: 0}
   initialSpawnPosition: {x: 0, y: 0, z: 0}
 --- !u!114 &671919915021707683
@@ -6680,74 +6681,8 @@ MonoBehaviour:
   throwCooldown: 4
   cooldownBarObject: {fileID: 9155980566481354558}
   cooldownFillImage: {fileID: 6857324007123549090}
+  aimThreshold: 0.2
   canThrowEnabled: 1
---- !u!114 &7264247946588991192
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5896580224650156824}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f76de651bce4952498518b3f5e4f7845, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  dashForce: 70
-  dashDuration: 0.15
-  dashCooldown: 3
-  allowAirDash: 1
-  hitForce: 50
-  dashBarObject: {fileID: 9155980566481354558}
-  dashFillImage: {fileID: 4200027873175720021}
-  dashSound: {fileID: 8300000, guid: 6965d4a065ca6004d88986a1ca596361, type: 3}
-  dashSmoke: {fileID: 8703286763366023698}
---- !u!114 &41535873979419944
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5896580224650156824}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 03617f6875bf5c64db776d0afba89b56, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  pickupTarget: {fileID: 3166076261134975489}
-  pickupRange: 5
-  grabCooldownTime: 4
-  player: {fileID: 0}
-  isGrabbed: 0
-  escapeCooldownTime: 1
-  faceAnimator: {fileID: 4811179803429699165}
-  stunCanvas: {fileID: 4487468673559137699}
-  stunTimerText: {fileID: 7428297024344021340}
-  grabSource: {fileID: 2632603940568999422}
-  grabClip: {fileID: 0}
-  dropClip: {fileID: 8300000, guid: 10335e0f8a2462f4a9a65ae22f317080, type: 3}
-  throwForceForward: 200
-  throwForceUp: 12
---- !u!114 &6879232424249437865
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5896580224650156824}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6fb1046b27d4ce641b9923d648364394, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  handHoldPoint: {fileID: 136122321391519697}
-  pickupSource: {fileID: 2632603940568999422}
-  pickupClip: {fileID: 8300000, guid: 5bde7209d137a854cb758783121d5bd2, type: 3}
-  dropClip: {fileID: 0}
-  cherryLayer:
-    serializedVersion: 2
-    m_Bits: 8192
-  pickupRadius: 6
 --- !u!114 &3618199223766623653
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6777,12 +6712,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c05315e8ad77243a0d2c3a0532262c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerRenderer: {fileID: 7274222152646423809}
-  playerMaterials:
-  - {fileID: 2100000, guid: c3634c17a7f41bb4fb080992e922cb2c, type: 2}
-  - {fileID: 2100000, guid: c370cd0dc3d6d66459c7f85d6e669e6e, type: 2}
-  - {fileID: 2100000, guid: 3366a31e2fa2d9e46a927fb9c8b3f2a9, type: 2}
-  - {fileID: 2100000, guid: 98ceebf84d150f746a823f14faf402ae, type: 2}
 --- !u!114 &681611170488943673
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6803,19 +6732,6 @@ MonoBehaviour:
   - BlinkingLeft
   minChangeTime: 1
   maxChangeTime: 3
---- !u!114 &965572915104794789
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5896580224650156824}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6f82cab6043fe5a4f80d6b8e1e731531, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  grabber: {fileID: 0}
 --- !u!114 &8418022934129561261
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6874,6 +6790,7 @@ MonoBehaviour:
   taserClip: {fileID: 8300000, guid: 7c3fae2ed50e62144a93fe8242f5d97e, type: 3}
   hasGunEquipped: 0
   activeGun: {fileID: 0}
+  rtConsumedThisFrame: 0
 --- !u!95 &8956192246315906919
 Animator:
   serializedVersion: 7
@@ -7045,6 +6962,41 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 65536
   groundCheckOffset: {x: 0, y: 0.1, z: 0}
+--- !u!114 &2050650156954134365
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5896580224650156824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aece0144150a41440a13a592236085c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pickupTarget: {fileID: 3166076261134975489}
+  pickupRange: 2
+  grabCooldownTime: 1
+  escapeCooldownTime: 1
+  throwForceForward: 130
+  throwForceUp: 12
+  grabSource: {fileID: 2632603940568999422}
+  grabClip: {fileID: 0}
+  grabDropClip: {fileID: 0}
+  stunCanvas: {fileID: 4487468673559137699}
+  stunTimerText: {fileID: 6871179782641695204}
+  faceAnimator: {fileID: 0}
+  handHoldPoint: {fileID: 136122321391519697}
+  cherryLayer:
+    serializedVersion: 2
+    m_Bits: 8192
+  pickupRadius: 3
+  pickupSource: {fileID: 2632603940568999422}
+  pickupClip: {fileID: 0}
+  cherryDropClip: {fileID: 0}
+  isGrabbed: 0
+  grabber: {fileID: 0}
+  throwHoldThreshold: 0.2
 --- !u!4 &6529952096185074082 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 453412f0d8412442b82d4e87810f0875, type: 3}

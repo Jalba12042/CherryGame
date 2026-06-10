@@ -12,7 +12,6 @@ public class PlayerJoinController : MonoBehaviour
     public GameObject playerModelPrefab;
 
     private bool[] isReady;
-    private Gamepad[] controllers;
     private int[] assignedControllers;
 
     public GameObject countdownPanel;
@@ -44,10 +43,8 @@ public class PlayerJoinController : MonoBehaviour
 
     void Start()
     {
-        // Force normal time speed
         Time.timeScale = 1f;
 
-        controllers = Gamepad.all.ToArray();
         assignedControllers = new int[slots.Length];
         isReady = new bool[slots.Length];
 
@@ -96,173 +93,223 @@ public class PlayerJoinController : MonoBehaviour
         while (elapsed < fadeDuration)
         {
             elapsed += Time.deltaTime;
-            float currentAlpha = Mathf.Lerp(0f, 1f, elapsed / fadeDuration);
+            float alpha = Mathf.Lerp(0f, 1f, elapsed / fadeDuration);
             for (int i = 0; i < joinGroups.Length; i++)
-            {
-                if (joinGroups[i] != null) joinGroups[i].alpha = currentAlpha;
-            }
+                if (joinGroups[i] != null) joinGroups[i].alpha = alpha;
             yield return null;
         }
 
         for (int i = 0; i < joinGroups.Length; i++)
-        {
             if (joinGroups[i] != null) joinGroups[i].alpha = 1f;
-        }
 
         canInteract = true;
     }
 
     void Update()
     {
-        controllers = Gamepad.all.ToArray();
+        //controllers = Gamepad.all.ToArray();
 
         if (!canInteract) return;
 
-        for (int c = 0; c < controllers.Length; c++)
+        // Arcade mode — use InputManager prefix-based input per slot
+        if (InputManager.CurrentMode == InputManager.InputMode.Arcade)
         {
-            Gamepad pad = controllers[c];
-            if (pad == null) continue;
-
-            // JOIN / READY (A Button)
-            if (pad.buttonSouth.wasPressedThisFrame)
+            for (int p = 0; p < slots.Length; p++)
             {
-                int playerIndex = GetPlayerIndexFromController(c);
-                if (playerIndex != -1)
-                {
-                    HandleReadyPress(playerIndex);
-                    continue;
-                }
-                TryAssignController(c);
-            }
+                int playerID = p + 1;
 
-            // BACK (B Button)
-            if (pad.buttonEast.wasPressedThisFrame)
-            {
-                int playerIndex = GetPlayerIndexFromController(c);
-                if (playerIndex != -1)
+                if (InputManager.Instance.GetConfirmDown(playerID))
                 {
-                    HandleBackPress(playerIndex);
+                    if (assignedControllers[p] != -1)
+                        HandleReadyPress(p);
+                    else
+                        TryAssignArcadePlayer(p);
                 }
-                else
+
+                if (InputManager.Instance.GetBackDown(playerID))
                 {
-                    if (canInteract && GetAssignedPlayerCount() == 0)
-                    {
+                    if (assignedControllers[p] != -1)
+                        HandleBackPress(p);
+                    else if (GetAssignedPlayerCount() == 0)
                         StartCoroutine(BackToMenuTransition());
-                    }
                 }
+
+                if (assignedControllers[p] != -1)
+                    HandleCustomizationInputArcade(p);
+            }
+            return;
+        }
+
+        // Keyboard mode — only P1 slot
+        if (InputManager.CurrentMode == InputManager.InputMode.Keyboard)
+        {
+            if (InputManager.Instance.GetConfirmDown(1))
+            {
+                if (assignedControllers[0] != -1)
+                    HandleReadyPress(0);
+                else
+                    TryAssignKeyboardPlayer();
             }
 
-            // CUSTOMIZATION NAVIGATION (Stick/Triggers)
-            HandleCustomizationInput(pad, c);
-        }
-    }
+            if (InputManager.Instance.GetBackDown(1))
+            {
+                if (assignedControllers[0] != -1)
+                    HandleBackPress(0);
+                else if (GetAssignedPlayerCount() == 0)
+                    StartCoroutine(BackToMenuTransition());
+            }
 
-    private void HandleCustomizationInput(Gamepad pad, int controllerIndex)
-    {
+            if (assignedControllers[0] != -1)
+                HandleCustomizationInputKeyboard();
+
+            return;
+        }
+
+        // Gamepad mode — assigned players go through InputManager; unassigned gamepads polled for join
         for (int p = 0; p < slots.Length; p++)
         {
-            if (assignedControllers[p] != controllerIndex) continue;
-            var ui = slots[p].customizationUI;
-            if (ui == null || slots[p].spawnedModel == null) continue;
+            if (assignedControllers[p] == -1) continue;
+            int playerID = p + 1;
 
-            Vector2 stick = pad.leftStick.ReadValue();
-            if (stick.y > 0.5f && !slots[p].stickInUse) { ui.MoveSelection(-1); slots[p].stickInUse = true; }
-            else if (stick.y < -0.5f && !slots[p].stickInUse) { ui.MoveSelection(1); slots[p].stickInUse = true; }
-            if (Mathf.Abs(stick.y) < 0.2f) slots[p].stickInUse = false;
+            if (InputManager.Instance.GetConfirmDown(playerID)) HandleReadyPress(p);
+            if (InputManager.Instance.GetBackDown(playerID)) HandleBackPress(p);
+            HandleCustomizationInputGamepad(p);
+        }
 
-            int category = ui.GetCurrentCategoryIndex();
-            var customization = slots[p].spawnedModel.GetComponentInChildren<PlayerCustomization>();
+        for (int c = 0; c < Gamepad.all.Count; c++)
+        {
+            Gamepad pad = Gamepad.all[c];
+            if (pad == null || GetPlayerIndexFromController(c) != -1) continue;
 
-            if (pad.rightTrigger.wasPressedThisFrame)
-            {
-                if (category == 0) ui.ChangeName(1, p);
-                else if (category == 1) ui.ChangeColor(1, slots[p].spawnedModel, p);
-                else if (category == 2) customization.ChangeHead(1);
-                else if (category == 3) customization.ChangeTorso(1);
-                else if (category == 4) customization.ChangeBottom(1);
-            }
-
-            if (pad.leftTrigger.wasPressedThisFrame)
-            {
-                if (category == 0) ui.ChangeName(-1, p);
-                else if (category == 1) ui.ChangeColor(-1, slots[p].spawnedModel, p);
-                else if (category == 2) customization.ChangeHead(-1);
-                else if (category == 3) customization.ChangeTorso(-1);
-                else if (category == 4) customization.ChangeBottom(-1);
-            }
+            if (pad.buttonSouth.wasPressedThisFrame) TryAssignController(c);
+            if (pad.buttonEast.wasPressedThisFrame && GetAssignedPlayerCount() == 0)
+                StartCoroutine(BackToMenuTransition());
         }
     }
 
-    IEnumerator BackToMenuTransition()
+    // ── Customization input ───────────────────────────────────────
+
+    private void HandleCustomizationInputGamepad(int p)
     {
-        canInteract = false;
-        HideAllPlayerUI();
+        var ui = slots[p].customizationUI;
+        if (ui == null || slots[p].spawnedModel == null) return;
 
-        if (objectsToAnimateOnBack != null)
+        int playerID = p + 1;
+        Vector2 stick = InputManager.Instance.GetMove(playerID);
+
+        if (stick.y > 0.5f && !slots[p].stickInUse) { ui.MoveSelection(-1); slots[p].stickInUse = true; }
+        else if (stick.y < -0.5f && !slots[p].stickInUse) { ui.MoveSelection(1); slots[p].stickInUse = true; }
+        if (Mathf.Abs(stick.y) < 0.2f) slots[p].stickInUse = false;
+
+        int category = ui.GetCurrentCategoryIndex();
+        var customization = slots[p].spawnedModel.GetComponentInChildren<PlayerCustomization>();
+
+        if (InputManager.Instance.GetGrabDown(playerID))
         {
-            foreach (Animator anim in objectsToAnimateOnBack)
-            {
-                if (anim != null) anim.SetTrigger("Outro");
-            }
+            if (category == 0) ui.ChangeName(1, p);
+            else if (category == 1) ui.ChangeColor(1, slots[p].spawnedModel, p);
+            else if (category == 2) customization.ChangeHead(1);
+            else if (category == 3) customization.ChangeTorso(1);
+            else if (category == 4) customization.ChangeBottom(1);
         }
 
-        yield return new WaitForSeconds(timeToWaitForBackAnim);
-        SceneManager.LoadScene(backSceneName);
+        if (InputManager.Instance.GetThrowDown(playerID))
+        {
+            if (category == 0) ui.ChangeName(-1, p);
+            else if (category == 1) ui.ChangeColor(-1, slots[p].spawnedModel, p);
+            else if (category == 2) customization.ChangeHead(-1);
+            else if (category == 3) customization.ChangeTorso(-1);
+            else if (category == 4) customization.ChangeBottom(-1);
+        }
     }
 
-    private void HideAllPlayerUI()
+    private void HandleCustomizationInputArcade(int p)
     {
-        for (int i = 0; i < slots.Length; i++)
+        var ui = slots[p].customizationUI;
+        if (ui == null || slots[p].spawnedModel == null) return;
+
+        int playerID = p + 1;
+        Vector2 stick = InputManager.Instance.GetMove(playerID);
+
+        if (stick.y > 0.5f && !slots[p].stickInUse) { ui.MoveSelection(-1); slots[p].stickInUse = true; }
+        else if (stick.y < -0.5f && !slots[p].stickInUse) { ui.MoveSelection(1); slots[p].stickInUse = true; }
+        if (Mathf.Abs(stick.y) < 0.2f) slots[p].stickInUse = false;
+
+        int category = ui.GetCurrentCategoryIndex();
+        var customization = slots[p].spawnedModel.GetComponentInChildren<PlayerCustomization>();
+
+        if (InputManager.Instance.GetDashDown(playerID))
         {
-            slots[i].joinPanel.SetActive(false);
-            slots[i].menuPanel.SetActive(false);
-            slots[i].readyPanel.SetActive(false);
-            if (slots[i].previewCamera != null) slots[i].previewCamera.gameObject.SetActive(false);
-            if (slots[i].previewImage != null) slots[i].previewImage.gameObject.SetActive(false);
+            if (category == 0) ui.ChangeName(1, p);
+            else if (category == 1) ui.ChangeColor(1, slots[p].spawnedModel, p);
+            else if (category == 2) customization.ChangeHead(1);
+            else if (category == 3) customization.ChangeTorso(1);
+            else if (category == 4) customization.ChangeBottom(1);
+        }
+
+        if (InputManager.Instance.GetGrabDown(playerID))
+        {
+            if (category == 0) ui.ChangeName(-1, p);
+            else if (category == 1) ui.ChangeColor(-1, slots[p].spawnedModel, p);
+            else if (category == 2) customization.ChangeHead(-1);
+            else if (category == 3) customization.ChangeTorso(-1);
+            else if (category == 4) customization.ChangeBottom(-1);
         }
     }
 
-    IEnumerator ThrowBoxTransition()
+    private void HandleCustomizationInputKeyboard()
     {
-        canInteract = false;
-        countdownPanel.SetActive(false);
+        var ui = slots[0].customizationUI;
+        if (ui == null || slots[0].spawnedModel == null) return;
 
-        if (openBoxObject != null) openBoxObject.SetActive(false);
-        if (closedBoxObject != null) closedBoxObject.SetActive(true);
+        Vector2 stick = InputManager.Instance.GetMove(1);
 
-        if (extraObjectsToHide != null)
+        if (stick.y > 0.5f && !slots[0].stickInUse) { ui.MoveSelection(-1); slots[0].stickInUse = true; }
+        else if (stick.y < -0.5f && !slots[0].stickInUse) { ui.MoveSelection(1); slots[0].stickInUse = true; }
+        if (Mathf.Abs(stick.y) < 0.2f) slots[0].stickInUse = false;
+
+        int category = ui.GetCurrentCategoryIndex();
+        var customization = slots[0].spawnedModel.GetComponentInChildren<PlayerCustomization>();
+
+        if (InputManager.Instance.GetDashDown(1))
         {
-            foreach (GameObject obj in extraObjectsToHide) if (obj != null) obj.SetActive(false);
+            if (category == 0) ui.ChangeName(1, 0);
+            else if (category == 1) ui.ChangeColor(1, slots[0].spawnedModel, 0);
+            else if (category == 2) customization.ChangeHead(1);
+            else if (category == 3) customization.ChangeTorso(1);
+            else if (category == 4) customization.ChangeBottom(1);
         }
 
-        HideAllPlayerUI();
-
-        if (sfxSource != null)
+        if (InputManager.Instance.GetGrabDown(1))
         {
-            if (catThrowSound != null) sfxSource.PlayOneShot(catThrowSound);
-            if (hoverSound != null) sfxSource.PlayOneShot(hoverSound);
+            if (category == 0) ui.ChangeName(-1, 0);
+            else if (category == 1) ui.ChangeColor(-1, slots[0].spawnedModel, 0);
+            else if (category == 2) customization.ChangeHead(-1);
+            else if (category == 3) customization.ChangeTorso(-1);
+            else if (category == 4) customization.ChangeBottom(-1);
         }
-
-        if (boxAnimator != null) boxAnimator.SetTrigger("ThrowRight");
-
-        yield return new WaitForSeconds(timeToWaitForThrow);
-
-        if (backgroundImage != null && loadingScreenSprite != null) backgroundImage.sprite = loadingScreenSprite;
-
-        yield return new WaitForSeconds(0.5f);
-        StartGame();
     }
+
+    // ── Assignment ───────────────────────────────────────────────
 
     void TryAssignController(int controllerIndex)
     {
-        for (int i = 0; i < assignedControllers.Length; i++) if (assignedControllers[i] == controllerIndex) return;
+        for (int i = 0; i < assignedControllers.Length; i++)
+            if (assignedControllers[i] == controllerIndex) return;
 
         for (int player = 0; player < assignedControllers.Length; player++)
         {
             if (assignedControllers[player] == -1)
             {
+                assignedControllers[player] = controllerIndex;
+                if (controllerIndex < Gamepad.all.Count)
+                    InputManager.Instance.AssignGamepad(player + 1, Gamepad.all[controllerIndex]);
+                SetupPlayerSlot(player);
+                if (GameManager.Instance != null)
+                    GameManager.Instance.controllerAssignments[player] = controllerIndex;
                 //assignedControllers[player] = controllerIndex;
-                assignedControllers[player] = controllers[controllerIndex].deviceId;
+                //assignedControllers[player] = controllers[controllerIndex].deviceId;
+                assignedControllers[player] = Gamepad.all[controllerIndex].deviceId;
                 slots[player].joinPanel.SetActive(false);
                 slots[player].menuPanel.SetActive(true);
                 slots[player].customizationUI.gameObject.SetActive(true);
@@ -282,11 +329,55 @@ public class PlayerJoinController : MonoBehaviour
 
                 //if (GameManager.Instance != null) GameManager.Instance.controllerAssignments[player] = controllerIndex;
                 if (GameManager.Instance != null)
-                    GameManager.Instance.controllerAssignments[player] = controllers[controllerIndex].deviceId;
+                    //GameManager.Instance.controllerAssignments[player] = controllers[controllerIndex].deviceId;
+                    GameManager.Instance.controllerAssignments[player] = Gamepad.all[controllerIndex].deviceId;
                 return;
             }
         }
     }
+
+    void TryAssignArcadePlayer(int player)
+    {
+        if (assignedControllers[player] != -1) return;
+        assignedControllers[player] = player;
+        SetupPlayerSlot(player);
+        if (GameManager.Instance != null)
+            GameManager.Instance.controllerAssignments[player] = player;
+    }
+
+    void TryAssignKeyboardPlayer()
+    {
+        if (assignedControllers[0] != -1) return;
+        assignedControllers[0] = 0;
+        SetupPlayerSlot(0);
+        if (GameManager.Instance != null)
+            GameManager.Instance.controllerAssignments[0] = 0;
+    }
+
+    void SetupPlayerSlot(int player)
+    {
+        slots[player].joinPanel.SetActive(false);
+        slots[player].menuPanel.SetActive(true);
+        slots[player].customizationUI.gameObject.SetActive(true);
+
+        if (slots[player].customizationUI != null) slots[player].customizationUI.Initialize();
+
+        slots[player].previewCamera.gameObject.SetActive(true);
+        slots[player].previewImage.texture = slots[player].previewCamera.targetTexture;
+        slots[player].previewImage.gameObject.SetActive(true);
+
+        slots[player].spawnedModel = Instantiate(playerModelPrefab,
+            slots[player].modelSpawnPoint.position,
+            slots[player].modelSpawnPoint.rotation,
+            slots[player].modelSpawnPoint);
+
+        var customization = slots[player].spawnedModel.GetComponentInChildren<PlayerCustomization>();
+        if (customization != null) customization.Initialize();
+
+        slots[player].customizationUI.SetColorIndex(player, slots[player].spawnedModel);
+    }
+
+    // ── Ready / Back ─────────────────────────────────────────────
 
     void HandleReadyPress(int player)
     {
@@ -296,12 +387,31 @@ public class PlayerJoinController : MonoBehaviour
         CheckStartCondition();
     }
 
+    void HandleBackPress(int player)
+    {
+        if (isReady[player]) { isReady[player] = false; slots[player].readyPanel.SetActive(false); return; }
+
+        assignedControllers[player] = -1;
+        InputManager.Instance.UnassignGamepad(player + 1);
+
+        slots[player].joinPanel.SetActive(true);
+        var cg = slots[player].joinPanel.GetComponent<CanvasGroup>();
+        if (cg != null) cg.alpha = 1f;
+
+        slots[player].menuPanel.SetActive(false);
+        slots[player].readyPanel.SetActive(false);
+        slots[player].previewCamera.gameObject.SetActive(false);
+        slots[player].previewImage.gameObject.SetActive(false);
+
+        if (slots[player].spawnedModel != null) Destroy(slots[player].spawnedModel);
+        if (GameManager.Instance != null) GameManager.Instance.controllerAssignments[player] = -1;
+    }
+
     void CheckStartCondition()
     {
         if (countdownStarted) return;
         int readyCount = 0;
         for (int i = 0; i < isReady.Length; i++) if (isReady[i]) readyCount++;
-
         if (readyCount >= slots.Length) StartCoroutine(StartCountdown());
     }
 
@@ -324,6 +434,64 @@ public class PlayerJoinController : MonoBehaviour
             timeLeft--;
         }
         StartCoroutine(ThrowBoxTransition());
+    }
+
+    // ── Transitions ──────────────────────────────────────────────
+
+    IEnumerator BackToMenuTransition()
+    {
+        canInteract = false;
+        HideAllPlayerUI();
+
+        if (objectsToAnimateOnBack != null)
+            foreach (Animator anim in objectsToAnimateOnBack)
+                if (anim != null) anim.SetTrigger("Outro");
+
+        yield return new WaitForSeconds(timeToWaitForBackAnim);
+        SceneManager.LoadScene(backSceneName);
+    }
+
+    IEnumerator ThrowBoxTransition()
+    {
+        canInteract = false;
+        countdownPanel.SetActive(false);
+
+        if (openBoxObject != null) openBoxObject.SetActive(false);
+        if (closedBoxObject != null) closedBoxObject.SetActive(true);
+
+        if (extraObjectsToHide != null)
+            foreach (GameObject obj in extraObjectsToHide)
+                if (obj != null) obj.SetActive(false);
+
+        HideAllPlayerUI();
+
+        if (sfxSource != null)
+        {
+            if (catThrowSound != null) sfxSource.PlayOneShot(catThrowSound);
+            if (hoverSound != null) sfxSource.PlayOneShot(hoverSound);
+        }
+
+        if (boxAnimator != null) boxAnimator.SetTrigger("ThrowRight");
+
+        yield return new WaitForSeconds(timeToWaitForThrow);
+
+        if (backgroundImage != null && loadingScreenSprite != null)
+            backgroundImage.sprite = loadingScreenSprite;
+
+        yield return new WaitForSeconds(0.5f);
+        StartGame();
+    }
+
+    private void HideAllPlayerUI()
+    {
+        for (int i = 0; i < slots.Length; i++)
+        {
+            slots[i].joinPanel.SetActive(false);
+            slots[i].menuPanel.SetActive(false);
+            slots[i].readyPanel.SetActive(false);
+            if (slots[i].previewCamera != null) slots[i].previewCamera.gameObject.SetActive(false);
+            if (slots[i].previewImage != null) slots[i].previewImage.gameObject.SetActive(false);
+        }
     }
 
     void StartGame()
@@ -349,23 +517,7 @@ public class PlayerJoinController : MonoBehaviour
         SceneManager.LoadScene(RoundManager.Instance.currRound.sceneName);
     }
 
-    void HandleBackPress(int player)
-    {
-        if (isReady[player]) { isReady[player] = false; slots[player].readyPanel.SetActive(false); return; }
-
-        assignedControllers[player] = -1;
-        slots[player].joinPanel.SetActive(true);
-        var cg = slots[player].joinPanel.GetComponent<CanvasGroup>();
-        if (cg != null) cg.alpha = 1f;
-
-        slots[player].menuPanel.SetActive(false);
-        slots[player].readyPanel.SetActive(false);
-        slots[player].previewCamera.gameObject.SetActive(false);
-        slots[player].previewImage.gameObject.SetActive(false);
-
-        if (slots[player].spawnedModel != null) Destroy(slots[player].spawnedModel);
-        if (GameManager.Instance != null) GameManager.Instance.controllerAssignments[player] = -1;
-    }
+    // ── Helpers ──────────────────────────────────────────────────
 
     int GetAssignedPlayerCount() { int c = 0; foreach (int a in assignedControllers) if (a != -1) c++; return c; }
     int GetReadyCount() { int c = 0; foreach (bool r in isReady) if (r) c++; return c; }
@@ -373,7 +525,8 @@ public class PlayerJoinController : MonoBehaviour
 
     int GetPlayerIndexFromController(int controllerIndex)
     {
-        Gamepad pad = controllers[controllerIndex];
+        //Gamepad pad = controllers[controllerIndex];
+        Gamepad pad = Gamepad.all[controllerIndex];
 
         if (pad == null)
             return -1;
@@ -389,18 +542,13 @@ public class PlayerJoinController : MonoBehaviour
         return -1;
     }
 
-    // --- THE MISSING METHODS ARE RIGHT HERE ---
     public bool IsColorTaken(int colorIndex, int requestingPlayer)
     {
         for (int i = 0; i < slots.Length; i++)
         {
-            if (i == requestingPlayer) continue;
-            if (assignedControllers[i] == -1) continue;
-
+            if (i == requestingPlayer || assignedControllers[i] == -1) continue;
             var ui = slots[i].customizationUI;
-            if (ui == null) continue;
-
-            if (ui.GetCurrentColorIndex() == colorIndex) return true;
+            if (ui != null && ui.GetCurrentColorIndex() == colorIndex) return true;
         }
         return false;
     }
@@ -409,13 +557,9 @@ public class PlayerJoinController : MonoBehaviour
     {
         for (int i = 0; i < slots.Length; i++)
         {
-            if (i == requestingPlayer) continue;
-            if (assignedControllers[i] == -1) continue;
-
+            if (i == requestingPlayer || assignedControllers[i] == -1) continue;
             var ui = slots[i].customizationUI;
-            if (ui == null) continue;
-
-            if (ui.GetCurrentNameIndex() == nameIndex) return true;
+            if (ui != null && ui.GetCurrentNameIndex() == nameIndex) return true;
         }
         return false;
     }
