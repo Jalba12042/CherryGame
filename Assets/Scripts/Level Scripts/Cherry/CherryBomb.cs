@@ -36,7 +36,7 @@ public class CherryBomb : Cherry
             SetCherryMaterial(normalMaterial);
     }
 
-    private void Update()
+    protected override void Update()
     {
         if (isHeld && !fuseLit)
         {

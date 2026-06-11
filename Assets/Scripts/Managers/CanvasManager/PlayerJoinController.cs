@@ -303,7 +303,7 @@ public class PlayerJoinController : MonoBehaviour
                 if (controllerIndex < Gamepad.all.Count)
                     InputManager.Instance.AssignGamepad(player + 1, Gamepad.all[controllerIndex]);
                 if (GameManager.Instance != null)
-                    GameManager.Instance.controllerAssignments[player] = controllerIndex;
+                    GameManager.Instance.controllerAssignments[player] = controllerIndex < Gamepad.all.Count ? Gamepad.all[controllerIndex].deviceId : -1;
                 SetupPlayerSlot(player);
                 return;
             }

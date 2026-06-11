@@ -32,9 +32,8 @@ public class PlayerInteract : MonoBehaviour
     [SerializeField] private Animator faceAnimator;
 
     // ===== CHERRY =====
-    [Header("Cherry Pickup")]
+    [Header("Pickup")]
     public Transform handHoldPoint;
-    [SerializeField] private LayerMask cherryLayer;
     [SerializeField] private float pickupRadius = 3f;
 
     [Header("Cherry Audio")]
@@ -69,7 +68,7 @@ public class PlayerInteract : MonoBehaviour
     [SerializeField]
     private float throwHoldThreshold = 0.2f;
 
-    private GameObject heldCherry;
+    private GameObject heldPickup;
     private float cherryPickupCooldown = 0f;
 
     private void Awake()
@@ -143,7 +142,7 @@ public class PlayerInteract : MonoBehaviour
             ReleaseGrab();
             return;
         }
-        if (heldCherry != null) 
+        if (heldPickup != null) 
         {
             if (!projectileScript.IsAiming())
             {
@@ -359,28 +358,29 @@ public class PlayerInteract : MonoBehaviour
 
     private void HandlePickup()
     {
-        if (heldCherry != null || cherryPickupCooldown > 0f) return;
+        if (heldPickup != null || cherryPickupCooldown > 0f) return;
 
-        Collider[] hits = Physics.OverlapSphere(transform.position, pickupRadius, cherryLayer);
-        GameObject closestCherry = null;
+        Collider[] hits = Physics.OverlapSphere(transform.position, pickupRadius);
+        GameObject closestPickup = null;
         float closestDist = Mathf.Infinity;
 
         foreach (var hit in hits)
         {
-            if (!hit.CompareTag("Cherry") && !hit.CompareTag("GoldenCherry")) continue;
+            LevelPickup lp = hit.GetComponent<LevelPickup>() ?? hit.GetComponentInParent<LevelPickup>();
+            if (lp == null || lp.isHeld) continue;
             float dist = Vector3.Distance(transform.position, hit.ClosestPoint(transform.position));
-            if (dist < closestDist) { closestDist = dist; closestCherry = hit.gameObject; }
+            if (dist < closestDist) { closestDist = dist; closestPickup = lp.gameObject; }
         }
 
-        if (closestCherry == null) return;
+        if (closestPickup == null) return;
 
-        heldCherry = closestCherry;
+        heldPickup = closestPickup;
 
-        Cherry cherryScript = heldCherry.GetComponent<Cherry>();
-        if (cherryScript != null)
+        LevelPickup pickup = heldPickup.GetComponent<LevelPickup>();
+        if (pickup != null)
         {
-            cherryScript.isHeld = true;
-            cherryScript.playerHolding = gameObject;
+            pickup.isHeld = true;
+            pickup.playerHolding = gameObject;
         }
 
         if (pickupSource != null && pickupClip != null)
@@ -391,14 +391,14 @@ public class PlayerInteract : MonoBehaviour
 
         SetJiggle(false);
 
-        Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
+        Rigidbody rbCherry = heldPickup.GetComponent<Rigidbody>();
         if (rbCherry != null) rbCherry.isKinematic = true;
 
-        heldCherry.transform.SetParent(handHoldPoint);
+        heldPickup.transform.SetParent(handHoldPoint);
         SetCherryCollision(false);
-        heldCherry.transform.localPosition = Vector3.zero;
+        heldPickup.transform.localPosition = Vector3.zero;
 
-        projectileScript?.PickUpCherry(heldCherry);
+        projectileScript?.PickUpCherry(heldPickup);
 
         if (animator != null)
             StartCoroutine(PlayPickupAnimation());
@@ -406,7 +406,7 @@ public class PlayerInteract : MonoBehaviour
 
     public void CancelAimAndDrop()
     {
-        if (heldCherry == null) return;
+        if (heldPickup == null) return;
 
         if (pickupSource != null && cherryDropClip != null)
         {
@@ -416,8 +416,8 @@ public class PlayerInteract : MonoBehaviour
 
         projectileScript?.CancelAim();
 
-        Rigidbody rbCherry = heldCherry.GetComponent<Rigidbody>();
-        heldCherry.transform.SetParent(null);
+        Rigidbody rbCherry = heldPickup.GetComponent<Rigidbody>();
+        heldPickup.transform.SetParent(null);
         if (rbCherry != null) rbCherry.isKinematic = false;
 
         SetCherryCollision(true);
@@ -425,26 +425,26 @@ public class PlayerInteract : MonoBehaviour
 
         if (animator != null) animator.SetBool("isPickingUp", false);
 
-        Cherry cherryScript = heldCherry.GetComponent<Cherry>();
-        if (cherryScript != null)
+        LevelPickup pickup = heldPickup.GetComponent<LevelPickup>();
+        if (pickup != null)
         {
-            cherryScript.isHeld = false;
-            cherryScript.playerHolding = null;
+            pickup.isHeld = false;
+            pickup.playerHolding = null;
         }
 
-        heldCherry = null;
+        heldPickup = null;
         cherryPickupCooldown = 0.5f;
     }
 
     public void ForceDrop()
     {
         CancelAimAndDrop();
-        heldCherry = null;
+        heldPickup = null;
     }
 
     public void NotifyThrowEnded()
     {
-        heldCherry = null;
+        heldPickup = null;
         cherryPickupCooldown = 0.5f;
     }
 
@@ -483,9 +483,9 @@ public class PlayerInteract : MonoBehaviour
 
     private void SetCherryCollision(bool enabled)
     {
-        if (heldCherry == null) return;
+        if (heldPickup == null) return;
         Collider[] playerCols = GetComponentsInChildren<Collider>();
-        Collider[] cherryCols = heldCherry.GetComponentsInChildren<Collider>();
+        Collider[] cherryCols = heldPickup.GetComponentsInChildren<Collider>();
         foreach (var p in playerCols)
             foreach (var c in cherryCols)
                 Physics.IgnoreCollision(p, c, !enabled);

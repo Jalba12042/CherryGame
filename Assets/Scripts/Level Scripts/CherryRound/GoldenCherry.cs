@@ -13,8 +13,9 @@ public class GoldenCherry : Cherry
     private Playermovement cachedPlayer;
     private Projectile cachedProjectile;
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         StartCoroutine(Spawn());
     }
     private IEnumerator Spawn()
@@ -36,8 +37,10 @@ public class GoldenCherry : Cherry
         rb.isKinematic = false;
     }
 
-    private void Update()
+    protected override void Update()
     {
+        base.Update();
+
         if (playerHolding != null && !effectApplied)
         {
             effectApplied = true;
