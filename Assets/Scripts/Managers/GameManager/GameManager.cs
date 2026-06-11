@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -132,16 +133,9 @@ public class GameManager : MonoBehaviour
 
     public Gamepad GetAssignedGamepad(int playerIndex)
     {
-        int savedDeviceId = controllerAssignments[playerIndex];
-
-        foreach (Gamepad gamepad in Gamepad.all)
-        {
-            if (gamepad.deviceId == savedDeviceId)
-            {
-                return gamepad;
-            }
-        }
-
+        int controllerIndex = controllerAssignments[playerIndex];
+        if (controllerIndex >= 0 && controllerIndex < Gamepad.all.Count)
+            return Gamepad.all[controllerIndex];
         return null;
     }
 }

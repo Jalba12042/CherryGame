@@ -107,8 +107,6 @@ public class PlayerJoinController : MonoBehaviour
 
     void Update()
     {
-        controllers = Gamepad.all.ToArray();
-
         if (!canInteract) return;
 
         // Arcade mode — use InputManager prefix-based input per slot
@@ -304,31 +302,9 @@ public class PlayerJoinController : MonoBehaviour
                 assignedControllers[player] = controllerIndex;
                 if (controllerIndex < Gamepad.all.Count)
                     InputManager.Instance.AssignGamepad(player + 1, Gamepad.all[controllerIndex]);
-                SetupPlayerSlot(player);
                 if (GameManager.Instance != null)
                     GameManager.Instance.controllerAssignments[player] = controllerIndex;
-                //assignedControllers[player] = controllerIndex;
-                assignedControllers[player] = controllers[controllerIndex].deviceId;
-                slots[player].joinPanel.SetActive(false);
-                slots[player].menuPanel.SetActive(true);
-                slots[player].customizationUI.gameObject.SetActive(true);
-
-                if (slots[player].customizationUI != null) slots[player].customizationUI.Initialize();
-
-                slots[player].previewCamera.gameObject.SetActive(true);
-                slots[player].previewImage.texture = slots[player].previewCamera.targetTexture;
-                slots[player].previewImage.gameObject.SetActive(true);
-
-                slots[player].spawnedModel = Instantiate(playerModelPrefab, slots[player].modelSpawnPoint.position, slots[player].modelSpawnPoint.rotation, slots[player].modelSpawnPoint);
-
-                var customization = slots[player].spawnedModel.GetComponentInChildren<PlayerCustomization>();
-                if (customization != null) customization.Initialize();
-
-                slots[player].customizationUI.SetColorIndex(player, slots[player].spawnedModel);
-
-                //if (GameManager.Instance != null) GameManager.Instance.controllerAssignments[player] = controllerIndex;
-                if (GameManager.Instance != null)
-                    GameManager.Instance.controllerAssignments[player] = controllers[controllerIndex].deviceId;
+                SetupPlayerSlot(player);
                 return;
             }
         }
@@ -519,25 +495,7 @@ public class PlayerJoinController : MonoBehaviour
 
     int GetAssignedPlayerCount() { int c = 0; foreach (int a in assignedControllers) if (a != -1) c++; return c; }
     int GetReadyCount() { int c = 0; foreach (bool r in isReady) if (r) c++; return c; }
-    //int GetPlayerIndexFromController(int cIdx) { for (int i = 0; i < assignedControllers.Length; i++) if (assignedControllers[i] == cIdx) return i; return -1; }
-
-    int GetPlayerIndexFromController(int controllerIndex)
-    {
-        Gamepad pad = controllers[controllerIndex];
-
-        if (pad == null)
-            return -1;
-
-        int deviceId = pad.deviceId;
-
-        for (int i = 0; i < assignedControllers.Length; i++)
-        {
-            if (assignedControllers[i] == deviceId)
-                return i;
-        }
-
-        return -1;
-    }
+    int GetPlayerIndexFromController(int cIdx) { for (int i = 0; i < assignedControllers.Length; i++) if (assignedControllers[i] == cIdx) return i; return -1; }
 
     public bool IsColorTaken(int colorIndex, int requestingPlayer)
     {

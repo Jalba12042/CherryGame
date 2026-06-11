@@ -245,10 +245,10 @@ public class RoundManager : MonoBehaviour
                 player.GetComponent<PlayerEscapeUI>().playerIndex = i;
 
                 Gamepad assignedGamepad = GameManager.Instance.GetAssignedGamepad(i);
-
                 if (assignedGamepad != null)
                 {
                     player.assignedGamepad = assignedGamepad;
+                    InputManager.Instance.AssignGamepad(player.playerID, assignedGamepad);
                 }
 
 
