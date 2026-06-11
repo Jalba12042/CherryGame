@@ -8,7 +8,7 @@ public class MagicMirrorEvent : GameEvent
     {
         isRunning = true;
 
-        Playermovement[] players = FindObjectsOfType<Playermovement>();
+        Playermovement[] players = FindObjectsByType<Playermovement>(FindObjectsSortMode.None);
 
         // Reverse controls ON
         foreach (Playermovement player in players)

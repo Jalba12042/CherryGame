@@ -50,7 +50,7 @@ public class EventManager : MonoBehaviour
         // This finds your images even if they are greyed out/turned off!
         if (meteorAnimatedUI == null || cherryAnimatedUI == null || ufoAnimatedUI == null || zombieAnimatedUI == null || mirrorAnimatedUI == null)
         {
-            Canvas[] allCanvases = FindObjectsOfType<Canvas>();
+            Canvas[] allCanvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
             foreach (Canvas canvas in allCanvases)
             {
                 Transform[] allUIElements = canvas.GetComponentsInChildren<Transform>(true);
