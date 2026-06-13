@@ -1,4 +1,4 @@
-using UnityEngine;
+/*using UnityEngine;
 using System.Collections;
 
 public class CanOfWormsEffect : Powerup
@@ -128,4 +128,4 @@ public class Infection : MonoBehaviour
             }
         }
     }
-}
+}*/
