@@ -8,7 +8,7 @@ using UnityEngine.UI;
 public class MainMenuController : MonoBehaviour
 {
     [Header("Menu Buttons (Local, Multiplayer in this order)")]
-    public MenuSelectable[] buttons;   // <<— make sure this says MenuSelectable[]
+    public MenuSelectable[] buttons;   // <<ï¿½ make sure this says MenuSelectable[]
 
     [Header("UI Sound Effects")]
     public AudioClip navigateSound; // Left/Right Stick or D-Pad
@@ -22,7 +22,7 @@ public class MainMenuController : MonoBehaviour
 
     void Awake()
     {
-        // Optional: auto-find if you don’t want to drag
+        // Optional: auto-find if you donï¿½t want to drag
         if (buttons == null || buttons.Length == 0)
         {
             buttons = FindObjectsByType<MenuSelectable>(FindObjectsSortMode.None)
@@ -39,21 +39,16 @@ public class MainMenuController : MonoBehaviour
 
     void Update()
     {
-        if (Gamepad.all.Count == 0 || buttons == null || buttons.Length == 0) return;
+        if (InputManager.Instance == null || buttons == null || buttons.Length == 0) return;
 
-        var gamepad = Gamepad.all[0];
-
-        Vector2 move = gamepad.leftStick.ReadValue();
-        float xInput = move.x;
-        if (gamepad.dpad.left.wasPressedThisFrame) xInput = -1;
-        if (gamepad.dpad.right.wasPressedThisFrame) xInput = 1;
+        const int menuPlayer = 1;
+        float xInput = InputManager.Instance.GetMove(menuPlayer).x;
 
         if (canMove)
         {
             if (xInput > deadzone)
             {
                 int newIndex = Mathf.Min(buttons.Length - 1, currentIndex + 1);
-                // Only play sound if the index actually changed
                 if (newIndex != currentIndex)
                 {
                     currentIndex = newIndex;
@@ -65,7 +60,6 @@ public class MainMenuController : MonoBehaviour
             else if (xInput < -deadzone)
             {
                 int newIndex = Mathf.Max(0, currentIndex - 1);
-                // Only play sound if the index actually changed
                 if (newIndex != currentIndex)
                 {
                     currentIndex = newIndex;
@@ -77,19 +71,15 @@ public class MainMenuController : MonoBehaviour
         }
         if (Mathf.Abs(xInput) < 0.2f) canMove = true;
 
-        // A Button (South)
-        if (gamepad.buttonSouth.wasPressedThisFrame)
+        if (InputManager.Instance.GetConfirmDown(menuPlayer))
         {
             PlaySound(selectSound);
             buttons[currentIndex].Activate();
         }
 
-        // B Button (East)
-        if (gamepad.buttonEast.wasPressedThisFrame)
+        if (InputManager.Instance.GetBackDown(menuPlayer))
         {
             PlaySound(backSound);
-            // NOTE: Add your back logic here if you want the B button to return to the previous screen!
-            // Example: SceneManager.LoadScene("TitleScreen");
         }
     }
 

@@ -240,14 +240,15 @@ public class RoundManager : MonoBehaviour
 
                 Playermovement player = playerObj.GetComponentInChildren<Playermovement>();
                 player.playerIndex = i;
+                player.playerID = i + 1;
                 player.initialSpawnPosition = currPlayerSpawn.spawnPoints[i].position;
                 player.GetComponent<PlayerEscapeUI>().playerIndex = i;
 
                 Gamepad assignedGamepad = GameManager.Instance.GetAssignedGamepad(i);
-
                 if (assignedGamepad != null)
                 {
                     player.assignedGamepad = assignedGamepad;
+                    InputManager.Instance.AssignGamepad(player.playerID, assignedGamepad);
                 }
 
 
@@ -263,11 +264,12 @@ public class RoundManager : MonoBehaviour
             GameObject playerObj = Instantiate(playerPrefab, currPlayerSpawn.spawnPoints[0].position, Quaternion.identity);
             Playermovement player = playerObj.GetComponentInChildren<Playermovement>();
             player.playerIndex = 0;
+            player.playerID = 1;
             player.initialSpawnPosition = currPlayerSpawn.spawnPoints[0].position;
             player.GetComponent<PlayerEscapeUI>().playerIndex = 0;
 
-            PlayerColorAssigner colorAssigner = playerObj.GetComponentInChildren<PlayerColorAssigner>();
-            if (colorAssigner != null) colorAssigner.AssignColor(0);
+            PlayerCustomization customization = playerObj.GetComponentInChildren<PlayerCustomization>();
+            if (customization != null) customization.AssignColor(0);
 
             Camera faceCam = player.GetComponentInChildren<Camera>();
             if (faceCam != null && 0 < playerFaceRenderTextures.Length)
@@ -294,14 +296,15 @@ public class RoundManager : MonoBehaviour
 
         float timer = 0;
         float maxTimer = 3;
-        TMP_Text startTimerText = currRound.startTimerUI.GetComponent<TMP_Text>();
         if (currRound.startTimerUI != null)
         {
+            TMP_Text startTimerText = currRound.startTimerUI.GetComponent<TMP_Text>();
             currRound.startTimerUI.SetActive(true);
             while (timer < 3)
             {
                 timer += Time.deltaTime;
-                startTimerText.text = $"{((int)(maxTimer - timer)) + 1}";
+                if (startTimerText != null)
+                    startTimerText.text = $"{((int)(maxTimer - timer)) + 1}";
                 yield return null;
             }
             currRound.startTimerUI.SetActive(false);

@@ -2,9 +2,9 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using UnityEngine.InputSystem;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
 
 public class WinScript : MonoBehaviour
 {
@@ -112,46 +112,12 @@ public class WinScript : MonoBehaviour
 
         int totalPlayers = GameManager.Instance.playerCount;
 
-        if (GameManager.Instance.isOnKeyboard)
+        for (int i = 0; i < totalPlayers; i++)
         {
-            if (Keyboard.current != null && (Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.enterKey.wasPressedThisFrame))
-            {
-                if (!playerReady[0]) ReadyUpPlayer(0);
-            }
-        }
-        else
-        {
-            var controllers = Gamepad.all;
-
-            for (int i = 0; i < totalPlayers; i++)
-            {
-                //int deviceId = GameManager.Instance.controllerAssignments[i];
-                int deviceId = FindValidDeviceId(GameManager.Instance.controllerAssignments[i]);
-                GameManager.Instance.controllerAssignments[i] = deviceId;
-                if (deviceId == -1) continue;
-
-                Gamepad pad = null;
-
-                foreach (var gp in controllers)
-                {
-                    if (gp.deviceId == deviceId)
-                    {
-                        pad = gp;
-                        break;
-                    }
-                }
-
-                if (pad == null) continue;
-
-                if (pad.buttonSouth.wasPressedThisFrame)
-                {
-                    if (!playerReady[i])
-                        ReadyUpPlayer(i);
-                }
-            }
+            if (!playerReady[i] && InputManager.Instance.GetConfirmDown(i + 1))
+                ReadyUpPlayer(i);
         }
 
-        // Check if everyone is ready to trigger the Outro
         if (readyCount >= totalPlayers && totalPlayers > 0)
         {
             isScoreboardVisible = false;
@@ -221,32 +187,4 @@ public class WinScript : MonoBehaviour
         SceneManager.LoadScene(shopSceneName);
     }
 
-    private int FindValidDeviceId(int storedDeviceId)
-    {
-        foreach (var pad in Gamepad.all)
-        {
-            if (pad.deviceId == storedDeviceId)
-                return storedDeviceId;
-        }
-
-        // device is gone, try to rebind to any unassigned controller
-        foreach (var pad in Gamepad.all)
-        {
-            bool alreadyUsed = false;
-
-            for (int i = 0; i < GameManager.Instance.controllerAssignments.Length; i++)
-            {
-                if (GameManager.Instance.controllerAssignments[i] == pad.deviceId)
-                {
-                    alreadyUsed = true;
-                    break;
-                }
-            }
-
-            if (!alreadyUsed)
-                return pad.deviceId;
-        }
-
-        return -1;
-    }
 }

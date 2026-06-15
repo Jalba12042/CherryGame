@@ -21,6 +21,7 @@ public class EventManager : MonoBehaviour
     public GameObject cherryAnimatedUI;
     public GameObject ufoAnimatedUI;
     public GameObject zombieAnimatedUI;
+    public GameObject mirrorAnimatedUI;
 
     [Header("Text UI (Restored for RoundManager)")]
     public GameObject eventTextObj;
@@ -47,9 +48,9 @@ public class EventManager : MonoBehaviour
     {
         // === THE BULLETPROOF X-RAY FINDER ===
         // This finds your images even if they are greyed out/turned off!
-        if (meteorAnimatedUI == null || cherryAnimatedUI == null || ufoAnimatedUI == null || zombieAnimatedUI == null)
+        if (meteorAnimatedUI == null || cherryAnimatedUI == null || ufoAnimatedUI == null || zombieAnimatedUI == null || mirrorAnimatedUI == null)
         {
-            Canvas[] allCanvases = FindObjectsOfType<Canvas>();
+            Canvas[] allCanvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
             foreach (Canvas canvas in allCanvases)
             {
                 Transform[] allUIElements = canvas.GetComponentsInChildren<Transform>(true);
@@ -59,6 +60,7 @@ public class EventManager : MonoBehaviour
                     if (uiElement.name == "CherryImage") { cherryAnimatedUI = uiElement.gameObject; cherryAnimatedUI.SetActive(false); }
                     if (uiElement.name == "UFOImage") { ufoAnimatedUI = uiElement.gameObject; ufoAnimatedUI.SetActive(false); }
                     if (uiElement.name == "ZombieImage") { zombieAnimatedUI = uiElement.gameObject; zombieAnimatedUI.SetActive(false); }
+                    if (uiElement.name == "MirrorImage") { mirrorAnimatedUI = uiElement.gameObject; mirrorAnimatedUI.SetActive(false); }
                 }
             }
         }
@@ -88,6 +90,7 @@ public class EventManager : MonoBehaviour
             if (cherryAnimatedUI != null) cherryAnimatedUI.SetActive(false);
             if (ufoAnimatedUI != null) ufoAnimatedUI.SetActive(false);
             if (zombieAnimatedUI != null) zombieAnimatedUI.SetActive(false);
+            if (mirrorAnimatedUI != null) mirrorAnimatedUI.SetActive(false);
             if (eventTextObj != null) eventTextObj.SetActive(false);
         }
 
@@ -163,6 +166,10 @@ public class EventManager : MonoBehaviour
         else if (triggeredEvent.eventName == "Zombie Apocalypse!")
         {
             activeUI = zombieAnimatedUI;
+        }
+        else if (triggeredEvent.eventName == "Magic Mirror!")
+        {
+            activeUI = mirrorAnimatedUI;
         }
 
         if (activeUI != null)

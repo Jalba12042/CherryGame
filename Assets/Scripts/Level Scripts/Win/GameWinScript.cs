@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -144,9 +143,9 @@ public class GameWinScript : MonoBehaviour
 
     void Update()
     {
-        if (Gamepad.all.Count == 0 || menuButtons == null || menuButtons.Length == 0) return;
-        var gamepad = Gamepad.all[0];
-        Vector2 move = gamepad.leftStick.ReadValue();
+        if (menuButtons == null || menuButtons.Length == 0) return;
+
+        Vector2 move = InputManager.Instance.GetMove(1);
 
         if (canMove)
         {
@@ -166,10 +165,8 @@ public class GameWinScript : MonoBehaviour
 
         if (Mathf.Abs(move.y) < 0.2f) canMove = true;
 
-        if (gamepad.buttonSouth.wasPressedThisFrame)
-        {
+        if (InputManager.Instance.GetConfirmDown(1))
             menuButtons[currentIndex].onClick.Invoke();
-        }
     }
 
     void HighlightButton()

@@ -12,10 +12,10 @@ public class GoldenCherry : Cherry
 
     private Playermovement cachedPlayer;
     private Projectile cachedProjectile;
-    private PlayerDash cachedDash;
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         StartCoroutine(Spawn());
     }
     private IEnumerator Spawn()
@@ -37,8 +37,10 @@ public class GoldenCherry : Cherry
         rb.isKinematic = false;
     }
 
-    private void Update()
+    protected override void Update()
     {
+        base.Update();
+
         if (playerHolding != null && !effectApplied)
         {
             effectApplied = true;
@@ -59,8 +61,8 @@ public class GoldenCherry : Cherry
                 if (anim != null)
                     anim.SetBool("isPickingUp", false);
 
-                PlayerDash pd = prevPlayerHolding.GetComponent<PlayerDash>();
-                if (pd != null) pd.enabled = true;
+                Playermovement prevPm = prevPlayerHolding.GetComponent<Playermovement>();
+                if (prevPm != null) prevPm.dashEnabled = true;
 
                 Projectile proj = prevPlayerHolding.GetComponent<Projectile>();
                 if (proj != null) proj.EnableThrowing();
@@ -75,8 +77,8 @@ public class GoldenCherry : Cherry
         // wait 1 frame so pickup animation/state can register first
         yield return null;
 
-        PlayerDash pd = player.GetComponent<PlayerDash>();
-        if (pd != null) pd.enabled = false;
+        Playermovement pm = player.GetComponent<Playermovement>();
+        if (pm != null) pm.dashEnabled = false;
 
         Projectile proj = player.GetComponent<Projectile>();
         if (proj != null) proj.DisableThrowing();

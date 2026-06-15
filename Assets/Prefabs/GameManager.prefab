@@ -1,5 +1,205 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3546190262149792568
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 920493507599651854}
+  - component: {fileID: 1492607365954666547}
+  m_Layer: 0
+  m_Name: EventManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &920493507599651854
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3546190262149792568}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1756422733421096794}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1492607365954666547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3546190262149792568}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76d4c844dc95656428aead8b1a0d6e2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  eventsInRotation:
+  - {fileID: 11400000, guid: 6ace94c6eec7c4b4582c0292034928bf, type: 2}
+  - {fileID: 11400000, guid: 26ee35e2d468a1c4eba11603a12e0173, type: 2}
+  - {fileID: 11400000, guid: 4d4f6a528c6c568449bbbf817e0017d4, type: 2}
+  - {fileID: 11400000, guid: c6ff4330a1548f349ae7430c8e9bbf1e, type: 2}
+  - {fileID: 11400000, guid: c3f09c411aa3d6243ad3739fd051b5b6, type: 2}
+  currEvent: {fileID: 0}
+  eventCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 34
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.2970581
+      value: 0
+      inSlope: -0
+      outSlope: -0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 1
+    - serializedVersion: 3
+      time: 0.2989323
+      value: 0.2960744
+      inSlope: 0.024632331
+      outSlope: 0.024632331
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.3176897
+    - serializedVersion: 3
+      time: 0.5981483
+      value: 0.2949719
+      inSlope: -0.027179949
+      outSlope: -0.027179949
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 1
+    - serializedVersion: 3
+      time: 0.6001221
+      value: 0.59464025
+      inSlope: 0.012602936
+      outSlope: 0.012602936
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 1
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.7972612
+      value: 0.5989887
+      inSlope: 0.1682724
+      outSlope: 0.1682724
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 1
+    - serializedVersion: 3
+      time: 0.8006381
+      value: 0.8971775
+      inSlope: 0.0122248065
+      outSlope: 0.0122248065
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.8816701
+      value: 0.9047942
+      inSlope: 0.0029880882
+      outSlope: 0.0029880882
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.1459491
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.8879991
+      value: 0.00045579672
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.99969804
+      value: 0.000000346452
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  meteorAnimatedUI: {fileID: 0}
+  cherryAnimatedUI: {fileID: 0}
+  ufoAnimatedUI: {fileID: 0}
+  zombieAnimatedUI: {fileID: 0}
+  mirrorAnimatedUI: {fileID: 0}
+  eventTextObj: {fileID: 0}
+  eventText: {fileID: 0}
+  eventRunning: 0
+  onCooldown: 0
+--- !u!1 &4481589472641408521
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2087236516050319454}
+  - component: {fileID: 5551158053296744680}
+  m_Layer: 0
+  m_Name: InputManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2087236516050319454
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4481589472641408521}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1756422733421096794}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5551158053296744680
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4481589472641408521}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f28912035be15e44d80c32b9c7310bb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5029232655034490216
 GameObject:
   m_ObjectHideFlags: 0
@@ -9,7 +209,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4624435413218560890}
-  - component: {fileID: 6131499946005035553}
+  - component: {fileID: 6692159242759764655}
   m_Layer: 0
   m_Name: RoundManager
   m_TagString: Untagged
@@ -32,7 +232,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1756422733421096794}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6131499946005035553
+--- !u!114 &6692159242759764655
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -46,12 +246,32 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currRoundProgress: 0
   currRoundDurationInSecs: 0
+  currRoundProgressNormalized: 0
+  currRound: {fileID: 11400000, guid: 4e72d7c2a3959b44c9ab620218cefceb, type: 2}
+  currRoundActive: 0
+  currRoundScores: 
   roundList:
   - {fileID: 11400000, guid: 4e72d7c2a3959b44c9ab620218cefceb, type: 2}
-  currRound: {fileID: 0}
+  timerBackgroundUI: {fileID: 0}
+  powerUpsInRotation: []
   allowRepeats: 1
-  shopSceneName: MaxTestScene2
-  currRoundActive: 0
+  shopSceneName: Shop
+  controllerSceneName: ControllerConnectScene
+  winSceneName: WinScene
+  gameWinSceneName: GameWinScene
+  startTimerInSeconds: 5
+  playerPrefab: {fileID: 5896580224650156824, guid: a4941385819267443921cc5940722af2, type: 3}
+  maxScore: 3
+  playerObjects: []
+  powerupsInPlay: []
+  currPlayerSpawn: {fileID: 0}
+  playerFaceRenderTextures:
+  - {fileID: 8400000, guid: 397254725f2d65349911e6944795ac40, type: 2}
+  - {fileID: 8400000, guid: 1d02e6dddda724b4eb84608103489b14, type: 2}
+  - {fileID: 8400000, guid: 6c54f91ae386f174baca2cf84cc6f32f, type: 2}
+  - {fileID: 8400000, guid: 26e76149f6ad54340be36ff765578a93, type: 2}
+  roundsWon: 00000000000000000000000000000000
+  sprinklerManager: {fileID: 0}
 --- !u!1 &5707912695095907388
 GameObject:
   m_ObjectHideFlags: 0
@@ -83,6 +303,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4624435413218560890}
+  - {fileID: 2087236516050319454}
+  - {fileID: 920493507599651854}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8580464341000308657
@@ -99,6 +321,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerCount: 0
   controllerAssignments: 
+  playerTotalScores: 
   timerText: {fileID: 0}
-  button: {fileID: 0}
+  isOnKeyboard: 0
+  playerCustomizations: []
   currGameState: 0

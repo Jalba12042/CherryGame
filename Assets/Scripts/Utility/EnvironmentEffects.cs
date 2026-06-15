@@ -2,9 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Script for various effects for the environment
+
 public class EnvironmentEffects : MonoBehaviour
 {
     // Send all things up
+#nullable enable
     public void bigImpact(float itemJumpForce, Rigidbody? exception)
     {
         Rigidbody[] allRigidbodies = GameObject.FindObjectsByType<Rigidbody>(FindObjectsSortMode.None);

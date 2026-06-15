@@ -52,7 +52,7 @@ public class GameManager : MonoBehaviour
             for (int i = 0; i < 4; i++)
             {
                 playerTotalScores[i] = 0;
-                controllerAssignments[i] = -1; // means “unassigned”
+                controllerAssignments[i] = -1; // means ï¿½unassignedï¿½
             }
             // ---------------------------
 
@@ -87,12 +87,10 @@ public class GameManager : MonoBehaviour
         }
 
         // Only allow controller navigation outside of rounds
-        if (currGameState != GameState.Round && menuButtons != null && menuButtons.Length > 0 && Gamepad.all.Count > 0)
+        if (currGameState != GameState.Round && menuButtons != null && menuButtons.Length > 0 && InputManager.Instance != null)
         {
-            var gamepad = Gamepad.all[0];
-            Vector2 move = gamepad.leftStick.ReadValue();
+            Vector2 move = InputManager.Instance.GetMove(1);
 
-            // Navigation
             if (canMove)
             {
                 if (move.y > deadzone)
@@ -112,11 +110,8 @@ public class GameManager : MonoBehaviour
             if (Mathf.Abs(move.y) < 0.2f)
                 canMove = true;
 
-            // Confirm selection
-            if (gamepad.buttonSouth.wasPressedThisFrame)
-            {
+            if (InputManager.Instance.GetConfirmDown(1))
                 menuButtons[currentIndex].onClick.Invoke();
-            }
         }
     }
 
@@ -138,16 +133,9 @@ public class GameManager : MonoBehaviour
 
     public Gamepad GetAssignedGamepad(int playerIndex)
     {
-        int savedDeviceId = controllerAssignments[playerIndex];
-
-        foreach (Gamepad gamepad in Gamepad.all)
-        {
-            if (gamepad.deviceId == savedDeviceId)
-            {
-                return gamepad;
-            }
-        }
-
+        int controllerIndex = controllerAssignments[playerIndex];
+        if (controllerIndex >= 0 && controllerIndex < Gamepad.all.Count)
+            return Gamepad.all[controllerIndex];
         return null;
     }
 }
