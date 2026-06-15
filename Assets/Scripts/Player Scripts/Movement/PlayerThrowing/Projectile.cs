@@ -59,6 +59,9 @@ public class Projectile : MonoBehaviour
 
     private float currentPower = 0f;
 
+    private float rtHoldTime = 0f;
+    [SerializeField] private float aimThreshold = 0.2f;
+
     public bool IsAiming() => isAiming;
     public bool IsThrowPending() => pendingThrow;
 
@@ -127,38 +130,48 @@ public class Projectile : MonoBehaviour
         launchPoint.forward = owner.transform.forward;
 
         // HOLD throw button
-        if (InputManager.Instance.GetButton2Held(ownerPlayerID))
+        if (InputManager.Instance.GetButton1Held(ownerPlayerID))
         {
-            isAiming = true;
-            owner.animator.SetBool("isAiming", true);
+            rtHoldTime += Time.deltaTime;
 
-            currentPower = Mathf.Lerp(currentPower, 1f, Time.deltaTime * 8f);
-            DrawTrajectory(currentPower);
+            if (rtHoldTime >= aimThreshold)
+            {
+                isAiming = true;
+                owner.animator.SetBool("isAiming", true);
+
+                currentPower = Mathf.Lerp(currentPower, 1f, Time.deltaTime * 8f);
+                DrawTrajectory(currentPower);
+            }
         }
         // RELEASE throw button
-        else if (isAiming && canThrow)
+        else
         {
-            if (landingMarkerInstance != null)
-                landingMarkerInstance.SetActive(false);
+            rtHoldTime = 0f;
 
-            float finalPower = Mathf.Max(currentPower, 0.25f);
+            if (isAiming && canThrow)
+            {
+                if (landingMarkerInstance != null)
+                    landingMarkerInstance.SetActive(false);
 
-            pendingThrow = true;
+                float finalPower = Mathf.Max(currentPower, 0.25f);
 
-            canThrow = false;
-            throwCooldownTimer = throwCooldown;
+                pendingThrow = true;
 
-            if (cooldownBarObject != null)
-                cooldownBarObject.SetActive(true);
+                canThrow = false;
+                throwCooldownTimer = throwCooldown;
 
-            owner.animator.SetTrigger("doThrow");
-            owner.animator.SetBool("isAiming", false);
-            owner.animator.SetBool("isPickingUp", false);
+                if (cooldownBarObject != null)
+                    cooldownBarObject.SetActive(true);
 
-            owner.StartCoroutine(DelayedThrow(finalPower));
+                owner.animator.SetTrigger("doThrow");
+                owner.animator.SetBool("isAiming", false);
+                owner.animator.SetBool("isPickingUp", false);
 
-            isAiming = false;
-            currentPower = 0f;
+                owner.StartCoroutine(DelayedThrow(finalPower));
+
+                isAiming = false;
+                currentPower = 0f;
+            }
         }
     }
 
@@ -166,13 +179,13 @@ public class Projectile : MonoBehaviour
     {
         heldCherry = cherryObject;
         isHoldingCherry = true;
-        Cherry cherryScript = cherryObject.GetComponent<Cherry>();
 
-        if (cherryScript != null)
+        LevelPickup pickup = cherryObject.GetComponent<LevelPickup>();
+        if (pickup != null)
         {
-            cherryScript.isHeld = true;
-            cherryScript.playerHolding = gameObject;
-            cherryScript.DisableTrail();
+            pickup.isHeld = true;
+            pickup.playerHolding = gameObject;
+            pickup.DisableTrail();
         }
 
         /*cherryTrail = heldCherry.GetComponent<TrailRenderer>();
@@ -262,12 +275,12 @@ public class Projectile : MonoBehaviour
         Rigidbody rb = heldCherry.GetComponent<Rigidbody>();
         heldCherry.transform.SetParent(null);
 
-        Cherry cherryScript = heldCherry.GetComponent<Cherry>();
-        if (cherryScript != null)
+        LevelPickup pickup = heldCherry.GetComponent<LevelPickup>();
+        if (pickup != null)
         {
-            cherryScript.isHeld = false;
-            cherryScript.playerHolding = null;
-            cherryScript.EnableTrail();
+            pickup.isHeld = false;
+            pickup.playerHolding = null;
+            pickup.EnableTrail();
         }
 
         /*cherryTrail = heldCherry.GetComponent<TrailRenderer>();
@@ -393,12 +406,11 @@ public class Projectile : MonoBehaviour
             if (rb != null)
                 rb.isKinematic = false;
 
-            // Reset cherry script
-            Cherry cherryScript = heldCherry.GetComponent<Cherry>();
-            if (cherryScript != null)
+            LevelPickup pickup = heldCherry.GetComponent<LevelPickup>();
+            if (pickup != null)
             {
-                cherryScript.isHeld = false;
-                cherryScript.playerHolding = null;
+                pickup.isHeld = false;
+                pickup.playerHolding = null;
             }
         }
 

@@ -236,6 +236,64 @@ public class ShopManager : MonoBehaviour
             {
                 if (lockedIn[i]) continue;
 
+                int deviceId = GameManager.Instance.controllerAssignments[i];
+                if (deviceId == -1) continue;
+
+                Gamepad pad = null;
+
+                foreach (var gp in Gamepad.all)
+                {
+                    if (gp.deviceId == deviceId)
+                    {
+                        pad = gp;
+                        break;
+                    }
+                }
+
+                if (pad == null) continue;
+
+                Vector2 move = pad.leftStick.ReadValue();
+
+                if (canMove[i])
+                {
+                    if (move.y > 0.5f)
+                    {
+                        if (currentIndexes[i] - 2 >= 0) currentIndexes[i] -= 2;
+                        canMove[i] = false; HighlightKeypad();
+                    }
+                    else if (move.y < -0.5f)
+                    {
+                        if (currentIndexes[i] + 2 < itemSlots.Length) currentIndexes[i] += 2;
+                        canMove[i] = false; HighlightKeypad();
+                    }
+                    else if (move.x < -0.5f)
+                    {
+                        if (currentIndexes[i] % 2 != 0) currentIndexes[i] -= 1;
+                        canMove[i] = false; HighlightKeypad();
+                    }
+                    else if (move.x > 0.5f)
+                    {
+                        if (currentIndexes[i] % 2 == 0 && currentIndexes[i] + 1 < itemSlots.Length)
+                            currentIndexes[i] += 1;
+
+                        canMove[i] = false;
+                        HighlightKeypad();
+                    }
+                }
+
+                if (Mathf.Abs(move.y) < 0.2f && Mathf.Abs(move.x) < 0.2f)
+                    canMove[i] = true;
+
+                if (pad.buttonSouth.wasPressedThisFrame)
+                {
+                    SubmitVote(i, currentIndexes[i]);
+                }
+            }
+
+            /*for (int i = 0; i < safePlayerCount; i++)
+            {
+                if (lockedIn[i]) continue;
+
                 if (GameManager.Instance.controllerAssignments == null) continue;
                 if (i >= GameManager.Instance.controllerAssignments.Length) continue;
 
@@ -277,7 +335,7 @@ public class ShopManager : MonoBehaviour
                 {
                     SubmitVote(i, currentIndexes[i]);
                 }
-            }
+            }*/
         }
     }
 

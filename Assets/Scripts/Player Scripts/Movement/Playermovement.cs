@@ -76,6 +76,10 @@ public class Playermovement : MonoBehaviour
     private bool canDash = true;
     private float dashTimer;
     private float dashCooldownTimer = 0f;
+    private bool dashedFromGround = false;
+
+    [Header("Event Effects")]
+    public bool controlsReversed = false;
 
     // ===== SHARED =====
 
@@ -121,7 +125,17 @@ public class Playermovement : MonoBehaviour
 
         if (!canMove || isKnockedBack) return;
 
-        moveInput = InputManager.Instance.GetMove(playerID);
+        /*moveInput = InputManager.Instance.GetMove(playerID);
+
+        if (controlsReversed)
+        {
+            moveInput *= -1f;
+        }*/
+
+        Vector2 rawInput = InputManager.Instance.GetMove(playerID);
+
+        moveInput = controlsReversed ? -rawInput : rawInput;
+
         HandleFootsteps();
 
         Transform cam = Camera.main.transform;
@@ -155,6 +169,8 @@ public class Playermovement : MonoBehaviour
 
     private void Update()
     {
+        HandleDashInput();
+
         if (allowJumpInput && gc.isGrounded && canMove && InputManager.Instance.GetJumpDown(playerID))
         {
             DoJump();
@@ -162,13 +178,13 @@ public class Playermovement : MonoBehaviour
             isJumping = true;
         }
 
-        HandleDashInput();
         HandleRotation();
     }
 
     private void HandleRotation()
     {
-        Vector2 input = InputManager.Instance.GetMove(playerID);
+        //Vector2 input = InputManager.Instance.GetMove(playerID);
+        Vector2 input = moveInput;
         isAiming = projectileScript != null && projectileScript.IsAiming();
 
         Transform cam = Camera.main.transform;
@@ -264,6 +280,8 @@ public class Playermovement : MonoBehaviour
         {
             isDashing = false;
             canMove = true;
+            if (dashedFromGround && rb.linearVelocity.y > 0f)
+                rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             if (dashSmoke != null) dashSmoke.Stop();
         }
     }
@@ -273,6 +291,7 @@ public class Playermovement : MonoBehaviour
         isDashing = true;
         canDash = false;
         canMove = false;
+        dashedFromGround = gc.isGrounded;
         dashTimer = dashDuration;
         dashCooldownTimer = dashCooldown;
 

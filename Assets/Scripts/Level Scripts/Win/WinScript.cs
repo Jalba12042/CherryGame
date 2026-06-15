@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
 
 public class WinScript : MonoBehaviour
 {
@@ -185,4 +186,5 @@ public class WinScript : MonoBehaviour
         // 4. Load Shop
         SceneManager.LoadScene(shopSceneName);
     }
+
 }

@@ -21,6 +21,11 @@ public class InputManager : MonoBehaviour
     }
 
     private Gamepad[] assignedGamepads = new Gamepad[4];
+    private bool[] hasExplicitAssignment = new bool[4];
+    private int[] disconnectedDeviceIds = { -1, -1, -1, -1 };
+
+    public event System.Action<int> OnPlayerDisconnected;
+    public event System.Action<int> OnPlayerReconnected;
 
     void Awake()
     {
@@ -28,16 +33,71 @@ public class InputManager : MonoBehaviour
         Instance = this;
     }
 
+    void OnEnable()
+    {
+        InputSystem.onDeviceChange += OnDeviceChange;
+    }
+
+    void OnDisable()
+    {
+        InputSystem.onDeviceChange -= OnDeviceChange;
+    }
+
+    private void OnDeviceChange(InputDevice device, InputDeviceChange change)
+    {
+        if (!(device is Gamepad gamepad)) return;
+
+        if (change == InputDeviceChange.Disconnected)
+        {
+            for (int i = 0; i < assignedGamepads.Length; i++)
+            {
+                if (assignedGamepads[i] == gamepad)
+                {
+                    disconnectedDeviceIds[i] = device.deviceId;
+                    assignedGamepads[i] = null;
+                    OnPlayerDisconnected?.Invoke(i + 1);
+                    break;
+                }
+            }
+        }
+        else if (change == InputDeviceChange.Reconnected || change == InputDeviceChange.Added)
+        {
+            for (int i = 0; i < disconnectedDeviceIds.Length; i++)
+            {
+                if (disconnectedDeviceIds[i] == device.deviceId)
+                {
+                    assignedGamepads[i] = gamepad;
+                    disconnectedDeviceIds[i] = -1;
+                    OnPlayerReconnected?.Invoke(i + 1);
+                    break;
+                }
+            }
+        }
+    }
+
     public void AssignGamepad(int playerID, Gamepad pad)
     {
         if (playerID < 1 || playerID > 4) return;
-        assignedGamepads[playerID - 1] = pad;
+        int idx = playerID - 1;
+        assignedGamepads[idx] = pad;
+        hasExplicitAssignment[idx] = true;
+        disconnectedDeviceIds[idx] = -1;
     }
 
     public void UnassignGamepad(int playerID)
     {
         if (playerID < 1 || playerID > 4) return;
-        assignedGamepads[playerID - 1] = null;
+        int idx = playerID - 1;
+        assignedGamepads[idx] = null;
+        hasExplicitAssignment[idx] = false;
+        disconnectedDeviceIds[idx] = -1;
+    }
+
+    public bool IsPlayerDisconnected(int playerID)
+    {
+        if (playerID < 1 || playerID > 4) return false;
+        int idx = playerID - 1;
+        return hasExplicitAssignment[idx] && assignedGamepads[idx] == null;
     }
 
     public bool IsAssigned(int playerID)
@@ -47,8 +107,9 @@ public class InputManager : MonoBehaviour
         return CurrentMode switch
         {
             InputMode.Keyboard => playerID == 1,
-            InputMode.Gamepad => assignedGamepads[idx] != null || idx < Gamepad.all.Count,
-            InputMode.Arcade => true,
+            // If a player had an explicit assignment but disconnected, don't fall back to another pad
+            InputMode.Gamepad => assignedGamepads[idx] != null || (!hasExplicitAssignment[idx] && idx < Gamepad.all.Count),
+            InputMode.Arcade => /*true*/ false,
             _ => false
         };
     }
@@ -64,7 +125,7 @@ public class InputManager : MonoBehaviour
         {
             InputMode.Keyboard => new Vector2(Input.GetAxis("HorizontalWASD"), Input.GetAxis("VerticalWASD")),
             InputMode.Gamepad => GetPad(playerID)?.leftStick.ReadValue() ?? Vector2.zero,
-            InputMode.Arcade => new Vector2(Input.GetAxisRaw(prefix + "Horizontal"), Input.GetAxisRaw(prefix + "Vertical")),
+            InputMode.Arcade => /*new Vector2(Input.GetAxisRaw(prefix + "Horizontal"), Input.GetAxisRaw(prefix + "Vertical"))*/ Vector2.zero,
             _ => Vector2.zero
         };
     }
@@ -80,7 +141,7 @@ public class InputManager : MonoBehaviour
         {
             InputMode.Keyboard => Input.GetKeyDown(KeyCode.E),
             InputMode.Gamepad => GetPad(playerID)?.rightTrigger.wasPressedThisFrame ?? false,
-            InputMode.Arcade => Input.GetButtonDown(prefix + "Button1"),
+            InputMode.Arcade => /*Input.GetButtonDown(prefix + "Button1")*/ false,
             _ => false
         };
     }
@@ -94,7 +155,7 @@ public class InputManager : MonoBehaviour
         {
             InputMode.Keyboard => Input.GetKeyDown(KeyCode.T),
             InputMode.Gamepad => GetPad(playerID)?.leftTrigger.wasPressedThisFrame ?? false,
-            InputMode.Arcade => Input.GetButtonDown(prefix + "Button2"),
+            InputMode.Arcade => /*Input.GetButtonDown(prefix + "Button2")*/ false,
             _ => false
         };
     }
@@ -108,7 +169,7 @@ public class InputManager : MonoBehaviour
         {
             InputMode.Keyboard => Input.GetKeyDown(KeyCode.LeftShift),
             InputMode.Gamepad => GetPad(playerID)?.buttonWest.wasPressedThisFrame ?? false,
-            InputMode.Arcade => Input.GetButtonDown(prefix + "Button3"),
+            InputMode.Arcade => /*Input.GetButtonDown(prefix + "Button3")*/ false,
             _ => false
         };
     }
@@ -163,7 +224,7 @@ public class InputManager : MonoBehaviour
         {
             InputMode.Keyboard => Input.GetKey(KeyCode.E),
             InputMode.Gamepad => GetPad(playerID)?.rightTrigger.isPressed ?? false,
-            InputMode.Arcade => Input.GetButton(prefix + "Button1"),
+            InputMode.Arcade => /*Input.GetButton(prefix + "Button1")*/ false,
             _ => false
         };
     }
@@ -177,7 +238,7 @@ public class InputManager : MonoBehaviour
         {
             InputMode.Keyboard => Input.GetKey(KeyCode.T),
             InputMode.Gamepad => GetPad(playerID)?.leftTrigger.isPressed ?? false,
-            InputMode.Arcade => Input.GetButton(prefix + "Button2"),
+            InputMode.Arcade => /*Input.GetButton(prefix + "Button2")*/ false,
             _ => false
         };
     }
@@ -191,7 +252,7 @@ public class InputManager : MonoBehaviour
         {
             InputMode.Keyboard => Input.GetKey(KeyCode.LeftShift),
             InputMode.Gamepad => GetPad(playerID)?.buttonWest.isPressed ?? false,
-            InputMode.Arcade => Input.GetButton(prefix + "Button3"),
+            InputMode.Arcade => /*Input.GetButton(prefix + "Button3")*/ false,
             _ => false
         };
     }
@@ -207,7 +268,7 @@ public class InputManager : MonoBehaviour
         {
             InputMode.Keyboard => Input.GetKeyDown(KeyCode.Return),
             InputMode.Gamepad => GetPad(playerID)?.buttonSouth.wasPressedThisFrame ?? false,
-            InputMode.Arcade => Input.GetButtonDown(prefix + "Button1"),
+            InputMode.Arcade => /*Input.GetButtonDown(prefix + "Button1")*/ false,
             _ => false
         };
     }
@@ -221,7 +282,7 @@ public class InputManager : MonoBehaviour
         {
             InputMode.Keyboard => Input.GetKeyDown(KeyCode.Escape),
             InputMode.Gamepad => GetPad(playerID)?.buttonEast.wasPressedThisFrame ?? false,
-            InputMode.Arcade => Input.GetButtonDown(prefix + "Button2"),
+            InputMode.Arcade => /*Input.GetButtonDown(prefix + "Button2")*/ false,
             _ => false
         };
     }
@@ -236,7 +297,7 @@ public class InputManager : MonoBehaviour
         {
             InputMode.Keyboard => Input.GetKeyDown(KeyCode.Escape),
             InputMode.Gamepad => GetPad(playerID)?.startButton.wasPressedThisFrame ?? false,
-            InputMode.Arcade => Input.GetKeyDown(KeyCode.Space),
+            InputMode.Arcade => /*Input.GetKeyDown(KeyCode.Space)*/ false,
             _ => false
         };
     }
@@ -247,6 +308,8 @@ public class InputManager : MonoBehaviour
     {
         int idx = playerID - 1;
         if (idx < 0 || idx >= assignedGamepads.Length) return null;
-        return assignedGamepads[idx] ?? (idx < Gamepad.all.Count ? Gamepad.all[idx] : null);
+        if (assignedGamepads[idx] != null) return assignedGamepads[idx];
+        if (!hasExplicitAssignment[idx] && idx < Gamepad.all.Count) return Gamepad.all[idx];
+        return null;
     }
 }

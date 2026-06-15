@@ -2,13 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Script for various effects for the environment
+
 public class EnvironmentEffects : MonoBehaviour
 {
     // Send all things up
+#nullable enable
     public void bigImpact(float itemJumpForce, Rigidbody? exception)
     {
-        int cherryLayer = LayerMask.NameToLayer("Cherry");
-
         Rigidbody[] allRigidbodies = GameObject.FindObjectsByType<Rigidbody>(FindObjectsSortMode.None);
         foreach (var rb in allRigidbodies)
         {

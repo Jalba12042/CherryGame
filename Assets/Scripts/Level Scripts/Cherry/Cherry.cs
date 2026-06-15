@@ -1,50 +1,21 @@
 using UnityEngine;
 using System.Collections;
 
-public class Cherry : MonoBehaviour
+public class Cherry : LevelPickup
 {
     [HideInInspector] public bool ignoreBasketPull = false;
-    public bool isHeld = false;
-    public GameObject playerHolding;
+    public int pointValue = 1;
 
-    private GroundCheck groundCheck;
-    private bool wasGrounded = false;
-
-    [Header("Trail")]
-    [SerializeField] private GameObject cherryTrailObject;
-
-    void Awake()
+    protected override void Awake()
     {
-        groundCheck = GetComponent<GroundCheck>();
-
-        if (cherryTrailObject != null)
-            cherryTrailObject.SetActive(false); // OFF by default
+        base.Awake();
     }
 
-    void Update()
+    protected override void Update()
     {
-        if (groundCheck == null) return;
-
-        // Detect landing moment (NOT just being grounded)
-        if (groundCheck.isGrounded && !wasGrounded)
-        {
-            DisableTrail();
-        }
-
-        wasGrounded = groundCheck.isGrounded;
+        base.Update();
     }
 
-    public void EnableTrail()
-    {
-        if (cherryTrailObject != null)
-            cherryTrailObject.SetActive(true);
-    }
-
-    public void DisableTrail()
-    {
-        if (cherryTrailObject != null)
-            cherryTrailObject.SetActive(false);
-    }
     public IEnumerator TemporarilyIgnoreBasket(float duration)
     {
         ignoreBasketPull = true;

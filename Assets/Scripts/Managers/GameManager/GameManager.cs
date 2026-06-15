@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -128,5 +129,13 @@ public class GameManager : MonoBehaviour
     public void StartRoundButton()
     {
         RoundManager.Instance.switchRoundScene();
+    }
+
+    public Gamepad GetAssignedGamepad(int playerIndex)
+    {
+        int controllerIndex = controllerAssignments[playerIndex];
+        if (controllerIndex >= 0 && controllerIndex < Gamepad.all.Count)
+            return Gamepad.all[controllerIndex];
+        return null;
     }
 }
