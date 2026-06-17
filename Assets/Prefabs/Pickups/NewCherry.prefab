@@ -53,6 +53,10 @@ PrefabInstance:
       value: CherryTrail
       objectReference: {fileID: 0}
     - target: {fileID: 8661660223963316657, guid: 196b97477a38a3544adb4587d2c9cfda, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8661660223963316657, guid: 196b97477a38a3544adb4587d2c9cfda, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
@@ -64,11 +68,6 @@ PrefabInstance:
 --- !u!4 &1463410692898018583 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6184127941583462732, guid: 196b97477a38a3544adb4587d2c9cfda, type: 3}
-  m_PrefabInstance: {fileID: 4728071371267486811}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &4154884882824263146 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8661660223963316657, guid: 196b97477a38a3544adb4587d2c9cfda, type: 3}
   m_PrefabInstance: {fileID: 4728071371267486811}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7102702036121360342
@@ -149,7 +148,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: f9a3409ce0fb4ff4f9d5b7006094f2c1, type: 3}
       propertyPath: m_Layer
-      value: 13
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: f9a3409ce0fb4ff4f9d5b7006094f2c1, type: 3}
       propertyPath: m_TagString
@@ -169,7 +168,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: bad69459f549355429d1585e8c87f66e, type: 2}
     - target: {fileID: 5796711127622769144, guid: f9a3409ce0fb4ff4f9d5b7006094f2c1, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 5796711127622769144, guid: f9a3409ce0fb4ff4f9d5b7006094f2c1, type: 3}
       propertyPath: m_IsActive
@@ -177,7 +176,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7407756339908614020, guid: f9a3409ce0fb4ff4f9d5b7006094f2c1, type: 3}
       propertyPath: m_Layer
-      value: 0
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -288,7 +287,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2324af873593da844bbd2121870387d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ignoreBasketPull: 0
   isHeld: 0
   playerHolding: {fileID: 0}
-  cherryTrailObject: {fileID: 4154884882824263146}
+  trailObject: {fileID: 0}
+  ignoreBasketPull: 0
+  pointValue: 1
