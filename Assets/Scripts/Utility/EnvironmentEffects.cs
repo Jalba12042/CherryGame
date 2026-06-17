@@ -31,11 +31,11 @@ public class EnvironmentEffects : MonoBehaviour
                     Random.Range(-horizontalRange, horizontalRange)
                 );
 
-                Cherry cherry = rb.GetComponent<Cherry>();
+                LevelPickup pickup = rb.GetComponent<LevelPickup>();
 
-                if (cherry)
+                if (pickup)
                 {
-                    StartCoroutine(cherry.TemporarilyIgnoreBasket(2f));
+                    StartCoroutine(pickup.TemporarilyIgnoreBasket(2f));
                 }
                 rb.AddForce(force, ForceMode.VelocityChange);
             }              

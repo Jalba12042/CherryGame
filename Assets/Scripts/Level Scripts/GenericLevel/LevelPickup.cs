@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class LevelPickup : MonoBehaviour
 {
@@ -10,6 +11,16 @@ public class LevelPickup : MonoBehaviour
 
     private GroundCheck groundCheck;
     private bool wasGrounded = false;
+
+    [HideInInspector] public bool ignoreBasketPull = false;
+
+    public int pointValue = 1;
+    public IEnumerator TemporarilyIgnoreBasket(float duration)
+    {
+        ignoreBasketPull = true;
+        yield return new WaitForSeconds(duration);
+        ignoreBasketPull = false;
+    }
 
     protected virtual void Awake()
     {

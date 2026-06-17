@@ -11,13 +11,13 @@ public class Basket : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Cherry cherry = other.GetComponent<Cherry>();
-        if (cherry != null) numItemsInBasket += cherry.pointValue;
+        LevelPickup pickup = other.GetComponent<LevelPickup>();
+        if (pickup != null) numItemsInBasket += pickup.pointValue;
     }
 
     private void OnTriggerExit(Collider other)
     {
-        Cherry cherry = other.GetComponent<Cherry>();
-        if (cherry != null) numItemsInBasket -= cherry.pointValue;
+        LevelPickup pickup = other.GetComponent<LevelPickup>();
+        if (pickup != null) numItemsInBasket -= pickup.pointValue;
     }
 }
