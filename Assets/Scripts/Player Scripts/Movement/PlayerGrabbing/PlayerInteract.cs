@@ -64,6 +64,9 @@ public class PlayerInteract : MonoBehaviour
 
     private bool rtHeld = false;
     private float rtHoldTime = 0f;
+    private bool rtWasDown = false;
+    private bool ignoreNextRelease = false;
+
 
     [SerializeField]
     private float throwHoldThreshold = 0.2f;
@@ -109,6 +112,61 @@ public class PlayerInteract : MonoBehaviour
 
         bool rt = InputManager.Instance.GetButton1Held(player.playerID);
 
+        bool rtPressed = rt && !rtWasDown;
+        bool rtReleased = !rt && rtWasDown;
+
+        // PICKUP / GRAB IMMEDIATELY ON PRESS
+        if (rtPressed)
+        {
+            if (heldPickup == null && grabbedPlayer == null)
+            {
+                OnInteractPressed();
+
+                ignoreNextRelease = true;
+            }
+        }
+
+        // TRACK HOLD TIME
+        if (rt)
+        {
+            rtHoldTime += Time.deltaTime;
+        }
+
+        // HANDLE RELEASE
+        if (rtReleased)
+        {
+            if (ignoreNextRelease)
+            {
+                ignoreNextRelease = false;
+                rtHoldTime = 0f;
+                rtWasDown = rt;
+                return;
+            }
+
+            bool wasHold = rtHoldTime >= throwHoldThreshold;
+
+            if (wasHold)
+            {
+                if (grabbedPlayer != null)
+                {
+                    ThrowGrabbedPlayer();
+                }
+            }
+            else
+            {
+                if (heldPickup != null || grabbedPlayer != null)
+                {
+                    OnInteractPressed();
+                }
+            }
+
+            rtHoldTime = 0f;
+        }
+
+        rtWasDown = rt;
+
+        /*bool rt = InputManager.Instance.GetButton1Held(player.playerID);
+
         if (rt)
         {
             rtHeld = true;
@@ -132,7 +190,7 @@ public class PlayerInteract : MonoBehaviour
 
             rtHeld = false;
             rtHoldTime = 0f;
-        }
+        }*/
     }
 
     private void OnInteractPressed()
