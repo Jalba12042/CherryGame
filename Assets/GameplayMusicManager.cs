@@ -22,6 +22,9 @@ public class GameplayMusicManager : MonoBehaviour
     private bool isPlayingMusic = true;
     private bool isCrossfading = false;
 
+    private float pausedVolume0;
+    private float pausedVolume1;
+
     void Awake()
     {
         // 1. Keep the music alive when the Win Scene loads!
@@ -179,5 +182,20 @@ public class GameplayMusicManager : MonoBehaviour
 
         // Destroy this object completely so it doesn't overlap when the next round starts!
         Destroy(gameObject);
+    }
+
+    public void PauseGameplayMusic()
+    {
+        pausedVolume0 = audioSources[0].volume;
+        pausedVolume1 = audioSources[1].volume;
+
+        audioSources[0].volume = 0f;
+        audioSources[1].volume = 0f;
+    }
+
+    public void ResumeGameplayMusic()
+    {
+        audioSources[0].volume = pausedVolume0;
+        audioSources[1].volume = pausedVolume1;
     }
 }
