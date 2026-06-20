@@ -76,6 +76,7 @@ public class Playermovement : MonoBehaviour
     private bool canDash = true;
     private float dashTimer;
     private float dashCooldownTimer = 0f;
+    private bool dashedFromGround = false;
 
     [Header("Event Effects")]
     public bool controlsReversed = false;
@@ -168,6 +169,8 @@ public class Playermovement : MonoBehaviour
 
     private void Update()
     {
+        HandleDashInput();
+
         if (allowJumpInput && gc.isGrounded && canMove && InputManager.Instance.GetJumpDown(playerID))
         {
             DoJump();
@@ -175,7 +178,6 @@ public class Playermovement : MonoBehaviour
             isJumping = true;
         }
 
-        HandleDashInput();
         HandleRotation();
     }
 
@@ -278,6 +280,8 @@ public class Playermovement : MonoBehaviour
         {
             isDashing = false;
             canMove = true;
+            if (dashedFromGround && rb.linearVelocity.y > 0f)
+                rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             if (dashSmoke != null) dashSmoke.Stop();
         }
     }
@@ -287,6 +291,7 @@ public class Playermovement : MonoBehaviour
         isDashing = true;
         canDash = false;
         canMove = false;
+        dashedFromGround = gc.isGrounded;
         dashTimer = dashDuration;
         dashCooldownTimer = dashCooldown;
 

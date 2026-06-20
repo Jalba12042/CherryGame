@@ -88,7 +88,7 @@ public class Ocean : MonoBehaviour
             // Stay
             yield return new WaitForSeconds(stayDuration);
 
-            // Roll Out — DON'T drag caught objects
+            // Roll Out ï¿½ DON'T drag caught objects
             t = 0;
             lastPosition = transform.position;
             while (t < rollOutDuration)
@@ -137,9 +137,14 @@ public class Ocean : MonoBehaviour
                 yield return null;
             }
 
-            for(int i = 0; i < caughtObjects.Count; i++)
+            for (int i = caughtObjects.Count - 1; i >= 0; i--)
             {
-                Destroy(caughtObjects[i].gameObject);
+                if (caughtObjects[i] == null) continue;
+                PlayerKill pk = caughtObjects[i].GetComponent<PlayerKill>();
+                if (pk != null)
+                    pk.killPlayer();
+                else
+                    Destroy(caughtObjects[i].gameObject);
             }
             caughtObjects.Clear();
 

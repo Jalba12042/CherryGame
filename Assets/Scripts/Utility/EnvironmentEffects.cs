@@ -2,9 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // Script for various effects for the environment
+
 public class EnvironmentEffects : MonoBehaviour
 {
     // Send all things up
+#nullable enable
     public void bigImpact(float itemJumpForce, Rigidbody? exception)
     {
         int cherryLayer = LayerMask.NameToLayer("Cherry");
@@ -31,11 +33,11 @@ public class EnvironmentEffects : MonoBehaviour
                     Random.Range(-horizontalRange, horizontalRange)
                 );
 
-                Cherry cherry = rb.GetComponent<Cherry>();
+                LevelPickup pickup = rb.GetComponent<LevelPickup>();
 
-                if (cherry)
+                if (pickup)
                 {
-                    StartCoroutine(cherry.TemporarilyIgnoreBasket(2f));
+                    StartCoroutine(pickup.TemporarilyIgnoreBasket(2f));
                 }
                 rb.AddForce(force, ForceMode.VelocityChange);
             }              
