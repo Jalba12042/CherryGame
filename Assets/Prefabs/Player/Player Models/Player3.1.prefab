@@ -4473,13 +4473,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6194032465793569526}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7718753, y: 0.034858067, z: 0.6257295, w: -0.107032694}
-  m_LocalPosition: {x: -0.0026970245, y: -0.00033334305, z: -0.00018079023}
+  m_LocalRotation: {x: -0.47687107, y: 0.37326425, z: 0.6104642, w: -0.5104913}
+  m_LocalPosition: {x: -0.00175, y: -0.0003, z: -0.00044}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1375883308597776426}
-  m_LocalEulerAnglesHint: {x: 0, y: -103.944, z: 0}
+  m_LocalEulerAnglesHint: {x: 1.785, y: -74.534, z: -101.551}
 --- !u!1 &6291497186719125929
 GameObject:
   m_ObjectHideFlags: 0
@@ -6790,6 +6790,10 @@ MonoBehaviour:
   taserClip: {fileID: 8300000, guid: 7c3fae2ed50e62144a93fe8242f5d97e, type: 3}
   hasGunEquipped: 0
   activeGun: {fileID: 0}
+  hasTacoBlasterEquipped: 0
+  activeTacoBlaster: {fileID: 0}
+  tacoAudioSource: {fileID: 6851546816297629260}
+  tacoMusic: {fileID: 8300000, guid: a69607343378f4043bf6e58e43551a1b, type: 3}
   rtConsumedThisFrame: 0
 --- !u!95 &8956192246315906919
 Animator:
@@ -6987,10 +6991,7 @@ MonoBehaviour:
   stunTimerText: {fileID: 6871179782641695204}
   faceAnimator: {fileID: 0}
   handHoldPoint: {fileID: 136122321391519697}
-  cherryLayer:
-    serializedVersion: 2
-    m_Bits: 8192
-  pickupRadius: 3
+  pickupRadius: 5
   pickupSource: {fileID: 2632603940568999422}
   pickupClip: {fileID: 0}
   cherryDropClip: {fileID: 0}

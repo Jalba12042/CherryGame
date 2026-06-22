@@ -31,7 +31,14 @@ public class PlayerPowerupHandler : MonoBehaviour
     public bool hasGunEquipped = false;
     public GunPowerup activeGun;
 
-    // In PlayerPowerupHandler, add this field:
+    [Header("Taco Blaster State")]
+    public bool hasTacoBlasterEquipped = false;
+    public TacoBlaster activeTacoBlaster;
+
+    [Header("Taco Music")]
+    [SerializeField] private AudioSource tacoAudioSource;
+    [SerializeField] private AudioClip tacoMusic;
+
     [HideInInspector] public bool rtConsumedThisFrame = false;
     void Start()
     {
@@ -64,7 +71,7 @@ public class PlayerPowerupHandler : MonoBehaviour
 
         if (rtPressed)
         {
-            if (nearbyPowerup != null || activeGun != null)
+            if (nearbyPowerup != null || activeGun != null || activeTacoBlaster != null)
             {
                 rtConsumedThisFrame = true;
                 HandleRT();
@@ -72,6 +79,7 @@ public class PlayerPowerupHandler : MonoBehaviour
         }
 
         HandleGunInput();
+        HandleTacoBlasterInput();
     }
 
     private void HandleRT()
@@ -88,6 +96,20 @@ public class PlayerPowerupHandler : MonoBehaviour
         if (activeGun != null)
         {
             HandleGunInput();
+            return;
+        }
+
+        // pickup taco blaster from ground
+        if (nearbyPowerup is TacoBlaster taco)
+        {
+            activeTacoBlaster = taco;
+            nearbyPowerup = null;
+            return;
+        }
+
+        if (activeTacoBlaster != null)
+        {
+            HandleTacoBlasterInput();
             return;
         }
 
@@ -224,6 +246,14 @@ public class PlayerPowerupHandler : MonoBehaviour
         }
 
         hasGunEquipped = false;
+
+        if (activeTacoBlaster != null)
+        {
+            Destroy(activeTacoBlaster.gameObject);
+            activeTacoBlaster = null;
+        }
+
+        hasTacoBlasterEquipped = false;
     }
 
 
@@ -253,5 +283,108 @@ public class PlayerPowerupHandler : MonoBehaviour
 
         hasGunEquipped = false;
         activeGun = null;
+    }
+
+    private void HandleTacoBlasterInput()
+    {
+        if (activeTacoBlaster == null)
+            return;
+
+        bool pressed = InputManager.Instance.GetGrabDown(player.playerID);
+
+        if (!pressed)
+            return;
+
+        // EQUIP (first press)
+        if (!hasTacoBlasterEquipped)
+        {
+            hasTacoBlasterEquipped = true;
+
+            if (handHoldPoint != null)
+                activeTacoBlaster.EquipTacoBlaster(handHoldPoint);
+
+            return;
+        }
+
+        // FIRE (second press)
+        activeTacoBlaster.Fire();
+
+        hasTacoBlasterEquipped = false;
+        activeTacoBlaster = null;
+    }
+
+    public void ApplyTacoStun(float duration)
+    {
+        if (isTased) return;
+
+        StartCoroutine(TacoRoutine(duration));
+    }
+
+    private IEnumerator TacoRoutine(float duration)
+    {
+        isTased = true;
+
+        Rigidbody rb = GetComponent<Rigidbody>();
+
+        Vector3 storedVelocity = Vector3.zero;
+        RigidbodyConstraints originalConstraints = RigidbodyConstraints.None;
+
+        if (rb != null)
+        {
+            storedVelocity = rb.linearVelocity;
+            originalConstraints = rb.constraints;
+
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+
+            rb.constraints = RigidbodyConstraints.FreezeAll;
+        }
+
+        // Save original volume
+        float originalVolume = .15f;
+
+        if (tacoAudioSource != null)
+        {
+            originalVolume = tacoAudioSource.volume;
+        }
+
+        if (GameplayMusicManager.Instance != null)
+        {
+            GameplayMusicManager.Instance.PauseGameplayMusic();
+        }
+
+        // Start taco music
+        if (tacoAudioSource != null && tacoMusic != null)
+        {
+            tacoAudioSource.clip = tacoMusic;
+            tacoAudioSource.loop = true;
+
+            // Make louder while dancing
+            tacoAudioSource.volume = 1.2f; // Adjust to whatever you want
+
+            tacoAudioSource.Play();
+        }
+
+        yield return new WaitForSeconds(duration);
+
+        // Stop music and restore volume
+        if (tacoAudioSource != null)
+        {
+            tacoAudioSource.Stop();
+            tacoAudioSource.volume = originalVolume;
+        }
+
+        if (GameplayMusicManager.Instance != null)
+        {
+            GameplayMusicManager.Instance.ResumeGameplayMusic();
+        }
+
+        if (rb != null)
+        {
+            rb.constraints = originalConstraints;
+            rb.linearVelocity = storedVelocity;
+        }
+
+        isTased = false;
     }
 }
