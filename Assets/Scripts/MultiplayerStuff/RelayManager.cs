@@ -1,7 +1,6 @@
-/*using System;
+using System;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
-using Unity.Networking.Transport.Relay;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Relay;
@@ -53,11 +52,17 @@ public class RelayManager : MonoBehaviour
         try
         {
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(MaxConnections);
-
             JoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
 
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            transport.SetRelayServerData(new RelayServerData(allocation, "dtls"));
+            transport.SetRelayServerData(
+                allocation.RelayServer.IpV4,
+                (ushort)allocation.RelayServer.Port,
+                allocation.AllocationIdBytes,
+                allocation.Key,
+                allocation.ConnectionData,
+                allocation.ConnectionData
+            );
 
             NetworkManager.Singleton.StartHost();
             IsHost = true;
@@ -79,7 +84,14 @@ public class RelayManager : MonoBehaviour
             JoinAllocation joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
 
             UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            transport.SetRelayServerData(new RelayServerData(joinAllocation, "dtls"));
+            transport.SetRelayServerData(
+                joinAllocation.RelayServer.IpV4,
+                (ushort)joinAllocation.RelayServer.Port,
+                joinAllocation.AllocationIdBytes,
+                joinAllocation.Key,
+                joinAllocation.ConnectionData,
+                joinAllocation.HostConnectionData
+            );
 
             NetworkManager.Singleton.StartClient();
             JoinCode = joinCode;
@@ -103,4 +115,3 @@ public class RelayManager : MonoBehaviour
         IsHost = false;
     }
 }
-*/
