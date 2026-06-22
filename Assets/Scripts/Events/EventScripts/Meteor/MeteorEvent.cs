@@ -9,7 +9,7 @@ public class MeteorEvent : GameEvent
     {
         isRunning = true;
 
-        GameObject spawner = GameObject.FindWithTag("EventTest");
+        GameObject spawner = GameObject.FindWithTag("UpperSpawn");
 
         if (spawner == null)
         {
