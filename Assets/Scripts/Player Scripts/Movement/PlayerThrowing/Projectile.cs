@@ -179,13 +179,13 @@ public class Projectile : MonoBehaviour
     {
         heldCherry = cherryObject;
         isHoldingCherry = true;
+        Cherry cherryScript = cherryObject.GetComponent<Cherry>();
 
-        LevelPickup pickup = cherryObject.GetComponent<LevelPickup>();
-        if (pickup != null)
+        if (cherryScript != null)
         {
-            pickup.isHeld = true;
-            pickup.playerHolding = gameObject;
-            pickup.DisableTrail();
+            cherryScript.isHeld = true;
+            cherryScript.playerHolding = gameObject;
+            cherryScript.DisableTrail();
         }
 
         /*cherryTrail = heldCherry.GetComponent<TrailRenderer>();
@@ -275,12 +275,12 @@ public class Projectile : MonoBehaviour
         Rigidbody rb = heldCherry.GetComponent<Rigidbody>();
         heldCherry.transform.SetParent(null);
 
-        LevelPickup pickup = heldCherry.GetComponent<LevelPickup>();
-        if (pickup != null)
+        Cherry cherryScript = heldCherry.GetComponent<Cherry>();
+        if (cherryScript != null)
         {
-            pickup.isHeld = false;
-            pickup.playerHolding = null;
-            pickup.EnableTrail();
+            cherryScript.isHeld = false;
+            cherryScript.playerHolding = null;
+            cherryScript.EnableTrail();
         }
 
         /*cherryTrail = heldCherry.GetComponent<TrailRenderer>();
@@ -406,11 +406,12 @@ public class Projectile : MonoBehaviour
             if (rb != null)
                 rb.isKinematic = false;
 
-            LevelPickup pickup = heldCherry.GetComponent<LevelPickup>();
-            if (pickup != null)
+            // Reset cherry script
+            Cherry cherryScript = heldCherry.GetComponent<Cherry>();
+            if (cherryScript != null)
             {
-                pickup.isHeld = false;
-                pickup.playerHolding = null;
+                cherryScript.isHeld = false;
+                cherryScript.playerHolding = null;
             }
         }
 
