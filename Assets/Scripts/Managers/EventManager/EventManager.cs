@@ -113,14 +113,22 @@ public class EventManager : MonoBehaviour
 
     public GameEvent GetRandomEvent()
     {
+        List<GameEvent> excluded = RoundManager.Instance.currRound?.excludedEvents;
+
         float totalWeight = 0f;
         foreach (var e in eventsInRotation)
+        {
+            if (excluded != null && excluded.Contains(e)) continue;
             totalWeight += e.weight;
+        }
+
+        if (totalWeight <= 0f) return null;
 
         float randomValue = Random.Range(0, totalWeight);
 
         foreach (var e in eventsInRotation)
         {
+            if (excluded != null && excluded.Contains(e)) continue;
             if (randomValue < e.weight)
                 return e;
             randomValue -= e.weight;

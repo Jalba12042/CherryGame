@@ -10,6 +10,9 @@ public class Round : ScriptableObject
     public GameObject startTimerUI;
     public bool canHaveEvents;
 
+    [Header("Events excluded from this round")]
+    public List<GameEvent> excludedEvents;
+
     public virtual IEnumerator StartGoal()
     {
         if (startTimerUI == null)
