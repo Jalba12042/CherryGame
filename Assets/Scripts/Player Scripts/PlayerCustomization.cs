@@ -5,6 +5,7 @@ public class PlayerCustomization : MonoBehaviour
     public Renderer bodyRenderer;
 
     public GameObject[] headOptions;
+    public GameObject[] faceOptions;
     public GameObject[] torsoOptions;
     public GameObject[] bottomOptions;
     public int playerIndex; 
@@ -16,10 +17,12 @@ public class PlayerCustomization : MonoBehaviour
     public Material[] playerMaterials;
 
     private int currentHeadIndex = -1;
+    public int currentFaceIndex = -1;
     private int currentTorsoIndex = -1;
     private int currentBottomIndex = -1;
 
     public int GetHeadIndex() => currentHeadIndex;
+    public int GetFaceIndex() => currentFaceIndex;
     public int GetTorsoIndex() => currentTorsoIndex;
     public int GetBottomIndex() => currentBottomIndex;
 
@@ -29,6 +32,7 @@ public class PlayerCustomization : MonoBehaviour
     {
         // Disable everything at start
         DisableAll(headOptions);
+        DisableAll(faceOptions);
         DisableAll(torsoOptions);
         DisableAll(bottomOptions);
     }
@@ -79,6 +83,22 @@ public class PlayerCustomization : MonoBehaviour
         EnableOne(headOptions, currentHeadIndex);
     }
 
+    public void ChangeFace(int dir)
+    {
+        if (faceOptions == null || faceOptions.Length == 0) return;
+
+        int max = faceOptions.Length - 1;
+
+        currentFaceIndex += dir;
+
+        if (currentFaceIndex > max)
+            currentFaceIndex = -1; // wrap to NONE
+        else if (currentFaceIndex < -1)
+            currentFaceIndex = max;
+
+        EnableOne(faceOptions, currentFaceIndex);
+    }
+
     public void ChangeTorso(int dir)
     {
         if (torsoOptions == null || torsoOptions.Length == 0) return;
@@ -125,6 +145,10 @@ public class PlayerCustomization : MonoBehaviour
         // HEAD
         if (data.headIndex >= 0)
             EnableOne(headOptions, data.headIndex);
+
+        // FACE
+        if (data.faceIndex >= 0)
+            EnableOne(faceOptions, data.faceIndex);
 
         // TORSO
         if (data.torsoIndex >= 0)

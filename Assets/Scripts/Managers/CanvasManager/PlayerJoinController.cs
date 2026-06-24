@@ -207,8 +207,9 @@ public class PlayerJoinController : MonoBehaviour
             if (category == 0) ui.ChangeName(1, p);
             else if (category == 1) ui.ChangeColor(1, slots[p].spawnedModel, p);
             else if (category == 2) customization.ChangeHead(1);
-            else if (category == 3) customization.ChangeTorso(1);
-            else if (category == 4) customization.ChangeBottom(1);
+            else if (category == 3) customization.ChangeFace(1);
+            else if (category == 4) customization.ChangeTorso(1);
+            else if (category == 5) customization.ChangeBottom(1);
         }
 
         if (InputManager.Instance.GetThrowDown(playerID))
@@ -216,8 +217,9 @@ public class PlayerJoinController : MonoBehaviour
             if (category == 0) ui.ChangeName(-1, p);
             else if (category == 1) ui.ChangeColor(-1, slots[p].spawnedModel, p);
             else if (category == 2) customization.ChangeHead(-1);
-            else if (category == 3) customization.ChangeTorso(-1);
-            else if (category == 4) customization.ChangeBottom(-1);
+            else if (category == 3) customization.ChangeFace(-1);
+            else if (category == 4) customization.ChangeTorso(-1);
+            else if (category == 5) customization.ChangeBottom(-1);
         }
     }
 
@@ -241,8 +243,9 @@ public class PlayerJoinController : MonoBehaviour
             if (category == 0) ui.ChangeName(1, p);
             else if (category == 1) ui.ChangeColor(1, slots[p].spawnedModel, p);
             else if (category == 2) customization.ChangeHead(1);
-            else if (category == 3) customization.ChangeTorso(1);
-            else if (category == 4) customization.ChangeBottom(1);
+            else if (category == 3) customization.ChangeFace(1);
+            else if (category == 4) customization.ChangeTorso(1);
+            else if (category == 5) customization.ChangeBottom(1);
         }
 
         if (InputManager.Instance.GetGrabDown(playerID))
@@ -250,8 +253,9 @@ public class PlayerJoinController : MonoBehaviour
             if (category == 0) ui.ChangeName(-1, p);
             else if (category == 1) ui.ChangeColor(-1, slots[p].spawnedModel, p);
             else if (category == 2) customization.ChangeHead(-1);
-            else if (category == 3) customization.ChangeTorso(-1);
-            else if (category == 4) customization.ChangeBottom(-1);
+            else if (category == 3) customization.ChangeFace(-1);
+            else if (category == 4) customization.ChangeTorso(-1);
+            else if (category == 5) customization.ChangeBottom(-1);
         }
     }
 
@@ -274,8 +278,9 @@ public class PlayerJoinController : MonoBehaviour
             if (category == 0) ui.ChangeName(1, 0);
             else if (category == 1) ui.ChangeColor(1, slots[0].spawnedModel, 0);
             else if (category == 2) customization.ChangeHead(1);
-            else if (category == 3) customization.ChangeTorso(1);
-            else if (category == 4) customization.ChangeBottom(1);
+            else if (category == 3) customization.ChangeFace(1);
+            else if (category == 4) customization.ChangeTorso(1);
+            else if (category == 5) customization.ChangeBottom(1);
         }
 
         if (InputManager.Instance.GetGrabDown(1))
@@ -283,8 +288,9 @@ public class PlayerJoinController : MonoBehaviour
             if (category == 0) ui.ChangeName(-1, 0);
             else if (category == 1) ui.ChangeColor(-1, slots[0].spawnedModel, 0);
             else if (category == 2) customization.ChangeHead(-1);
-            else if (category == 3) customization.ChangeTorso(-1);
-            else if (category == 4) customization.ChangeBottom(-1);
+            else if (category == 3) customization.ChangeFace(-1);
+            else if (category == 4) customization.ChangeTorso(-1);
+            else if (category == 5) customization.ChangeBottom(-1);
         }
     }
 
@@ -481,6 +487,7 @@ public class PlayerJoinController : MonoBehaviour
             {
                 var cust = slots[i].spawnedModel.GetComponentInChildren<PlayerCustomization>();
                 data.headIndex = cust.GetHeadIndex();
+                data.faceIndex = cust.GetFaceIndex();
                 data.torsoIndex = cust.GetTorsoIndex();
                 data.bottomIndex = cust.GetBottomIndex();
             }
