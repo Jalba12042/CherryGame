@@ -28,6 +28,9 @@ public class PlayerInteract : MonoBehaviour
     public GameObject stunCanvas;
     public TMPro.TMP_Text stunTimerText;
 
+    [Header("Dizzy Effect")]
+    [SerializeField] private GameObject dizzyStarsVFX;
+
     [Header("Face Animator")]
     [SerializeField] private Animator faceAnimator;
 
@@ -346,6 +349,9 @@ public class PlayerInteract : MonoBehaviour
         player.canMove = false;
         animator.SetBool("isStunned", true);
 
+        if (dizzyStarsVFX != null)
+            dizzyStarsVFX.SetActive(true);
+
         RandomFaceChanger rfc = GetComponentInChildren<RandomFaceChanger>();
         if (rfc != null) rfc.PauseFaces();
         if (faceAnimator != null) faceAnimator.SetBool("isStunned", true);
@@ -363,6 +369,9 @@ public class PlayerInteract : MonoBehaviour
         if (faceAnimator != null) faceAnimator.SetBool("isStunned", false);
         if (rfc != null) rfc.ResumeFaces();
         if (stunCanvas != null) stunCanvas.SetActive(false);
+
+        if (dizzyStarsVFX != null)
+            dizzyStarsVFX.SetActive(false);
 
         player.canMove = true;
         animator.SetBool("isStunned", false);
