@@ -66,7 +66,7 @@ public class Meteor : MonoBehaviour
         PlayerKill pk = collision.gameObject.GetComponentInChildren<PlayerKill>();
         if (pk != null)
         {
-            pk.killPlayer();
+            pk.killPlayer(true);
         }
 
         // Visual and Physical effects

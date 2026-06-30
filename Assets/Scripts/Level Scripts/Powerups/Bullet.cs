@@ -10,7 +10,7 @@ public class Bullet : MonoBehaviour
 
         if (pk != null)
         {
-            pk.killPlayer();
+            pk.killPlayer(true);
             Destroy(gameObject);
         }
         else if (!other.isTrigger)
