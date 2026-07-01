@@ -8,6 +8,7 @@ public class PlayerPowerupHandler : MonoBehaviour
     private Powerup nearbyPowerup;
     private float originalMoveSpeed;
     private bool rtConsumedThisPress;
+    private Animator animator;
 
     [Header("Hand Reference")]
     public Transform handHoldPoint;
@@ -43,6 +44,7 @@ public class PlayerPowerupHandler : MonoBehaviour
     void Start()
     {
         player = GetComponent<Playermovement>();
+        animator = GetComponent<Animator>();
         originalMoveSpeed = player.moveSpeed;
 
         int highestID = -1;
@@ -173,6 +175,11 @@ public class PlayerPowerupHandler : MonoBehaviour
     {
         isTased = true;
 
+        if (animator != null)
+        {
+            animator.SetBool("isTacoDancing", true);
+        }
+
         Rigidbody rb = GetComponent<Rigidbody>();
 
         Vector3 storedVelocity = Vector3.zero;
@@ -202,6 +209,11 @@ public class PlayerPowerupHandler : MonoBehaviour
 
         if (taserVFX != null)
             taserVFX.SetActive(false);
+
+        if (animator != null)
+        {
+            animator.SetBool("isTacoDancing", false);
+        }
 
         isTased = false;
     }
