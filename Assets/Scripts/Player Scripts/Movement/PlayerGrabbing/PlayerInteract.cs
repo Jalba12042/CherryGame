@@ -51,6 +51,7 @@ public class PlayerInteract : MonoBehaviour
     // ===== PRIVATE =====
     private Playermovement player;
     private Projectile projectileScript;
+    private SnowballThrow snowballThrow;
     private Animator animator;
     private Jiggle[] jiggleParts;
     private PlayerPowerupHandler powerupHandler;
@@ -91,6 +92,7 @@ public class PlayerInteract : MonoBehaviour
         animator = GetComponent<Animator>();
         myCollider = GetComponent<Collider>();
         jiggleParts = GetComponentsInChildren<Jiggle>();
+        snowballThrow = GetComponent<SnowballThrow>();
 
         if (stunCanvas != null)
             stunCanvas.SetActive(false);
@@ -203,11 +205,21 @@ public class PlayerInteract : MonoBehaviour
             ReleaseGrab();
             return;
         }
-        if (heldPickup != null) 
+        if (heldPickup != null)
         {
-            if (!projectileScript.IsAiming())
+            LevelPickup pickup = heldPickup.GetComponent<LevelPickup>();
+
+            if (pickup != null && pickup.useProjectileThrow)
             {
-                CancelAimAndDrop();
+                // Cherry
+                if (!projectileScript.IsAiming())
+                    CancelAimAndDrop();
+            }
+            else
+            {
+                // Snowball
+                if (!snowballThrow.IsAiming())
+                    CancelAimAndDrop();
             }
 
             return;
@@ -465,7 +477,20 @@ public class PlayerInteract : MonoBehaviour
         SetCherryCollision(false);
         heldPickup.transform.localPosition = Vector3.zero;
 
-        projectileScript?.PickUpCherry(heldPickup);
+
+        if (pickup != null)
+        {
+            if (pickup.useProjectileThrow)
+            {
+                // Cherry
+                projectileScript?.PickUpCherry(heldPickup);
+            }
+            else
+            {
+                // Snowball
+                snowballThrow?.PickUpSnowball(heldPickup);
+            }
+        }
 
         if (animator != null)
             StartCoroutine(PlayPickupAnimation());
@@ -481,7 +506,15 @@ public class PlayerInteract : MonoBehaviour
             pickupSource.PlayOneShot(cherryDropClip);
         }
 
-        projectileScript?.CancelAim();
+        LevelPickup pickup = heldPickup.GetComponent<LevelPickup>();
+
+        if (pickup != null)
+        {
+            if (pickup.useProjectileThrow)
+                projectileScript?.CancelAim();
+            else
+                snowballThrow?.CancelAim();
+        }
 
         Rigidbody rbCherry = heldPickup.GetComponent<Rigidbody>();
         heldPickup.transform.SetParent(null);
@@ -492,7 +525,7 @@ public class PlayerInteract : MonoBehaviour
 
         if (animator != null) animator.SetBool("isPickingUp", false);
 
-        LevelPickup pickup = heldPickup.GetComponent<LevelPickup>();
+        pickup = heldPickup.GetComponent<LevelPickup>();
         if (pickup != null)
         {
             pickup.isHeld = false;
