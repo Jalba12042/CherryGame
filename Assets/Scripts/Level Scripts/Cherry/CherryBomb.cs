@@ -112,7 +112,7 @@ public class CherryBomb : Cherry
 
             PlayerKill pk = rb.GetComponent<PlayerKill>();
             if (pk != null)
-                pk.killPlayer();
+                pk.killPlayer(true);
         }
 
         // 2. Play Explosion Sound (and stop the ticking!)

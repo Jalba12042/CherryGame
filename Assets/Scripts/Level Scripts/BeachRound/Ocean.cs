@@ -142,7 +142,7 @@ public class Ocean : MonoBehaviour
                 if (caughtObjects[i] == null) continue;
                 PlayerKill pk = caughtObjects[i].GetComponent<PlayerKill>();
                 if (pk != null)
-                    pk.killPlayer();
+                    pk.killPlayer(true);
                 else
                     Destroy(caughtObjects[i].gameObject);
             }

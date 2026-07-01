@@ -74,7 +74,7 @@ public class PlayerKill : MonoBehaviour
         currDead = false;
     }
 
-    public void killPlayer()
+    public void killPlayer(bool respawn)
     {
         if (currDead) return;
 
@@ -124,7 +124,8 @@ public class PlayerKill : MonoBehaviour
 
         transform.position = pm.initialSpawnPosition;
 
-        StartCoroutine(respawnTimer());
+        if (respawn)
+            StartCoroutine(respawnTimer());
     }
 
     void ResetPlayerState()

@@ -17,7 +17,7 @@ public class ZombieAttack : MonoBehaviour
             {
                 Vector3 deathPos = other.transform.position;
 
-                pk.killPlayer();
+                pk.killPlayer(true);
 
                 // NEW: Play the bite sound right where the player died
                 if (biteKillSound != null)
