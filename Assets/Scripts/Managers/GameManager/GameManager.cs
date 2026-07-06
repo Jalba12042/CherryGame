@@ -9,17 +9,12 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    // Stores how many players were chosen in the menu
     public int playerCount;
     public int[] controllerAssignments;
-
-    // --- THE SCOREBOARD MEMORY BANK ---
-    // This safely remembers everyone's wins across all scene reloads!
     public int[] playerTotalScores;
 
     [SerializeField] private TMP_Text timerText;
 
-    // Controller navigation
     private Button[] menuButtons;
     private int currentIndex = 0;
     private bool canMove = true;
@@ -42,21 +37,18 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // Persist across scenes
+            DontDestroyOnLoad(gameObject);
 
-            // --- THE BULLETPROOF FIX ---
-            // ALWAYS create 4 slots so the Scoreboard never crashes when testing!
             playerTotalScores = new int[4];
             controllerAssignments = new int[4];
 
             for (int i = 0; i < 4; i++)
             {
                 playerTotalScores[i] = 0;
-                controllerAssignments[i] = -1; // means �unassigned�
+                controllerAssignments[i] = -1;
             }
-            // ---------------------------
 
-            SceneManager.sceneLoaded += OnSceneLoaded; // Listen for scene changes
+            SceneManager.sceneLoaded += OnSceneLoaded;
         }
         else
         {
@@ -66,11 +58,9 @@ public class GameManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Refresh timer reference
         GameObject timerObj = GameObject.FindWithTag("Timer");
         timerText = timerObj != null ? timerObj.GetComponent<TMP_Text>() : null;
 
-        // Grab all buttons in the new scene
         menuButtons = GameObject.FindObjectsByType<Button>(FindObjectsSortMode.None);
         currentIndex = 0;
 
@@ -80,13 +70,11 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        // Timer display for rounds
         if (currGameState == GameState.Round && timerText != null && RoundManager.Instance != null)
         {
             timerText.text = "Timer: " + (RoundManager.Instance.currRoundDurationInSecs - (int)RoundManager.Instance.currRoundProgress);
         }
 
-        // Only allow controller navigation outside of rounds
         if (currGameState != GameState.Round && menuButtons != null && menuButtons.Length > 0 && InputManager.Instance != null)
         {
             Vector2 move = InputManager.Instance.GetMove(1);
@@ -125,10 +113,12 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Example: temporary method to start the round from a button
     public void StartRoundButton()
     {
-        RoundManager.Instance.switchRoundScene();
+        if (RoundManager.Instance != null)
+        {
+            RoundManager.Instance.switchRoundScene();
+        }
     }
 
     public Gamepad GetAssignedGamepad(int playerIndex)
@@ -137,5 +127,43 @@ public class GameManager : MonoBehaviour
         if (controllerIndex >= 0 && controllerIndex < Gamepad.all.Count)
             return Gamepad.all[controllerIndex];
         return null;
+    }
+
+    // ==========================================
+    // --- THE TRUE REBOOT SYSTEM (SOFT RESET) ---
+    // ==========================================
+    public void HardResetForMainMenu()
+    {
+        // 1. Wipe player data cleanly
+        playerCount = 0;
+        playerCustomizations.Clear();
+
+        if (controllerAssignments != null)
+        {
+            for (int i = 0; i < controllerAssignments.Length; i++) controllerAssignments[i] = -1;
+        }
+
+        if (playerTotalScores != null)
+        {
+            for (int i = 0; i < playerTotalScores.Length; i++) playerTotalScores[i] = 0;
+        }
+
+        // 2. SOFT RESET the Round Manager
+        if (RoundManager.Instance != null)
+        {
+            RoundManager.Instance.StopAllRoundLogic();
+            RoundManager.Instance.currRoundActive = false;
+            RoundManager.Instance.currRound = null;
+            RoundManager.Instance.currRoundProgress = 0f;
+        }
+
+        // 3. --- THE FIX: SOFT RESET the EventManager instead of killing it! ---
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.SoftReset();
+        }
+
+        // 4. Set state to Shop (Idle)
+        currGameState = GameState.Shop;
     }
 }

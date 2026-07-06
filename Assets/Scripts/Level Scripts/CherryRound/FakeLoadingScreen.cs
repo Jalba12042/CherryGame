@@ -12,7 +12,6 @@ public class FakeLoadingScreen : MonoBehaviour
     public string[] tips;
     public float tipInterval = 2f;
 
-
     [Header("Ready Up UI")]
     public Image[] playerReadyIcons;
 
@@ -20,7 +19,6 @@ public class FakeLoadingScreen : MonoBehaviour
     private int totalPlayers;
     private int readyCount;
 
-    // NEW: We added the slot for your Timer Manager right here!
     public TimerUIManager timerManager;
 
     [Header("Pac-Man Loading Elements")]
@@ -45,7 +43,7 @@ public class FakeLoadingScreen : MonoBehaviour
     private bool roundStarted = false;
 
     [Header("Color Icons")]
-    public Sprite[] colorIcons; // index matches colorIndex
+    public Sprite[] colorIcons;
 
     private void Start()
     {
@@ -85,15 +83,12 @@ public class FakeLoadingScreen : MonoBehaviour
         else
             totalPlayers = 0;
 
-        // Reset UI + state
         for (int i = 0; i < playerReadyIcons.Length; i++)
         {
             if (playerReadyIcons[i] != null)
             {
-                // ❌ DON'T show them yet
                 playerReadyIcons[i].gameObject.SetActive(false);
             }
-
             playerReady[i] = false;
         }
 
@@ -102,7 +97,6 @@ public class FakeLoadingScreen : MonoBehaviour
 
     private void Update()
     {
-        // rotate helpful tips
         if (tips != null && tips.Length > 0)
         {
             tipTimer += Time.deltaTime;
@@ -114,7 +108,6 @@ public class FakeLoadingScreen : MonoBehaviour
             }
         }
 
-        // Animate loading bar AND the Pac-Man Puppet
         if (!loadingComplete)
         {
             timer += Time.deltaTime;
@@ -122,7 +115,6 @@ public class FakeLoadingScreen : MonoBehaviour
 
             if (loadingBarFill != null) loadingBarFill.fillAmount = progress;
 
-            // Move the puppet and eat cherries
             if (playerIcon != null && startPoint != null && endPoint != null)
             {
                 playerIcon.rectTransform.position = Vector3.Lerp(startPoint.position, endPoint.position, progress);
@@ -145,7 +137,6 @@ public class FakeLoadingScreen : MonoBehaviour
                 loadingComplete = true;
                 pressAButtonPrompt.SetActive(true);
 
-                // Change to the sitting sprite AND shrink it when finished!
                 if (playerIcon != null && sittingSprite != null)
                 {
                     playerIcon.sprite = sittingSprite;
@@ -155,7 +146,6 @@ public class FakeLoadingScreen : MonoBehaviour
             return;
         }
 
-        // Keyboard fallback
         if (InputManager.Instance.GetConfirmDown(1) && GameManager.Instance.isOnKeyboard)
         {
             BeginRound();
@@ -193,24 +183,17 @@ public class FakeLoadingScreen : MonoBehaviour
         if (roundStarted) return;
         roundStarted = true;
 
-        // NEW: Tell the timer to reveal itself the exact second you press the button!
-        if (timerManager != null)
-        {
-            timerManager.RevealTimer();
-        }
+        // 1. Force the gameplay canvas ON so we can see the 3-2-1
+        GameObject canvas = GameObject.Find("PlayerCanvas");
+        if (canvas != null) canvas.SetActive(true);
 
-        // NEW: Safety checks so testing scenes directly doesn't crash Unity
-        if (RoundManager.Instance != null && RoundManager.Instance.currRound != null)
-        {
-            if (RoundManager.Instance.currRound.startTimerUI != null)
-                RoundManager.Instance.currRound.startTimerUI.SetActive(true);
-        }
-
+        // 2. Tell the RoundManager to take over completely
         if (RoundManager.Instance != null)
         {
             RoundManager.Instance.BeginRound();
         }
 
+        // 3. Hide the loading screen
         if (loadingPanel != null)
         {
             loadingPanel.SetActive(false);
