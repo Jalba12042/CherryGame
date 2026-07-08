@@ -30,11 +30,12 @@ public class SnowballThrow : MonoBehaviour
         return isAiming;
     }
 
-    public void PickUpSnowball(GameObject snowball)
+    public void PickUpSnowball(GameObject snowball, bool ignoreRelease)
     {
         heldSnowball = snowball;
 
-        ignoreFirstRelease = true;
+        ignoreFirstRelease = ignoreRelease;
+
         isAiming = false;
 
         if (animator != null)
@@ -133,9 +134,15 @@ public class SnowballThrow : MonoBehaviour
             pickup.playerHolding = null;
         }
 
-        playerInteract.NotifyThrowEnded();
+        GameObject thrownSnowball = heldSnowball;
 
         heldSnowball = null;
+
+        playerInteract.NotifyThrowEnded();
+        playerInteract.OnSnowballThrown();
+
         pendingThrow = false;
+
+        
     }
 }

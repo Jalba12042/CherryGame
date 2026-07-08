@@ -65,6 +65,12 @@ public class PlayerInteract : MonoBehaviour
     private GameObject nearbyPlayer;
     private bool ltWasHeld = false;
 
+    // SNOWBALL STUFF
+    private SnowballPile nearbySnowPile;
+    [SerializeField] private GameObject snowballPrefab;
+
+    private int snowballsRemaining = 0;
+
 
     private bool rtHeld = false;
     private float rtHoldTime = 0f;
@@ -200,11 +206,19 @@ public class PlayerInteract : MonoBehaviour
 
     private void OnInteractPressed()
     {
+
         if (grabbedPlayer != null)
         {
             ReleaseGrab();
             return;
         }
+
+        if (nearbySnowPile != null && snowballsRemaining == 0)
+        {
+            GiveSnowballs();
+            return;
+        }
+
         if (heldPickup != null)
         {
             LevelPickup pickup = heldPickup.GetComponent<LevelPickup>();
@@ -488,7 +502,7 @@ public class PlayerInteract : MonoBehaviour
             else
             {
                 // Snowball
-                snowballThrow?.PickUpSnowball(heldPickup);
+                snowballThrow?.PickUpSnowball(heldPickup, true);
             }
         }
 
@@ -558,6 +572,13 @@ public class PlayerInteract : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        SnowballPile pile = other.GetComponent<SnowballPile>();
+
+        if (pile != null)
+        {
+            nearbySnowPile = pile;
+        }
+
         Playermovement pm = other.GetComponent<Playermovement>() ?? other.GetComponentInParent<Playermovement>();
         if (pm == null || pm.playerIndex == player.playerIndex) return;
 
@@ -575,11 +596,79 @@ public class PlayerInteract : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
+        SnowballPile pile = other.GetComponent<SnowballPile>();
+
+        if (pile == nearbySnowPile)
+        {
+            nearbySnowPile = null;
+        }
+
         Playermovement pm = other.GetComponent<Playermovement>() ?? other.GetComponentInParent<Playermovement>();
         if (pm != null && pm.gameObject == nearbyPlayer) nearbyPlayer = null;
     }
 
     // ===== HELPERS =====
+
+    private void GiveSnowballs()
+    {
+        snowballsRemaining = 3;
+
+        Debug.Log("Player received 3 snowballs.");
+
+        SpawnSnowballInHand(true);
+    }
+
+    public void OnSnowballThrown()
+    {
+        snowballsRemaining--;
+
+        Debug.Log("Snowballs left: " + snowballsRemaining);
+
+        if (snowballsRemaining > 0)
+        {
+            SpawnSnowballInHand(false);
+        }
+    }
+
+    private void SpawnSnowballInHand(bool ignoreFirstRelease)
+    {
+        GameObject snowball = Instantiate(
+            snowballPrefab,
+            handHoldPoint.position,
+            handHoldPoint.rotation);
+
+        Snowball snowballScript = snowball.GetComponent<Snowball>();
+
+        if (snowballScript != null)
+        {
+            snowballScript.SetOwner(gameObject);
+        }
+
+        heldPickup = snowball;
+
+        LevelPickup pickup = heldPickup.GetComponent<LevelPickup>();
+
+        if (pickup != null)
+        {
+            pickup.isHeld = true;
+            pickup.playerHolding = gameObject;
+        }
+
+        Rigidbody rb = heldPickup.GetComponent<Rigidbody>();
+
+        if (rb != null)
+            rb.isKinematic = true;
+
+        heldPickup.transform.SetParent(handHoldPoint);
+        heldPickup.transform.localPosition = Vector3.zero;
+
+        SetCherryCollision(false);
+
+        snowballThrow?.PickUpSnowball(heldPickup, ignoreFirstRelease);
+
+        if (animator != null)
+            StartCoroutine(PlayPickupAnimation());
+    }
 
     private void SetCherryCollision(bool enabled)
     {

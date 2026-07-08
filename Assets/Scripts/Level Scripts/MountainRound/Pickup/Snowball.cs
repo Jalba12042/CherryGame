@@ -5,6 +5,8 @@ public class Snowball : LevelPickup
     private bool hasBeenThrown = false;
     [SerializeField] private float pushForce = 50f;
 
+    private GameObject owner;
+
     protected override void Awake()
     {
         base.Awake();
@@ -16,6 +18,11 @@ public class Snowball : LevelPickup
         base.Update();
     }
 
+    public void SetOwner(GameObject player)
+    {
+        owner = player;
+    }
+
     public void MarkThrown()
     {
         hasBeenThrown = true;
@@ -25,6 +32,11 @@ public class Snowball : LevelPickup
     {
         if (!hasBeenThrown)
             return;
+
+        if (collision.gameObject == owner || collision.transform.root.gameObject == owner)
+        {
+            return;
+        }
 
         PlayerPowerupHandler handler =
             collision.gameObject.GetComponentInParent<PlayerPowerupHandler>();
