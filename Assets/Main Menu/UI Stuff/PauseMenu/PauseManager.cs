@@ -24,6 +24,12 @@ public class PauseManager : MonoBehaviour
     public GameObject buttonList;
     public GameObject playerInfoBox;
     public TMP_Text countdownText;
+    public GameObject buttonPrompts;
+
+    [Header("Controls Screen Elements")]
+    public GameObject controlsPanel;       // The new panel you just created
+    public Image controlsImageDisplay;     // The Image component inside the panel
+    public Sprite[] controlsPages;         // The 2 (or more) images you want to swap between
 
     [Header("Image Buttons")]
     public CustomPauseButton[] menuButtons;
@@ -39,6 +45,9 @@ public class PauseManager : MonoBehaviour
 
     private bool isPaused = false;
     private bool isCountingDown = false;
+    private bool isShowingControls = false; // <--- NEW STATE
+    private int currentControlPage = 0;     // <--- TRACKS WHICH IMAGE YOU ARE ON
+
     private Gamepad controllingGamepad;
     private int currentIndex = 0;
     private bool canMove = true;
@@ -48,6 +57,7 @@ public class PauseManager : MonoBehaviour
     {
         if (pauseCanvas != null) pauseCanvas.SetActive(false);
         if (countdownText != null) countdownText.gameObject.SetActive(false);
+        if (controlsPanel != null) controlsPanel.SetActive(false);
         if (mainPlayerCanvas != null) mainPlayerCanvas.SetActive(true);
     }
 
@@ -71,23 +81,61 @@ public class PauseManager : MonoBehaviour
         {
             if (controllingGamepad == null) return;
 
+            // --- CONTROLS SCREEN LOGIC ---
+            if (isShowingControls)
+            {
+                // Press B to exit Controls and go back to Pause Menu
+                if (controllingGamepad.buttonEast.wasPressedThisFrame)
+                {
+                    CloseControls();
+                    return;
+                }
+
+                Vector2 move = controllingGamepad.leftStick.ReadValue();
+
+                if (canMove)
+                {
+                    // Flick Right
+                    if (move.x > deadzone || controllingGamepad.dpad.right.wasPressedThisFrame)
+                    {
+                        ChangeControlPage(1);
+                        canMove = false;
+                    }
+                    // Flick Left
+                    else if (move.x < -deadzone || controllingGamepad.dpad.left.wasPressedThisFrame)
+                    {
+                        ChangeControlPage(-1);
+                        canMove = false;
+                    }
+                }
+
+                // Reset joystick lock
+                if (Mathf.Abs(move.x) < 0.2f && !controllingGamepad.dpad.left.isPressed && !controllingGamepad.dpad.right.isPressed)
+                {
+                    canMove = true;
+                }
+
+                return; // Stop running the rest of the pause menu code while viewing controls
+            }
+
+            // --- NORMAL PAUSE MENU LOGIC ---
             if (controllingGamepad.startButton.wasPressedThisFrame || controllingGamepad.buttonEast.wasPressedThisFrame)
             {
                 StartResumeSequence();
                 return;
             }
 
-            Vector2 move = controllingGamepad.leftStick.ReadValue();
+            Vector2 menuMove = controllingGamepad.leftStick.ReadValue();
 
             if (canMove)
             {
-                if (move.y > deadzone || controllingGamepad.dpad.up.wasPressedThisFrame)
+                if (menuMove.y > deadzone || controllingGamepad.dpad.up.wasPressedThisFrame)
                 {
                     currentIndex = Mathf.Max(0, currentIndex - 1);
                     HighlightButton();
                     canMove = false;
                 }
-                else if (move.y < -deadzone || controllingGamepad.dpad.down.wasPressedThisFrame)
+                else if (menuMove.y < -deadzone || controllingGamepad.dpad.down.wasPressedThisFrame)
                 {
                     currentIndex = Mathf.Min(menuButtons.Length - 1, currentIndex + 1);
                     HighlightButton();
@@ -95,7 +143,7 @@ public class PauseManager : MonoBehaviour
                 }
             }
 
-            if (Mathf.Abs(move.y) < 0.2f && !controllingGamepad.dpad.up.isPressed && !controllingGamepad.dpad.down.isPressed)
+            if (Mathf.Abs(menuMove.y) < 0.2f && !controllingGamepad.dpad.up.isPressed && !controllingGamepad.dpad.down.isPressed)
             {
                 canMove = true;
             }
@@ -112,20 +160,78 @@ public class PauseManager : MonoBehaviour
         switch (index)
         {
             case 0:
-                StartResumeSequence();
+                StartResumeSequence(); // Resume
                 break;
             case 1:
-                RestartMatch();
+                RestartMatch(); // Restart
                 break;
             case 2:
-                QuitToMainMenu();
+                OpenControls(); // Controls (NEW!)
+                break;
+            case 3:
+                QuitToMainMenu(); // Quit To Menu
                 break;
         }
     }
 
+    // ==========================================
+    // --- CONTROLS SCREEN FUNCTIONS ---
+    // ==========================================
+    private void OpenControls()
+    {
+        isShowingControls = true;
+        currentControlPage = 0;
+
+        // Hide the pause menu paper
+        if (paperBackground != null) paperBackground.SetActive(false);
+        if (buttonList != null) buttonList.SetActive(false);
+        if (playerInfoBox != null) playerInfoBox.SetActive(false);
+
+        // Show the controls
+        if (controlsPanel != null) controlsPanel.SetActive(true);
+        UpdateControlsImage();
+    }
+
+    private void CloseControls()
+    {
+        isShowingControls = false;
+
+        // Hide the controls
+        if (controlsPanel != null) controlsPanel.SetActive(false);
+
+        // Bring the pause menu paper back
+        if (paperBackground != null) paperBackground.SetActive(true);
+        if (buttonList != null) buttonList.SetActive(true);
+        if (playerInfoBox != null) playerInfoBox.SetActive(true);
+    }
+
+    private void ChangeControlPage(int direction)
+    {
+        if (controlsPages == null || controlsPages.Length == 0) return;
+
+        currentControlPage += direction;
+
+        // Loop back around if they go past the end
+        if (currentControlPage >= controlsPages.Length) currentControlPage = 0;
+        else if (currentControlPage < 0) currentControlPage = controlsPages.Length - 1;
+
+        UpdateControlsImage();
+    }
+
+    private void UpdateControlsImage()
+    {
+        if (controlsImageDisplay != null && controlsPages != null && controlsPages.Length > 0)
+        {
+            controlsImageDisplay.sprite = controlsPages[currentControlPage];
+        }
+    }
+
+    // ==========================================
+
     public void PauseGame(Gamepad pad, int padIndex)
     {
         isPaused = true;
+        isShowingControls = false;
         controllingGamepad = pad;
 
         if (mainPlayerCanvas != null) mainPlayerCanvas.SetActive(false);
@@ -135,6 +241,9 @@ public class PauseManager : MonoBehaviour
         if (buttonList != null) buttonList.SetActive(true);
         if (playerInfoBox != null) playerInfoBox.SetActive(true);
         if (countdownText != null) countdownText.gameObject.SetActive(false);
+        if (controlsPanel != null) controlsPanel.SetActive(false); // Make sure it starts closed
+
+        if (buttonPrompts != null) buttonPrompts.SetActive(true);
 
         UpdatePlayerInfoUI(padIndex);
 
@@ -195,6 +304,8 @@ public class PauseManager : MonoBehaviour
         if (buttonList != null) buttonList.SetActive(false);
         if (playerInfoBox != null) playerInfoBox.SetActive(false);
         if (paperBackground != null) paperBackground.SetActive(false);
+        if (buttonPrompts != null) buttonPrompts.SetActive(false);
+        if (controlsPanel != null) controlsPanel.SetActive(false);
 
         if (countdownText != null)
         {
@@ -219,29 +330,21 @@ public class PauseManager : MonoBehaviour
         controllingGamepad = null;
     }
 
-    // ==========================================
-    // --- THE PERFECT SCORE-SAVING RESTART ---
-    // ==========================================
     private void RestartMatch()
     {
-        // 1. Unfreeze the game!
         Time.timeScale = 1f;
 
-        // 2. Safely stop the background timers without wiping the score memory!
         if (RoundManager.Instance != null)
         {
             RoundManager.Instance.StopAllRoundLogic();
-            RoundManager.Instance.currRoundProgress = 0f; // Reset progress for the fresh start
-            // Notice we do NOT touch roundsWon or currRound! It remembers the score and the map.
+            RoundManager.Instance.currRoundProgress = 0f;
         }
 
-        // 3. Reset the event UI so animations don't get stuck on screen
         if (EventManager.Instance != null)
         {
             EventManager.Instance.SoftReset();
         }
 
-        // 4. Reload the exact same map scene!
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
