@@ -111,7 +111,7 @@ public class Playermovement : MonoBehaviour
             dashSource.playOnAwake = false;
         }
 
-        // Guard against prefab data missing new dash fields (serialize default = 0, not C# initializer)
+        // Guard against prefab data missing new dash fields
         if (dashForce <= 0f) dashForce = 15f;
         if (dashDuration <= 0f) dashDuration = 0.3f;
         if (dashCooldown <= 0f) dashCooldown = 1f;
@@ -125,15 +125,7 @@ public class Playermovement : MonoBehaviour
 
         if (!canMove || isKnockedBack) return;
 
-        /*moveInput = InputManager.Instance.GetMove(playerID);
-
-        if (controlsReversed)
-        {
-            moveInput *= -1f;
-        }*/
-
         Vector2 rawInput = InputManager.Instance.GetMove(playerID);
-
         moveInput = controlsReversed ? -rawInput : rawInput;
 
         HandleFootsteps();
@@ -169,6 +161,9 @@ public class Playermovement : MonoBehaviour
 
     private void Update()
     {
+        // --- THE AUTO-JUMP FIX: Ignore all input while the game is paused! ---
+        if (Time.timeScale == 0f) return;
+
         HandleDashInput();
 
         if (allowJumpInput && gc.isGrounded && canMove && InputManager.Instance.GetJumpDown(playerID))
@@ -183,7 +178,6 @@ public class Playermovement : MonoBehaviour
 
     private void HandleRotation()
     {
-        //Vector2 input = InputManager.Instance.GetMove(playerID);
         Vector2 input = moveInput;
         isAiming = projectileScript != null && projectileScript.IsAiming();
 

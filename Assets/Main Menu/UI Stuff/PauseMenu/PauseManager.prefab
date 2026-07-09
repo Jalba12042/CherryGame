@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2133867497876041300
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1356212708070442676}
+  - component: {fileID: 3830619256354327188}
+  m_Layer: 0
+  m_Name: PauseManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1356212708070442676
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2133867497876041300}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 759.60077, y: 203.6818, z: -13.354565}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3830619256354327188
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2133867497876041300}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8033025e347c42140812c3d9e3f59634, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pauseCanvas: {fileID: 0}
+  mainPlayerCanvas: {fileID: 0}
+  paperBackground: {fileID: 0}
+  buttonList: {fileID: 0}
+  playerInfoBox: {fileID: 0}
+  countdownText: {fileID: 0}
+  buttonPrompts: {fileID: 0}
+  controlsPanel: {fileID: 0}
+  controlsImageDisplay: {fileID: 0}
+  controlsPages:
+  - {fileID: 21300000, guid: 76be11465560e734396689f5920f6ac8, type: 3}
+  - {fileID: 21300000, guid: 95575ee816142cc43985641bb5f6944d, type: 3}
+  menuButtons:
+  - buttonImage: {fileID: 0}
+    normalSprite: {fileID: 21300000, guid: 5c0a276aa45584f439ae694b3921df94, type: 3}
+    highlightSprite: {fileID: 21300000, guid: a01b41578915b7048a9e7daa7be90ce6, type: 3}
+  - buttonImage: {fileID: 0}
+    normalSprite: {fileID: 21300000, guid: 1ff72a6a65fb250449c597f4a9131aa1, type: 3}
+    highlightSprite: {fileID: 21300000, guid: 53a0976fce1243942aab86d2a9921cd2, type: 3}
+  - buttonImage: {fileID: 0}
+    normalSprite: {fileID: 21300000, guid: 9366ed7b85975b94bb2065911a99f3ae, type: 3}
+    highlightSprite: {fileID: 21300000, guid: 454f45da8ff8bc941bb4dc9ab38bbfd5, type: 3}
+  - buttonImage: {fileID: 0}
+    normalSprite: {fileID: 21300000, guid: 2e3d5877fc7c1dd4bab3ead3ba2f1c6f, type: 3}
+    highlightSprite: {fileID: 21300000, guid: 030331bf627aec44289b066071c614ac, type: 3}
+  pausingPlayerIcon: {fileID: 0}
+  pausingPlayerText: {fileID: 0}
+  availableNames:
+  - Bobby  Booty
+  - 'Chicken Mcgee '
+  - 'Ranch Dressing '
+  - 'Lefty   Lewis '
+  - 'Snicker  Doo '
+  - 'Puff    Daddy '
+  - 'Jelly Jimmy '
+  - 'Dick Dan Dickle '
+  - 'Willy   Wonky  '
+  - 'Tickle Monster '
+  - 'Big       Fudge '
+  - 'Mictor '
+  - Maleena
+  - Alex
+  - 'Big          DEE '
+  - 'Symour Butts '
+  - 'Pretty Ricky '
+  - 'I.C. Weener '
+  colorIcons:
+  - {fileID: 21300000, guid: 2801a3db8c8debb4d9258d0f226fac01, type: 3}
+  - {fileID: 21300000, guid: f78f4f3d026c3b04da1e6f3a56d6a64c, type: 3}
+  - {fileID: 21300000, guid: 6e1cd88d5f0c5c045ae82b70ee48a0bc, type: 3}
+  - {fileID: 21300000, guid: 6294e605f8276c34c84cb80aaf209b08, type: 3}
+  - {fileID: 21300000, guid: edfa9f479697c7b48987f3c1435082f9, type: 3}
+  - {fileID: 21300000, guid: 97e54a6e0b33c9849a8bc94c5be2ca46, type: 3}
+  - {fileID: 21300000, guid: 2db8e37254a5a6042ad822d86a7a31af, type: 3}
+  - {fileID: 21300000, guid: a00e0f5a868a8ba469c2e83ca8b3cb6d, type: 3}
+  titleSceneName: Main Menu

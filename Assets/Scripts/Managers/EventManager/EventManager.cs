@@ -23,7 +23,7 @@ public class EventManager : MonoBehaviour
     public GameObject zombieAnimatedUI;
     public GameObject mirrorAnimatedUI;
 
-    [Header("Text UI (Restored for RoundManager)")]
+    [Header("Text UI")]
     public GameObject eventTextObj;
     public TMP_Text eventText;
 
@@ -35,6 +35,8 @@ public class EventManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            // The EventManager must be immortal to travel between scenes
+            DontDestroyOnLoad(gameObject);
             eventRunning = false;
             onCooldown = false;
         }
@@ -44,61 +46,40 @@ public class EventManager : MonoBehaviour
         }
     }
 
+    // --- THIS MUST BE PUBLIC FOR GAMEMANAGER/PAUSEMANAGER TO ACCESS IT ---
+    public void SoftReset()
+    {
+        StopAllCoroutines();
+        currEventRoutine = null;
+        UIRoutine = null;
+
+        if (currEvent != null) currEvent.isRunning = false;
+        currEvent = null;
+
+        eventRunning = false;
+        onCooldown = false;
+
+        // Clean up UI
+        if (meteorAnimatedUI != null) meteorAnimatedUI.SetActive(false);
+        if (cherryAnimatedUI != null) cherryAnimatedUI.SetActive(false);
+        if (ufoAnimatedUI != null) ufoAnimatedUI.SetActive(false);
+        if (zombieAnimatedUI != null) zombieAnimatedUI.SetActive(false);
+        if (mirrorAnimatedUI != null) mirrorAnimatedUI.SetActive(false);
+        if (eventTextObj != null) eventTextObj.SetActive(false);
+    }
+
     private void Update()
     {
-        // === THE BULLETPROOF X-RAY FINDER ===
-        // This finds your images even if they are greyed out/turned off!
-        if (meteorAnimatedUI == null || cherryAnimatedUI == null || ufoAnimatedUI == null || zombieAnimatedUI == null || mirrorAnimatedUI == null)
+        // Safety check for RoundManager
+        if (RoundManager.Instance != null && !RoundManager.Instance.currRoundActive && currEventRoutine != null)
         {
-            Canvas[] allCanvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
-            foreach (Canvas canvas in allCanvases)
-            {
-                Transform[] allUIElements = canvas.GetComponentsInChildren<Transform>(true);
-                foreach (Transform uiElement in allUIElements)
-                {
-                    if (uiElement.name == "MeteorImage") { meteorAnimatedUI = uiElement.gameObject; meteorAnimatedUI.SetActive(false); }
-                    if (uiElement.name == "CherryImage") { cherryAnimatedUI = uiElement.gameObject; cherryAnimatedUI.SetActive(false); }
-                    if (uiElement.name == "UFOImage") { ufoAnimatedUI = uiElement.gameObject; ufoAnimatedUI.SetActive(false); }
-                    if (uiElement.name == "ZombieImage") { zombieAnimatedUI = uiElement.gameObject; zombieAnimatedUI.SetActive(false); }
-                    if (uiElement.name == "MirrorImage") { mirrorAnimatedUI = uiElement.gameObject; mirrorAnimatedUI.SetActive(false); }
-                }
-            }
-        }
-        // =====================================
-
-        // Keeps RoundManager happy
-        if (eventTextObj != null && eventText == null)
-        {
-            eventText = eventTextObj.GetComponent<TMP_Text>();
-            eventTextObj.SetActive(false);
-        }
-
-        if (!RoundManager.Instance.currRoundActive && currEventRoutine != null)
-        {
-            StopCoroutine(currEventRoutine);
-            if (UIRoutine != null) StopCoroutine(UIRoutine);
-            currEventRoutine = null;
-
-            if (currEvent != null)
-                currEvent.isRunning = false;
-
-            currEvent = null;
-            eventRunning = false;
-
-            // Failsafe: Turn off all UI animations if the round ends abruptly
-            if (meteorAnimatedUI != null) meteorAnimatedUI.SetActive(false);
-            if (cherryAnimatedUI != null) cherryAnimatedUI.SetActive(false);
-            if (ufoAnimatedUI != null) ufoAnimatedUI.SetActive(false);
-            if (zombieAnimatedUI != null) zombieAnimatedUI.SetActive(false);
-            if (mirrorAnimatedUI != null) mirrorAnimatedUI.SetActive(false);
-            if (eventTextObj != null) eventTextObj.SetActive(false);
+            SoftReset();
         }
 
         if (currEvent != null)
         {
             if (eventRunning && !currEvent.isRunning)
             {
-                Debug.Log(currEvent.name + " has ended");
                 StartCoroutine(CooldownTimer(currEvent.cooldown));
                 eventRunning = false;
                 currEvent = null;
@@ -108,13 +89,13 @@ public class EventManager : MonoBehaviour
 
     public float getIntensityFromCurve()
     {
+        if (RoundManager.Instance == null) return 0f;
         return eventCurve.Evaluate(RoundManager.Instance.currRoundProgressNormalized);
     }
 
     public GameEvent GetRandomEvent()
     {
         List<GameEvent> excluded = RoundManager.Instance.currRound?.excludedEvents;
-
         float totalWeight = 0f;
         foreach (var e in eventsInRotation)
         {
@@ -123,14 +104,12 @@ public class EventManager : MonoBehaviour
         }
 
         if (totalWeight <= 0f) return null;
-
         float randomValue = Random.Range(0, totalWeight);
 
         foreach (var e in eventsInRotation)
         {
             if (excluded != null && excluded.Contains(e)) continue;
-            if (randomValue < e.weight)
-                return e;
+            if (randomValue < e.weight) return e;
             randomValue -= e.weight;
         }
         return null;
@@ -138,18 +117,18 @@ public class EventManager : MonoBehaviour
 
     public IEnumerator EventTimer()
     {
-        while (RoundManager.Instance.currRoundActive)
+        while (RoundManager.Instance != null && RoundManager.Instance.currRoundActive)
         {
             yield return new WaitForSeconds(2f);
             if (Random.value < getIntensityFromCurve() && currEvent == null && !onCooldown)
             {
-                Debug.Log("started");
                 currEvent = GetRandomEvent();
-
-                UIRoutine = StartCoroutine(UITimer(currEvent));
-
-                currEventRoutine = StartCoroutine(currEvent.Trigger());
-                eventRunning = true;
+                if (currEvent != null)
+                {
+                    UIRoutine = StartCoroutine(UITimer(currEvent));
+                    currEventRoutine = StartCoroutine(currEvent.Trigger());
+                    eventRunning = true;
+                }
             }
         }
     }
@@ -158,39 +137,17 @@ public class EventManager : MonoBehaviour
     {
         GameObject activeUI = null;
 
-        if (triggeredEvent.eventName == "Meteor Shower!")
-        {
-            activeUI = meteorAnimatedUI;
-        }
-        else if (triggeredEvent.eventName == "Cherry Fever!")
-        {
-            activeUI = cherryAnimatedUI;
-        }
-        else if (triggeredEvent.eventName == "Alien Invasion!")
-        {
-            activeUI = ufoAnimatedUI;
-        }
-        // FIXED: Now says "Zombie Apocalypse!" to match your error log exactly
-        else if (triggeredEvent.eventName == "Zombie Apocalypse!")
-        {
-            activeUI = zombieAnimatedUI;
-        }
-        else if (triggeredEvent.eventName == "Magic Mirror!")
-        {
-            activeUI = mirrorAnimatedUI;
-        }
+        if (triggeredEvent.eventName == "Meteor Shower!") activeUI = meteorAnimatedUI;
+        else if (triggeredEvent.eventName == "Cherry Fever!") activeUI = cherryAnimatedUI;
+        else if (triggeredEvent.eventName == "Alien Invasion!") activeUI = ufoAnimatedUI;
+        else if (triggeredEvent.eventName == "Zombie Apocalypse!") activeUI = zombieAnimatedUI;
+        else if (triggeredEvent.eventName == "Magic Mirror!") activeUI = mirrorAnimatedUI;
 
         if (activeUI != null)
         {
             activeUI.SetActive(true);
-
             yield return new WaitForSeconds(3f);
-
             activeUI.SetActive(false);
-        }
-        else
-        {
-            Debug.LogWarning("Could not find a matching UI for event: " + triggeredEvent.eventName);
         }
     }
 
@@ -198,7 +155,7 @@ public class EventManager : MonoBehaviour
     {
         onCooldown = true;
         float endTime = Time.time + cooldown;
-        while (Time.time < endTime && RoundManager.Instance.currRoundActive)
+        while (Time.time < endTime && RoundManager.Instance != null && RoundManager.Instance.currRoundActive)
         {
             yield return null;
         }
