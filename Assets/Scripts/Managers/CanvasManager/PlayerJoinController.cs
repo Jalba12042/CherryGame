@@ -340,7 +340,7 @@ public class PlayerJoinController : MonoBehaviour
         slots[player].menuPanel.SetActive(true);
         slots[player].customizationUI.gameObject.SetActive(true);
 
-        if (slots[player].customizationUI != null) slots[player].customizationUI.Initialize();
+        if (slots[player].customizationUI != null) slots[player].customizationUI.Initialize(player);
 
         slots[player].previewCamera.gameObject.SetActive(true);
         slots[player].previewImage.texture = slots[player].previewCamera.targetTexture;
