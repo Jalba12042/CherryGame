@@ -8,6 +8,7 @@ public class BeachRound : Round
     [SerializeField] private GameObject[] shellPrefabs;
 
     private Ocean ocean;
+    private BasketContainer bc;
 
     public override void setValues()
     {
@@ -17,9 +18,12 @@ public class BeachRound : Round
             goalObjects = new List<GameObject>();
 
         ocean = FindFirstObjectByType<Ocean>();
-
         if (ocean == null)
             Debug.LogError($"[BeachRound] '{name}' could not find an Ocean object in the scene.");
+
+        bc = FindFirstObjectByType<BasketContainer>();
+        if (bc == null)
+            Debug.LogError($"[BeachRound] '{name}' could not find a BasketContainer in the scene.");
     }
 
     public override IEnumerator StartGoal()
@@ -34,7 +38,7 @@ public class BeachRound : Round
 
     public override int[] ScoreCount()
     {
-        int[] defScores = { 0, 0, 0, 0 };
-        return defScores;
+        if (bc != null) return bc.countCherries();
+        return new int[4];
     }
 }
