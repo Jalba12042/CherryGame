@@ -9,6 +9,8 @@ public class LevelPickup : MonoBehaviour
     [Header("Trail")]
     [SerializeField] private GameObject trailObject;
 
+    public bool useProjectileThrow = false;
+
     private GroundCheck groundCheck;
     private bool wasGrounded = false;
 

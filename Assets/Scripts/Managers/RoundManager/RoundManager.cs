@@ -13,23 +13,21 @@ public class RoundManager : MonoBehaviour
     [Header("Current Round Information")]
     public float currRoundProgress;
     public float currRoundDurationInSecs;
-    public float currRoundProgressNormalized; // used in events
+    public float currRoundProgressNormalized;
     public Round currRound;
     public bool currRoundActive;
     public int[] currRoundScores;
-    public List<Round> roundList; // list of rounds we can cycle through
+    public List<Round> roundList;
 
     [Header("UI")]
     private TextMeshProUGUI timerText;
-
-    // NEW: A slot to hold your Cardboard Timer Background!
     public GameObject timerBackgroundUI;
 
     [Header("PowerUp List")]
-    public List<GameObject> powerUpsInRotation; // List of all powerups in rotation
+    public List<GameObject> powerUpsInRotation;
 
     [Header("Flag to allow repeated rounds if we so choose")]
-    [SerializeField] private bool allowRepeats; // flag to allow repeated rounds if we so choose
+    [SerializeField] private bool allowRepeats;
 
     [Header("Scene Names")]
     [SerializeField] private string shopSceneName;
@@ -37,7 +35,6 @@ public class RoundManager : MonoBehaviour
     [SerializeField] private string winSceneName;
     [SerializeField] private string gameWinSceneName;
 
-    [SerializeField] private int startTimerInSeconds;
     [SerializeField] private GameObject playerPrefab;
 
     [Header("Max Score to Win Game")]
@@ -49,14 +46,15 @@ public class RoundManager : MonoBehaviour
     private int currRoundIndex;
 
     public RenderTexture[] playerFaceRenderTextures;
-
     public int[] roundsWon = { 0, 0, 0, 0 };
 
     private BasketContainer basketContainer;
-
     public SprinklerManager sprinklerManager;
+
     private void Awake()
     {
+        Time.timeScale = 1f;
+
         if (Instance == null)
         {
             Instance = this;
@@ -70,50 +68,52 @@ public class RoundManager : MonoBehaviour
             Destroy(gameObject);
         }
 
-        GameObject timerGO = GameObject.FindWithTag("Timer");
-        if (timerGO != null)
-        {
-            timerText = timerGO.GetComponent<TextMeshProUGUI>();
-            if (timerText == null)
-                Debug.LogWarning("Timer GameObject found but no TextMeshProUGUI component attached.");
-        }
-        else
-        {
-            Debug.LogWarning("No GameObject with tag 'Timer' found in the scene.");
-        }
+        RefreshUIReferences();
+    }
 
-        // NEW: Ensure the background starts turned OFF
-        if (timerBackgroundUI != null)
-        {
-            timerBackgroundUI.SetActive(false);
-        }
+    public void SetTimer(TextMeshProUGUI timer)
+    {
+        timerText = timer;
+    }
+
+    public void StopAllRoundLogic()
+    {
+        currRoundActive = false;
+        StopAllCoroutines();
+        if (timerText != null) timerText.text = "";
+    }
+
+    private void RefreshUIReferences()
+    {
+        GameObject timerGO = GameObject.FindWithTag("Timer");
+        if (timerGO != null) timerText = timerGO.GetComponent<TextMeshProUGUI>();
+
+        TimerUIManager tManager = FindFirstObjectByType<TimerUIManager>();
+        if (tManager != null) timerBackgroundUI = tManager.timerBackgroundObject;
+
+        if (timerBackgroundUI != null) timerBackgroundUI.SetActive(false);
     }
 
     private void Update()
     {
-        if (currRound == null && (SceneManager.GetActiveScene().name.Equals(controllerSceneName) || SceneManager.GetActiveScene().name.Equals(shopSceneName) || SceneManager.GetActiveScene().name.Equals("Local Screen"))) // the local screen check will be removed later
+        if (currRound == null && (SceneManager.GetActiveScene().name.Equals(controllerSceneName) || SceneManager.GetActiveScene().name.Equals(shopSceneName) || SceneManager.GetActiveScene().name.Equals("Local Screen")))
         {
             SelectRound();
         }
     }
 
-    // randomly selects a round depending on how many we have and if we want to allow repeats 
     private void SelectRound()
     {
         int roundIndex = -1;
         if (allowRepeats)
         {
             while (roundIndex == -1)
-            {
                 roundIndex = Random.Range(0, roundList.Count);
-            }
         }
         else
         {
             while (roundIndex == -1 || roundIndex == currRoundIndex)
-            {
                 roundIndex = Random.Range(0, roundList.Count);
-            }
         }
 
         currRoundIndex = roundIndex;
@@ -121,7 +121,6 @@ public class RoundManager : MonoBehaviour
         loadRoundData();
     }
 
-    // loads in info based on current round
     private void loadRoundData()
     {
         currRoundDurationInSecs = currRound.roundTimeInSeconds;
@@ -135,7 +134,6 @@ public class RoundManager : MonoBehaviour
         }
     }
 
-    // returns the winner index
     private List<int> checkWinIndexes()
     {
         int currWinnerScore = currRoundScores[0];
@@ -171,18 +169,17 @@ public class RoundManager : MonoBehaviour
                 powerUpsInRotation.Clear();
             }
         }
-
         return currWinnerIndexes;
     }
 
     public void BeginRound()
     {
-        if (sprinklerManager != null)
+        if (currRound == null && roundList != null && roundList.Count > 0)
         {
-            sprinklerManager?.StopSprinklers();
+            SelectRound();
         }
 
-
+        if (sprinklerManager != null) sprinklerManager?.StopSprinklers();
         if (currRound == null || currRoundActive) return;
 
         currRoundProgress = 0;
@@ -193,11 +190,9 @@ public class RoundManager : MonoBehaviour
         powerupsInPlay.Clear();
 
         SpawnPlayers();
-
         currRound.setValues();
         StartCoroutine(StartTimer());
     }
-
 
     private void SpawnPlayers()
     {
@@ -207,36 +202,22 @@ public class RoundManager : MonoBehaviour
         {
             for (int i = 0; i < GameManager.Instance.playerCount; i++)
             {
-                //int assignedControllerIndex = GameManager.Instance.controllerAssignments[i];        
-
                 GameObject playerObj = Instantiate(playerPrefab, currPlayerSpawn.spawnPoints[i].position, Quaternion.identity);
-
-                var customization = playerObj.GetComponentInChildren<PlayerCustomization>();      
+                var customization = playerObj.GetComponentInChildren<PlayerCustomization>();
 
                 if (customization != null && GameManager.Instance.playerCustomizations.Count > i)
                 {
                     customization.playerIndex = i;
-
                     var data = GameManager.Instance.playerCustomizations[i];
                     customization.ApplyFromData(data);
-                    Debug.Log($"Applying Player {i} Color: {data.colorIndex}");
                 }
 
                 if (basketContainer != null && i < basketContainer.baskets.Count)
                 {
                     GameObject basketObj = basketContainer.baskets[i];
-
                     BasketColorSync basket = basketObj.GetComponentInChildren<BasketColorSync>();
-
-                    Debug.Log($"Basket {i} found: {basket != null}");
-
-                    if (basket != null && customization != null)
-                    {
-                        basket.SetColor(customization.CurrentColorIndex);
-                    }
+                    if (basket != null && customization != null) basket.SetColor(customization.CurrentColorIndex);
                 }
-
-           
 
                 Playermovement player = playerObj.GetComponentInChildren<Playermovement>();
                 player.playerIndex = i;
@@ -245,16 +226,10 @@ public class RoundManager : MonoBehaviour
                 player.GetComponent<PlayerEscapeUI>().playerIndex = i;
 
                 Gamepad assignedGamepad = GameManager.Instance.GetAssignedGamepad(i);
-                if (assignedGamepad != null)
-                {
-                    player.assignedGamepad = assignedGamepad;
-                    InputManager.Instance.AssignGamepad(player.playerID, assignedGamepad);
-                }
-
+                if (assignedGamepad != null) player.assignedGamepad = assignedGamepad;
 
                 Camera faceCam = player.GetComponentInChildren<Camera>();
-                if (faceCam != null && i < playerFaceRenderTextures.Length)
-                    faceCam.targetTexture = playerFaceRenderTextures[i];
+                if (faceCam != null && i < playerFaceRenderTextures.Length) faceCam.targetTexture = playerFaceRenderTextures[i];
 
                 playerObjects[i] = playerObj;
             }
@@ -272,8 +247,7 @@ public class RoundManager : MonoBehaviour
             if (customization != null) customization.AssignColor(0);
 
             Camera faceCam = player.GetComponentInChildren<Camera>();
-            if (faceCam != null && 0 < playerFaceRenderTextures.Length)
-                faceCam.targetTexture = playerFaceRenderTextures[0];
+            if (faceCam != null && 0 < playerFaceRenderTextures.Length) faceCam.targetTexture = playerFaceRenderTextures[0];
 
             playerObjects[0] = playerObj;
         }
@@ -281,43 +255,46 @@ public class RoundManager : MonoBehaviour
 
     public IEnumerator StartTimer()
     {
-        // NEW: Turn on the background timer UI exactly when the sequence starts
+        // 1. Double check UI is attached
+        RefreshUIReferences();
+
+        // 2. --- THE FIX: Reveal the Cardboard UI IMMEDIATELY! ---
         if (timerBackgroundUI != null)
         {
             timerBackgroundUI.SetActive(true);
-
-            // If you still use the Animator for the flipbook, this will safely trigger it!
             Animator bgAnim = timerBackgroundUI.GetComponent<Animator>();
             if (bgAnim != null) bgAnim.SetTrigger("StartTimer");
         }
 
-        timerText.text = "";
+        TimerUIManager tManager = FindFirstObjectByType<TimerUIManager>();
+        if (tManager != null) tManager.RevealTimer();
+
+        // 3. Keep the actual timer clock numbers empty so it doesn't count early
+        if (timerText != null) timerText.text = "";
+
         SetPlayersCanMove(false);
 
+        // 4. Run the 3-2-1 Screen Text Loop
         float timer = 0;
         float maxTimer = 3;
-        if (currRound.startTimerUI != null)
+        if (currRound != null && currRound.startTimerUI != null)
         {
             TMP_Text startTimerText = currRound.startTimerUI.GetComponent<TMP_Text>();
             currRound.startTimerUI.SetActive(true);
             while (timer < 3)
             {
                 timer += Time.deltaTime;
-                if (startTimerText != null)
-                    startTimerText.text = $"{((int)(maxTimer - timer)) + 1}";
+                if (startTimerText != null) startTimerText.text = $"{((int)(maxTimer - timer)) + 1}";
                 yield return null;
             }
             currRound.startTimerUI.SetActive(false);
         }
 
+        // 5. GO! Now allow movement and start the real background clock
         SetPlayersCanMove(true);
-
         currRoundActive = true;
 
-        if (sprinklerManager != null)
-        {
-            sprinklerManager?.StartSprinklers();
-        }
+        if (sprinklerManager != null) sprinklerManager?.StartSprinklers();
 
         StartCoroutine(RoundTimer());
         StartCoroutine(currRound.StartGoal());
@@ -336,7 +313,6 @@ public class RoundManager : MonoBehaviour
                 float remaining = currRoundDurationInSecs - currRoundProgress;
                 timerText.text = Mathf.CeilToInt(remaining).ToString();
             }
-
             yield return null;
         }
 
@@ -344,8 +320,7 @@ public class RoundManager : MonoBehaviour
         currRoundProgressNormalized = 1f;
 
         currRoundScores = currRound.ScoreCount();
-        List<int> winnerIndexes = checkWinIndexes();
-        WinScript.winningPlayers = winnerIndexes;
+        WinScript.winningPlayers = checkWinIndexes();
 
         List<int> gameWinners = checkGameWinIndexes();
         if (gameWinners.Count != 0)
@@ -354,52 +329,30 @@ public class RoundManager : MonoBehaviour
             roundsWon = new int[] { 0, 0, 0, 0 };
             SceneManager.LoadSceneAsync(gameWinSceneName);
         }
-        else
-        {
-            SceneManager.LoadSceneAsync(winSceneName);
-        }
+        else SceneManager.LoadSceneAsync(winSceneName);
 
         currRoundActive = false;
         currRound = null;
     }
 
-    public void SetTimer(TextMeshProUGUI timer)
-    {
-        timerText = timer;
-    }
-
-    private void SetPlayersCanMove(bool value)
+    public void SetPlayersCanMove(bool value)
     {
         foreach (GameObject playerObj in playerObjects)
         {
             if (playerObj == null) continue;
-
             Playermovement player = playerObj.GetComponentInChildren<Playermovement>();
-            if (player != null)
-            {
-                player.canMove = value;
-            }
+            if (player != null) player.canMove = value;
         }
     }
 
-    private void OnEnable()
-    {
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
-
-    private void OnDisable()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
+    private void OnEnable() => SceneManager.sceneLoaded += OnSceneLoaded;
+    private void OnDisable() => SceneManager.sceneLoaded -= OnSceneLoaded;
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         basketContainer = FindFirstObjectByType<BasketContainer>();
-
         sprinklerManager = FindFirstObjectByType<SprinklerManager>();
 
-
-        Debug.Log("BasketContainer found after scene load: " + basketContainer);
+        RefreshUIReferences();
     }
-
 }
