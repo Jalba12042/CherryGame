@@ -12,10 +12,6 @@ public class SnowballThrow : MonoBehaviour
 
     private GameObject heldSnowball;
 
-    private bool isAiming;
-    private bool pendingThrow;
-    private bool ignoreFirstRelease;
-
     private void Awake()
     {
         if (animator == null)
@@ -25,72 +21,30 @@ public class SnowballThrow : MonoBehaviour
             playerInteract = GetComponent<PlayerInteract>();
     }
 
-    public bool IsAiming()
-    {
-        return isAiming;
-    }
-
-    public void PickUpSnowball(GameObject snowball, bool ignoreRelease)
+    public void PickUpSnowball(GameObject snowball)
     {
         heldSnowball = snowball;
-
-        ignoreFirstRelease = ignoreRelease;
-
-        isAiming = false;
-
-        if (animator != null)
-            animator.SetBool("isAiming", false);
     }
 
-    public void CancelAim()
-    {
-        isAiming = false;
-
-        if (animator != null)
-            animator.SetBool("isAiming", false);
-    }
-
-    private void Update()
+    public void ThrowSnowball()
     {
         if (heldSnowball == null)
             return;
 
-        bool rtHeld = InputManager.Instance.GetButton1Held(playerInteract.GetComponent<Playermovement>().playerID);
-
-        // Hold RT
-        if (rtHeld)
+        if (animator != null)
         {
-            isAiming = true;
-
-            if (animator != null)
-                animator.SetBool("isAiming", true);
+            animator.SetBool("isAiming", false);
+            animator.SetTrigger("doThrow");
         }
 
-        // Release RT
-        // Release RT
-        else if (isAiming)
-        {
-            if (ignoreFirstRelease)
-            {
-                ignoreFirstRelease = false;
-                isAiming = false;
+        StartCoroutine(DelayedThrow());
+    }
 
-                if (animator != null)
-                    animator.SetBool("isAiming", false);
+    public void CancelAim()
+    {
 
-                return;
-            }
-
-            isAiming = false;
-
-            if (animator != null)
-            {
-                animator.SetBool("isAiming", false);
-                animator.SetTrigger("doThrow");
-            }
-
-            StartCoroutine(DelayedThrow());
-        }
+        if (animator != null)
+            animator.SetBool("isAiming", false);
     }
 
     private IEnumerator DelayedThrow()
@@ -140,8 +94,6 @@ public class SnowballThrow : MonoBehaviour
 
         playerInteract.NotifyThrowEnded();
         playerInteract.OnSnowballThrown();
-
-        pendingThrow = false;
 
         
     }

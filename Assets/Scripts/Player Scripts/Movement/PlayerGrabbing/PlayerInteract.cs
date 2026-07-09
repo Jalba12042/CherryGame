@@ -232,8 +232,7 @@ public class PlayerInteract : MonoBehaviour
             else
             {
                 // Snowball
-                if (!snowballThrow.IsAiming())
-                    CancelAimAndDrop();
+                snowballThrow.ThrowSnowball();
             }
 
             return;
@@ -502,7 +501,7 @@ public class PlayerInteract : MonoBehaviour
             else
             {
                 // Snowball
-                snowballThrow?.PickUpSnowball(heldPickup, true);
+                snowballThrow?.PickUpSnowball(heldPickup);
             }
         }
 
@@ -664,7 +663,7 @@ public class PlayerInteract : MonoBehaviour
 
         SetCherryCollision(false);
 
-        snowballThrow?.PickUpSnowball(heldPickup, ignoreFirstRelease);
+        snowballThrow?.PickUpSnowball(heldPickup);
 
         if (animator != null)
             StartCoroutine(PlayPickupAnimation());
