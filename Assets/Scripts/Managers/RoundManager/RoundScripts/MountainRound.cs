@@ -22,6 +22,24 @@ public class MountainRound : Round
         }
     }
 
+    public override void RoundUpdate()
+    {
+        GameObject[] players = RoundManager.Instance.playerObjects;
+        int aliveCount = 0;
+        for (int i = 0; i < players.Length; i++)
+        {
+            if (players[i] == null) continue;
+            PlayerKill pk = players[i].GetComponentInChildren<PlayerKill>();
+            if (pk != null && !pk.currDead) aliveCount++;
+        }
+
+        // only cut the round short if it started with more than one player, so solo testing doesn't end instantly
+        if (players.Length > 1 && aliveCount <= 1)
+        {
+            RoundManager.Instance.currRoundProgress = RoundManager.Instance.currRoundDurationInSecs;
+        }
+    }
+
     public override int[] ScoreCount()
     {
         GameObject[] players = RoundManager.Instance.playerObjects;
