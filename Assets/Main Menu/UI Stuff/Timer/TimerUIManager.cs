@@ -38,12 +38,15 @@ public class TimerUIManager : MonoBehaviour
             // --- 30 SECOND CHECK ---
             if (remainingTime <= 30f && remainingTime > 10f && !hasShown30)
             {
-                if (sign30Sec != null) sign30Sec.SetActive(true);
+                if (sign30Sec != null)
+                {
+                    sign30Sec.SetActive(true);
 
-                Animator anim30 = sign30Sec.GetComponent<Animator>();
-                if (anim30 != null) anim30.SetTrigger("Show");
+                    Animator anim30 = sign30Sec.GetComponent<Animator>();
+                    if (anim30 != null) anim30.SetTrigger("Show");
 
-                hasShown30 = true;
+                    hasShown30 = true;
+                }
             }
 
             // --- 10 SECOND CHECK ---
@@ -51,12 +54,15 @@ public class TimerUIManager : MonoBehaviour
             {
                 if (sign30Sec != null) sign30Sec.SetActive(false);
 
-                if (sign10Sec != null) sign10Sec.SetActive(true);
+                if (sign10Sec != null)
+                {
+                    sign10Sec.SetActive(true);
 
-                Animator anim10 = sign10Sec.GetComponent<Animator>();
-                if (anim10 != null) anim10.SetTrigger("Show");
+                    Animator anim10 = sign10Sec.GetComponent<Animator>();
+                    if (anim10 != null) anim10.SetTrigger("Show");
 
-                hasShown10 = true;
+                    hasShown10 = true;
+                }
             }
         }
     }
