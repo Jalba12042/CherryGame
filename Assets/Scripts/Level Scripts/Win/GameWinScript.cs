@@ -3,14 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-
-[System.Serializable]
-public class FinalVictoryPuppet
-{
-    public string colorName;
-    public int colorIndex;
-    public GameObject puppetGroup;
-}
+using System.Collections; // Needed for the Coroutine sequence
 
 public class GameWinScript : MonoBehaviour
 {
@@ -28,34 +21,58 @@ public class GameWinScript : MonoBehaviour
     [Header("Name Mapping")]
     public string[] availableNames;
 
-    [Header("Victory Animations")]
-    public FinalVictoryPuppet[] colorPuppets;
+    [Header("Award Show Stage")]
+    public Animator stageAnimator; // Drag your AwardShowStage here in the Inspector!
 
     [Header("Audio Polish")]
-    public AudioSource sfxSource;       // Drag an AudioSource for the "Celebrate" sound here
-    public AudioClip celebrateSound;    // Drag your "Yay!" sound effect here
+    public AudioSource sfxSource;
+    public AudioClip celebrateSound;
     public float musicFadeDuration = 2f;
 
     void Start()
     {
-        // --- FIX 1: SNAP TIME BACK TO NORMAL ---
+        // Snap time back to normal
         Time.timeScale = 1f;
 
-        TurnOffAllPuppets();
+        // Tell the gameplay music to fade out and die
+        if (GameplayMusicManager.Instance != null)
+        {
+            GameplayMusicManager.Instance.FadeOutToShop(musicFadeDuration);
+        }
 
-        // Play the Celebrate Sound!
+        // Hide the winner text at the very beginning so it doesn't spoil the reveal!
+        if (winnerText != null) winnerText.gameObject.SetActive(false);
+
+        // Start the Award Show Sequence!
+        StartCoroutine(AwardShowSequence());
+    }
+
+    private IEnumerator AwardShowSequence()
+    {
+        // 1. Wait a brief second for the scene to settle
+        yield return new WaitForSeconds(1f);
+
+        // 2. Tell the curtain to open!
+        if (stageAnimator != null)
+        {
+            stageAnimator.Play("CurtainReveal"); // Make sure this matches your animation name exactly
+        }
+
+        // 3. Play the Celebrate Sound as the curtains move
         if (sfxSource != null && celebrateSound != null)
         {
             sfxSource.PlayOneShot(celebrateSound);
         }
 
-        // --- FIX 2: TELL THE GAMEPLAY MUSIC TO FADE OUT AND DIE ---
-        if (GameplayMusicManager.Instance != null)
-        {
-            // We use the exact same fade method we built for the Shop!
-            GameplayMusicManager.Instance.FadeOutToShop(musicFadeDuration);
-        }
+        // 4. Wait for the curtains to finish opening (Adjust this time to match your animation length)
+        yield return new WaitForSeconds(1.5f);
 
+        // 5. Now calculate and reveal the winner!
+        RevealWinner();
+    }
+
+    private void RevealWinner()
+    {
         if (winningPlayers == null || winningPlayers.Count == 0)
         {
             winningPlayers = new List<int> { 0 };
@@ -86,59 +103,34 @@ public class GameWinScript : MonoBehaviour
             }
             winnersString += " TIED!";
 
-            if (winnerText != null) winnerText.text = winnersString.ToUpper();
+            if (winnerText != null)
+            {
+                winnerText.text = winnersString.ToUpper();
+                winnerText.gameObject.SetActive(true); // Turn text back on!
+            }
         }
         else
         {
             int winnerID = winningPlayers[0];
             string winName = "PLAYER " + (winnerID + 1);
-            int winColorIndex = 0;
 
             if (GameManager.Instance != null && GameManager.Instance.playerCustomizations.Count > winnerID)
             {
                 var data = GameManager.Instance.playerCustomizations[winnerID];
-                winColorIndex = data.colorIndex;
-
                 if (availableNames != null && data.nameIndex >= 0 && data.nameIndex < availableNames.Length)
                 {
                     winName = availableNames[data.nameIndex];
                 }
             }
 
-            if (winnerText != null) winnerText.text = winName.ToUpper() + " WINS THE GAME!";
-
-            bool foundPuppet = false;
-            if (colorPuppets != null)
+            if (winnerText != null)
             {
-                foreach (FinalVictoryPuppet vp in colorPuppets)
-                {
-                    if (vp.colorIndex == winColorIndex)
-                    {
-                        if (vp.puppetGroup != null) vp.puppetGroup.SetActive(true);
-                        foundPuppet = true;
-                        break;
-                    }
-                }
-
-                if (!foundPuppet && colorPuppets.Length > 0 && colorPuppets[0].puppetGroup != null)
-                {
-                    colorPuppets[0].puppetGroup.SetActive(true);
-                }
+                winnerText.text = winName.ToUpper() + " WINS THE GAME!";
+                winnerText.gameObject.SetActive(true); // Turn text back on!
             }
         }
 
         HighlightButton();
-    }
-
-    private void TurnOffAllPuppets()
-    {
-        if (colorPuppets != null)
-        {
-            foreach (FinalVictoryPuppet vp in colorPuppets)
-            {
-                if (vp.puppetGroup != null) vp.puppetGroup.SetActive(false);
-            }
-        }
     }
 
     void Update()
@@ -182,8 +174,6 @@ public class GameWinScript : MonoBehaviour
 
     public void GoToLocal()
     {
-        // --- FIX 3: PREVENT MUSIC LEAK ---
-        // If the player presses 'A' really fast before the fade finishes, explicitly kill the music object here!
         if (GameplayMusicManager.Instance != null)
         {
             Destroy(GameplayMusicManager.Instance.gameObject);
