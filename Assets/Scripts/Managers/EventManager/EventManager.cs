@@ -16,12 +16,9 @@ public class EventManager : MonoBehaviour
     [Header("Event curve")]
     [SerializeField] private AnimationCurve eventCurve;
 
-    [Header("Animated UI Screens")]
-    public GameObject meteorAnimatedUI;
-    public GameObject cherryAnimatedUI;
-    public GameObject ufoAnimatedUI;
-    public GameObject zombieAnimatedUI;
-    public GameObject mirrorAnimatedUI;
+    [Header("Event UI Transform")]
+    [SerializeField] private Transform eventUIPoint;
+    [SerializeField] private string eventUITag;
 
     [Header("Text UI")]
     public GameObject eventTextObj;
@@ -58,14 +55,6 @@ public class EventManager : MonoBehaviour
 
         eventRunning = false;
         onCooldown = false;
-
-        // Clean up UI
-        if (meteorAnimatedUI != null) meteorAnimatedUI.SetActive(false);
-        if (cherryAnimatedUI != null) cherryAnimatedUI.SetActive(false);
-        if (ufoAnimatedUI != null) ufoAnimatedUI.SetActive(false);
-        if (zombieAnimatedUI != null) zombieAnimatedUI.SetActive(false);
-        if (mirrorAnimatedUI != null) mirrorAnimatedUI.SetActive(false);
-        if (eventTextObj != null) eventTextObj.SetActive(false);
     }
 
     private void Update()
@@ -135,20 +124,22 @@ public class EventManager : MonoBehaviour
 
     public IEnumerator UITimer(GameEvent triggeredEvent)
     {
-        GameObject activeUI = null;
-
-        if (triggeredEvent.eventName == "Meteor Shower!") activeUI = meteorAnimatedUI;
-        else if (triggeredEvent.eventName == "Cherry Fever!") activeUI = cherryAnimatedUI;
-        else if (triggeredEvent.eventName == "Alien Invasion!") activeUI = ufoAnimatedUI;
-        else if (triggeredEvent.eventName == "Zombie Apocalypse!") activeUI = zombieAnimatedUI;
-        else if (triggeredEvent.eventName == "Magic Mirror!") activeUI = mirrorAnimatedUI;
-
-        if (activeUI != null)
+        GameObject eventUIPointObj = GameObject.FindWithTag(eventUITag);
+        if (eventUIPointObj == null)
         {
-            activeUI.SetActive(true);
-            yield return new WaitForSeconds(3f);
-            activeUI.SetActive(false);
+            Debug.LogWarning($"[EventManager] No GameObject tagged '{eventUITag}' found for event UI.");
+            yield break;
         }
+        eventUIPoint = eventUIPointObj.transform;
+
+        GameObject activeUI = triggeredEvent.animatedUI;
+        if (activeUI == null) yield break;
+
+        // parent under eventUIPoint (a child of the Canvas) so the UI's CanvasRenderer actually renders
+        GameObject currActiveUI = Instantiate(activeUI, eventUIPoint);
+        currActiveUI.SetActive(true);
+        yield return new WaitForSeconds(3f);
+        Destroy(currActiveUI);
     }
 
     public IEnumerator CooldownTimer(float cooldown)

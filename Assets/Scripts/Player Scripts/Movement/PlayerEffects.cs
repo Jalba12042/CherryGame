@@ -100,7 +100,7 @@ public class PlayerEffects : MonoBehaviour
 
             if (pk != null)
             {
-                pk.killPlayer();
+                pk.killPlayer(true);
             }
         }
     }

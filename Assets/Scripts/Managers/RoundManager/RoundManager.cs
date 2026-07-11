@@ -313,6 +313,8 @@ public class RoundManager : MonoBehaviour
                 float remaining = currRoundDurationInSecs - currRoundProgress;
                 timerText.text = Mathf.CeilToInt(remaining).ToString();
             }
+
+            currRound.RoundUpdate();
             yield return null;
         }
 

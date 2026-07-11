@@ -32,9 +32,17 @@ public class PlayerCustomizationUI : MonoBehaviour
         ApplyName();
     }
 
-    public void Initialize()
+    public void Initialize(int playerIndex)
     {
         currentIndex = 0;
+
+        // Start each player on a different default name
+        if (playerNames.Length > 0)
+        {
+            currentNameIndex = playerIndex % playerNames.Length;
+            ApplyName();
+        }
+
         UpdateCategoryHighlight();
     }
 

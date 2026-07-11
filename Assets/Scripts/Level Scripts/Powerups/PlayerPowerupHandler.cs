@@ -8,6 +8,7 @@ public class PlayerPowerupHandler : MonoBehaviour
     private Powerup nearbyPowerup;
     private float originalMoveSpeed;
     private bool rtConsumedThisPress;
+    private Animator animator;
 
     [Header("Hand Reference")]
     public Transform handHoldPoint;
@@ -35,14 +36,24 @@ public class PlayerPowerupHandler : MonoBehaviour
     public bool hasTacoBlasterEquipped = false;
     public TacoBlaster activeTacoBlaster;
 
+    [Header("Taco Dance Props")]
+    [SerializeField] private Transform leftHandHoldPoint;
+    [SerializeField] private Transform rightHandHoldPoint;
+    [SerializeField] private GameObject tacoPrefab;
+
+    private GameObject leftTaco;
+    private GameObject rightTaco;
+
     [Header("Taco Music")]
     [SerializeField] private AudioSource tacoAudioSource;
     [SerializeField] private AudioClip tacoMusic;
+    [SerializeField] private float tacoMusicStartTime = 2.5f;
 
     [HideInInspector] public bool rtConsumedThisFrame = false;
     void Start()
     {
         player = GetComponent<Playermovement>();
+        animator = GetComponent<Animator>();
         originalMoveSpeed = player.moveSpeed;
 
         int highestID = -1;
@@ -324,6 +335,13 @@ public class PlayerPowerupHandler : MonoBehaviour
     {
         isTased = true;
 
+        if (animator != null)
+        {
+            animator.SetBool("isTacoDancing", true);
+        }
+
+        SpawnTacos();
+
         Rigidbody rb = GetComponent<Rigidbody>();
 
         Vector3 storedVelocity = Vector3.zero;
@@ -362,6 +380,8 @@ public class PlayerPowerupHandler : MonoBehaviour
             // Make louder while dancing
             tacoAudioSource.volume = 1.2f; // Adjust to whatever you want
 
+            tacoAudioSource.time = tacoMusicStartTime;
+
             tacoAudioSource.Play();
         }
 
@@ -385,6 +405,50 @@ public class PlayerPowerupHandler : MonoBehaviour
             rb.linearVelocity = storedVelocity;
         }
 
+        if (animator != null)
+        {
+            animator.SetBool("isTacoDancing", false);
+        }
+
+        RemoveTacos();
+
         isTased = false;
+    }
+
+    private void SpawnTacos()
+    {
+        if (tacoPrefab == null)
+            return;
+
+        if (leftHandHoldPoint != null)
+        {
+            leftTaco = Instantiate(tacoPrefab, leftHandHoldPoint);
+            leftTaco.transform.localPosition = Vector3.zero;
+            leftTaco.transform.localRotation = Quaternion.identity;
+            leftTaco.transform.localScale = Vector3.one * 0.005f; // adjust this
+        }
+
+        if (rightHandHoldPoint != null)
+        {
+            rightTaco = Instantiate(tacoPrefab, rightHandHoldPoint);
+            rightTaco.transform.localPosition = Vector3.zero;
+            rightTaco.transform.localRotation = Quaternion.identity;
+            rightTaco.transform.localScale = Vector3.one * 0.005f; // adjust this
+        }
+    }
+
+    private void RemoveTacos()
+    {
+        if (leftTaco != null)
+        {
+            Destroy(leftTaco);
+            leftTaco = null;
+        }
+
+        if (rightTaco != null)
+        {
+            Destroy(rightTaco);
+            rightTaco = null;
+        }
     }
 }

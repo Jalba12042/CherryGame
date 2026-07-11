@@ -9,6 +9,7 @@ public abstract class GameEvent : ScriptableObject
     public float cooldown;
     public bool isRunning;
     public float duration;
+    public GameObject animatedUI;
 
     public abstract IEnumerator Trigger();
 }

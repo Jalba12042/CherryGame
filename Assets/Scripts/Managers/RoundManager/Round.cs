@@ -21,6 +21,12 @@ public class Round : ScriptableObject
         yield return null;
     }
 
+    // override this if a round needs to check for stuff during a round
+    public virtual void RoundUpdate()
+    {
+        return;
+    }
+
     public virtual int[] ScoreCount()
     {
         return new int[0];
