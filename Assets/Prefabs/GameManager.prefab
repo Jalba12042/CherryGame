@@ -147,11 +147,8 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  meteorAnimatedUI: {fileID: 0}
-  cherryAnimatedUI: {fileID: 0}
-  ufoAnimatedUI: {fileID: 0}
-  zombieAnimatedUI: {fileID: 0}
-  mirrorAnimatedUI: {fileID: 0}
+  eventUIPoint: {fileID: 0}
+  eventUITag: 
   eventTextObj: {fileID: 0}
   eventText: {fileID: 0}
   eventRunning: 0
@@ -259,7 +256,6 @@ MonoBehaviour:
   controllerSceneName: ControllerConnectScene
   winSceneName: WinScene
   gameWinSceneName: GameWinScene
-  startTimerInSeconds: 5
   playerPrefab: {fileID: 5896580224650156824, guid: a4941385819267443921cc5940722af2, type: 3}
   maxScore: 3
   playerObjects: []
@@ -282,6 +278,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1756422733421096794}
   - component: {fileID: 8580464341000308657}
+  - component: {fileID: 4380610230524679542}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -326,3 +323,17 @@ MonoBehaviour:
   isOnKeyboard: 0
   playerCustomizations: []
   currGameState: 0
+--- !u!114 &4380610230524679542
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5707912695095907388}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70dc9d1bfc5318749ac0cd0f81f4c796, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  totalPistolKills: 00000000000000000000000000000000
+  totalCherriesDeposited: 00000000000000000000000000000000
