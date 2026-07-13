@@ -1,12 +1,13 @@
 using Assets.DuckType.Jiggle;
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 // Merged from: PlayerGrab, PlayerCherry, PlayerGrabbed
 // One RT press attempts, in priority order: release, grab player, pick up cherry.
 // LT release throws a held player. Cherry throw is handled by Projectile (hold/release LT).
-public class PlayerInteract : MonoBehaviour
+public class PlayerInteract : NetworkBehaviour
 {
     // ===== GRAB =====
     [Header("Grab Settings")]
@@ -104,8 +105,14 @@ public class PlayerInteract : MonoBehaviour
             stunCanvas.SetActive(false);
     }
 
+    // See Playermovement.HasLocalAuthority: true for local/offline play and for the owner
+    // of a networked player; false for remote players simulated elsewhere.
+    private bool HasLocalAuthority => !IsSpawned || IsOwner;
+
     void Update()
     {
+        if (!HasLocalAuthority) return;
+
         if (cherryPickupCooldown > 0f)
             cherryPickupCooldown -= Time.deltaTime;
 
@@ -255,7 +262,7 @@ public class PlayerInteract : MonoBehaviour
             foreach (var hit in hits)
             {
                 Playermovement pm = hit.GetComponent<Playermovement>() ?? hit.GetComponentInParent<Playermovement>();
-                if (pm == null || pm.playerIndex == player.playerIndex) continue;
+                if (pm == null || pm.IdentityIndex == player.IdentityIndex) continue;
                 float dist = Vector3.Distance(transform.position, pm.transform.position);
                 if (dist < closest) { closest = dist; nearbyPlayer = pm.gameObject; }
             }
@@ -469,10 +476,27 @@ public class PlayerInteract : MonoBehaviour
         heldPickup = closestPickup;
 
         LevelPickup pickup = heldPickup.GetComponent<LevelPickup>();
-        if (pickup != null)
+
+        if (IsSpawned)
         {
-            pickup.isHeld = true;
-            pickup.playerHolding = gameObject;
+            // Online: the server owns the pickup's NetworkObject and is the only one allowed
+            // to move/parent it, so ask it to take hold instead of mutating it locally.
+            NetworkObject myNetObj = GetComponent<NetworkObject>();
+            if (pickup != null && myNetObj != null) pickup.RequestPickupServerRpc(myNetObj.NetworkObjectId);
+        }
+        else
+        {
+            if (pickup != null)
+            {
+                pickup.isHeld = true;
+                pickup.playerHolding = gameObject;
+            }
+
+            Rigidbody rbCherry = heldPickup.GetComponent<Rigidbody>();
+            if (rbCherry != null) rbCherry.isKinematic = true;
+
+            heldPickup.transform.SetParent(handHoldPoint);
+            heldPickup.transform.localPosition = Vector3.zero;
         }
 
         if (pickupSource != null && pickupClip != null)
@@ -482,14 +506,7 @@ public class PlayerInteract : MonoBehaviour
         }
 
         SetJiggle(false);
-
-        Rigidbody rbCherry = heldPickup.GetComponent<Rigidbody>();
-        if (rbCherry != null) rbCherry.isKinematic = true;
-
-        heldPickup.transform.SetParent(handHoldPoint);
         SetCherryCollision(false);
-        heldPickup.transform.localPosition = Vector3.zero;
-
 
         if (pickup != null)
         {
@@ -529,21 +546,27 @@ public class PlayerInteract : MonoBehaviour
                 snowballThrow?.CancelAim();
         }
 
-        Rigidbody rbCherry = heldPickup.GetComponent<Rigidbody>();
-        heldPickup.transform.SetParent(null);
-        if (rbCherry != null) rbCherry.isKinematic = false;
+        if (IsSpawned)
+        {
+            if (pickup != null) pickup.RequestDropServerRpc();
+        }
+        else
+        {
+            Rigidbody rbCherry = heldPickup.GetComponent<Rigidbody>();
+            heldPickup.transform.SetParent(null);
+            if (rbCherry != null) rbCherry.isKinematic = false;
+
+            if (pickup != null)
+            {
+                pickup.isHeld = false;
+                pickup.playerHolding = null;
+            }
+        }
 
         SetCherryCollision(true);
         SetJiggle(true);
 
         if (animator != null) animator.SetBool("isPickingUp", false);
-
-        pickup = heldPickup.GetComponent<LevelPickup>();
-        if (pickup != null)
-        {
-            pickup.isHeld = false;
-            pickup.playerHolding = null;
-        }
 
         heldPickup = null;
         cherryPickupCooldown = 0.5f;
@@ -579,7 +602,7 @@ public class PlayerInteract : MonoBehaviour
         }
 
         Playermovement pm = other.GetComponent<Playermovement>() ?? other.GetComponentInParent<Playermovement>();
-        if (pm == null || pm.playerIndex == player.playerIndex) return;
+        if (pm == null || pm.IdentityIndex == player.IdentityIndex) return;
 
         if (nearbyPlayer == null)
         {

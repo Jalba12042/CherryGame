@@ -1,7 +1,37 @@
+using Unity.Netcode;
 using UnityEngine;
 
-public class PlayerCustomization : MonoBehaviour
+public class PlayerCustomization : NetworkBehaviour
 {
+    // Server-authoritative copy of this player's cosmetics, so every peer (not just the
+    // owner) renders the correct look. Local/offline play never spawns this as a
+    // NetworkObject, so it's simply unused there and ApplyFromData keeps working directly.
+    public NetworkVariable<PlayerCustomizationData> NetworkCustomization = new NetworkVariable<PlayerCustomizationData>(
+        PlayerCustomizationData.Unset, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
+    public override void OnNetworkSpawn()
+    {
+        NetworkCustomization.OnValueChanged += OnNetworkCustomizationChanged;
+        if (!NetworkCustomization.Value.Equals(PlayerCustomizationData.Unset))
+            ApplyFromData(NetworkCustomization.Value);
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        NetworkCustomization.OnValueChanged -= OnNetworkCustomizationChanged;
+    }
+
+    private void OnNetworkCustomizationChanged(PlayerCustomizationData previous, PlayerCustomizationData current)
+    {
+        ApplyFromData(current);
+    }
+
+    // Called server-side (e.g. by the spawner) once this player's chosen cosmetics are known.
+    public void SetNetworkCustomization(PlayerCustomizationData data)
+    {
+        if (IsServer) NetworkCustomization.Value = data;
+    }
+
     public Renderer bodyRenderer;
 
     public GameObject[] headOptions;

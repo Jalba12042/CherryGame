@@ -1,14 +1,27 @@
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
 
 // Merged from: Playermovement, PlayerDash
 [RequireComponent(typeof(Rigidbody))]
-public class Playermovement : MonoBehaviour
+public class Playermovement : NetworkBehaviour
 {
     [Header("Player Settings")]
     public int playerID;
+    // Local input slot on the owning machine (1-4 gamepads). Only meaningful to the owner -
+    // do NOT use this to tell players apart across machines, use GlobalIndex/IdentityIndex.
     public int playerIndex = 0;
+
+    // Cross-client identity: assigned by the server (0..totalPlayers-1) when spawned online,
+    // used for spawn position/basket/score indexing instead of the per-machine playerIndex.
+    public NetworkVariable<int> GlobalIndex = new NetworkVariable<int>(-1,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
+    // What actually identifies this player for cross-player comparisons: the networked
+    // GlobalIndex when spawned online, otherwise the same local playerIndex as before.
+    public int IdentityIndex => IsSpawned ? GlobalIndex.Value : playerIndex;
+
     public float moveSpeed = 5f;
     public float jumpForce = 7f;
     public bool isSlowed = false;
@@ -117,10 +130,23 @@ public class Playermovement : MonoBehaviour
         if (dashCooldown <= 0f) dashCooldown = 1f;
     }
 
+    // True for local/offline play (never networked-spawned) and for the owning client of a
+    // networked player. False for remote players, whose transform arrives via NetworkTransform
+    // instead of being simulated here.
+    private bool HasLocalAuthority => !IsSpawned || IsOwner;
+
+    public override void OnNetworkSpawn()
+    {
+        if (rb == null) rb = GetComponent<Rigidbody>();
+        rb.isKinematic = !IsOwner;
+    }
+
     // ===== MOVEMENT =====
 
     private void FixedUpdate()
     {
+        if (!HasLocalAuthority) return;
+
         HandleDashPhysics();
 
         if (!canMove || isKnockedBack) return;
@@ -161,6 +187,8 @@ public class Playermovement : MonoBehaviour
 
     private void Update()
     {
+        if (!HasLocalAuthority) return;
+
         // --- THE AUTO-JUMP FIX: Ignore all input while the game is paused! ---
         if (Time.timeScale == 0f) return;
 

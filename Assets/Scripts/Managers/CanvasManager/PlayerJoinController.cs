@@ -495,7 +495,21 @@ public class PlayerJoinController : MonoBehaviour
             data.nameIndex = slots[i].customizationUI.GetCurrentNameIndex();
             GameManager.Instance.playerCustomizations.Add(data);
         }
-        SceneManager.LoadScene(RoundManager.Instance.currRound.sceneName);
+
+        bool online = Unity.Netcode.NetworkManager.Singleton != null && Unity.Netcode.NetworkManager.Singleton.IsListening;
+        if (online)
+        {
+            // Report this machine's local players to the server. The host's own confirmation
+            // also starts the round (loading the scene for every connected client); other
+            // clients just wait here until the host's load kicks in via NetworkManager.SceneManager.
+            NetworkPlayerSpawner.Instance.RegisterLocalPlayersServerRpc(GameManager.Instance.playerCustomizations.ToArray());
+            if (Unity.Netcode.NetworkManager.Singleton.IsHost)
+                NetworkPlayerSpawner.Instance.StartRound();
+        }
+        else
+        {
+            SceneManager.LoadScene(RoundManager.Instance.currRound.sceneName);
+        }
     }
 
     // ── Helpers ──────────────────────────────────────────────────

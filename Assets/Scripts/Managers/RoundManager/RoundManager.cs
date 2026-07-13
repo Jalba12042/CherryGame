@@ -1,7 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
-using Unity.Multiplayer.Center.NetcodeForGameObjectsExample.DistributedAuthority;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -126,9 +127,22 @@ public class RoundManager : MonoBehaviour
         currRoundDurationInSecs = currRound.roundTimeInSeconds;
     }
 
+    // Online: true for local/offline play too, since NetworkManager isn't running at all then.
+    private bool IsOnline => NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening;
+    private bool IsOnlineServer => IsOnline && NetworkManager.Singleton.IsServer;
+
     public void switchRoundScene()
     {
-        if (!SceneManager.GetActiveScene().name.Equals(currRound.sceneName))
+        if (SceneManager.GetActiveScene().name.Equals(currRound.sceneName)) return;
+
+        if (IsOnline)
+        {
+            // Non-host clients just wait: the host's load propagates to everyone via
+            // NetworkManager.SceneManager.
+            if (IsOnlineServer)
+                NetworkManager.Singleton.SceneManager.LoadScene(currRound.sceneName, LoadSceneMode.Single);
+        }
+        else
         {
             SceneManager.LoadSceneAsync(currRound.sceneName);
         }
@@ -191,12 +205,63 @@ public class RoundManager : MonoBehaviour
 
         SpawnPlayers();
         currRound.setValues();
-        StartCoroutine(StartTimer());
+
+        // Only the server (or local/offline play) actually drives the timer/goal-spawning
+        // coroutines - online clients just mirror OnlineRoundSync's replicated state instead,
+        // otherwise every machine would run its own independent, unsynced timer.
+        if (IsOnline && !IsOnlineServer)
+            StartCoroutine(FollowOnlineRound());
+        else
+            StartCoroutine(StartTimer());
+    }
+
+    private IEnumerator FollowOnlineRound()
+    {
+        while (OnlineRoundSync.Instance == null) yield return null;
+        OnlineRoundSync sync = OnlineRoundSync.Instance;
+
+        RefreshUIReferences();
+        if (timerBackgroundUI != null) timerBackgroundUI.SetActive(true);
+        if (timerText != null) timerText.text = "";
+        SetPlayersCanMove(false);
+
+        bool movementUnlocked = false;
+        while (true)
+        {
+            currRoundDurationInSecs = sync.RoundDuration.Value;
+            currRoundProgress = sync.RoundProgress.Value;
+            currRoundProgressNormalized = currRoundDurationInSecs > 0 ? currRoundProgress / currRoundDurationInSecs : 0f;
+            currRoundActive = sync.RoundActive.Value;
+
+            currRoundScores = new int[sync.Scores.Count];
+            for (int i = 0; i < sync.Scores.Count; i++) currRoundScores[i] = sync.Scores[i];
+
+            if (timerText != null && currRoundActive)
+                timerText.text = Mathf.CeilToInt(currRoundDurationInSecs - currRoundProgress).ToString();
+
+            if (sync.PlayersCanMove.Value && !movementUnlocked)
+            {
+                movementUnlocked = true;
+                SetPlayersCanMove(true);
+            }
+
+            yield return null;
+        }
     }
 
     private void SpawnPlayers()
     {
         currPlayerSpawn = FindFirstObjectByType<PlayerSpawn>();
+
+        // Online: players were already spawned server-side by NetworkPlayerSpawner (so every
+        // client sees the same set, with correct ownership). Just adopt them into the usual
+        // bookkeeping instead of instantiating new ones.
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+        {
+            AdoptOnlinePlayers();
+            return;
+        }
+
         playerObjects = new GameObject[GameManager.Instance.playerCount];
         if (!GameManager.Instance.isOnKeyboard)
         {
@@ -253,6 +318,69 @@ public class RoundManager : MonoBehaviour
         }
     }
 
+    private void AdoptOnlinePlayers()
+    {
+        Playermovement[] allPlayers = FindObjectsByType<Playermovement>(FindObjectsSortMode.None)
+            .OrderBy(p => p.GlobalIndex.Value)
+            .ToArray();
+
+        playerObjects = new GameObject[allPlayers.Length];
+
+        // BasketContainer.Awake() hid baskets based on this machine's *local* playerCount,
+        // which online is wrong (it doesn't know about other clients' players yet at that
+        // point). Correct it now that we know the real total.
+        if (basketContainer != null)
+        {
+            basketContainer.onlinePlayerCountOverride = allPlayers.Length;
+            for (int i = 0; i < basketContainer.baskets.Count; i++)
+                basketContainer.baskets[i].SetActive(i < allPlayers.Length);
+        }
+
+        for (int i = 0; i < allPlayers.Length; i++)
+        {
+            Playermovement player = allPlayers[i];
+            int globalIndex = player.GlobalIndex.Value;
+            if (globalIndex < 0 || globalIndex >= allPlayers.Length) continue;
+
+            GameObject playerObj = player.gameObject;
+            playerObjects[globalIndex] = playerObj;
+            player.initialSpawnPosition = playerObj.transform.position;
+
+            var customization = playerObj.GetComponentInChildren<PlayerCustomization>();
+            if (customization != null)
+            {
+                customization.playerIndex = globalIndex;
+
+                if (basketContainer != null && globalIndex < basketContainer.baskets.Count)
+                {
+                    GameObject basketObj = basketContainer.baskets[globalIndex];
+                    BasketColorSync basket = basketObj.GetComponentInChildren<BasketColorSync>();
+                    if (basket != null) basket.SetColor(customization.NetworkCustomization.Value.colorIndex);
+                }
+            }
+
+            PlayerEscapeUI escapeUI = playerObj.GetComponent<PlayerEscapeUI>();
+            if (escapeUI != null) escapeUI.playerIndex = globalIndex;
+
+            Camera faceCam = player.GetComponentInChildren<Camera>();
+            if (faceCam != null && globalIndex < playerFaceRenderTextures.Length)
+                faceCam.targetTexture = playerFaceRenderTextures[globalIndex];
+        }
+
+        // Local input (playerIndex/playerID/gamepad) only matters for players THIS machine
+        // owns, remapped back to local gamepad slots 0..N-1 in the order they were
+        // registered (GlobalIndex increases monotonically within one client's block).
+        Playermovement[] ownedPlayers = allPlayers.Where(p => p.IsOwner).OrderBy(p => p.GlobalIndex.Value).ToArray();
+        for (int i = 0; i < ownedPlayers.Length; i++)
+        {
+            ownedPlayers[i].playerIndex = i;
+            ownedPlayers[i].playerID = i + 1;
+
+            Gamepad assignedGamepad = GameManager.Instance.GetAssignedGamepad(i);
+            if (assignedGamepad != null) ownedPlayers[i].assignedGamepad = assignedGamepad;
+        }
+    }
+
     public IEnumerator StartTimer()
     {
         // 1. Double check UI is attached
@@ -294,6 +422,13 @@ public class RoundManager : MonoBehaviour
         SetPlayersCanMove(true);
         currRoundActive = true;
 
+        if (IsOnlineServer)
+        {
+            OnlineRoundSync.Instance.RoundDuration.Value = currRoundDurationInSecs;
+            OnlineRoundSync.Instance.RoundActive.Value = true;
+            OnlineRoundSync.Instance.PlayersCanMove.Value = true;
+        }
+
         if (sprinklerManager != null) sprinklerManager?.StartSprinklers();
 
         StartCoroutine(RoundTimer());
@@ -314,6 +449,8 @@ public class RoundManager : MonoBehaviour
                 timerText.text = Mathf.CeilToInt(remaining).ToString();
             }
 
+            if (IsOnlineServer) OnlineRoundSync.Instance.RoundProgress.Value = currRoundProgress;
+
             currRound.RoundUpdate();
             yield return null;
         }
@@ -325,13 +462,26 @@ public class RoundManager : MonoBehaviour
         WinScript.winningPlayers = checkWinIndexes();
 
         List<int> gameWinners = checkGameWinIndexes();
+
+        if (IsOnlineServer)
+        {
+            OnlineRoundSync.Instance.SetScores(currRoundScores);
+            OnlineRoundSync.Instance.RoundActive.Value = false;
+        }
+
         if (gameWinners.Count != 0)
         {
             GameWinScript.winningPlayers = gameWinners;
             roundsWon = new int[] { 0, 0, 0, 0 };
-            SceneManager.LoadSceneAsync(gameWinSceneName);
+
+            if (IsOnlineServer) NetworkManager.Singleton.SceneManager.LoadScene(gameWinSceneName, LoadSceneMode.Single);
+            else if (!IsOnline) SceneManager.LoadSceneAsync(gameWinSceneName);
         }
-        else SceneManager.LoadSceneAsync(winSceneName);
+        else
+        {
+            if (IsOnlineServer) NetworkManager.Singleton.SceneManager.LoadScene(winSceneName, LoadSceneMode.Single);
+            else if (!IsOnline) SceneManager.LoadSceneAsync(winSceneName);
+        }
 
         currRoundActive = false;
         currRound = null;

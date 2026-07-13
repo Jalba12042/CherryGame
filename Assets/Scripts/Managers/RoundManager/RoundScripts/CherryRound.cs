@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 
 
@@ -43,8 +44,25 @@ public class CherryRound : Round
             goalObjects = new List<GameObject>();
         }
     }
+    // True for local/offline play and for the server when online. Clients online must not
+    // run this - they'd each spawn their own un-networked copies of every cherry.
+    private static bool IsAuthority => NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening || NetworkManager.Singleton.IsServer;
+
+    private static GameObject SpawnPickup(GameObject prefab, Vector3 pos, Quaternion rot)
+    {
+        GameObject instance = Object.Instantiate(prefab, pos, rot);
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+        {
+            NetworkObject netObj = instance.GetComponent<NetworkObject>();
+            if (netObj != null) netObj.Spawn();
+        }
+        return instance;
+    }
+
     public override IEnumerator StartGoal()
     {
+        if (!IsAuthority) yield break;
+
         bool goldenCherrySpawned = false;
         Collider spawnCollider = spawnArea.GetComponent<Collider>();
         Bounds b = spawnCollider.bounds;
@@ -65,9 +83,9 @@ public class CherryRound : Round
                 float randBombChance = Random.Range(0f, 1f);
 
                 if (randBombChance < cherryBombChance)
-                    goalObjects.Add(Instantiate(cherryBombPrefab, new Vector3(randX, spawnArea.transform.position.y, randZ), Quaternion.identity));
-                else 
-                    goalObjects.Add(Instantiate(cherryPrefab, new Vector3(randX, spawnArea.transform.position.y, randZ), Quaternion.identity));
+                    goalObjects.Add(SpawnPickup(cherryBombPrefab, new Vector3(randX, spawnArea.transform.position.y, randZ), Quaternion.identity));
+                else
+                    goalObjects.Add(SpawnPickup(cherryPrefab, new Vector3(randX, spawnArea.transform.position.y, randZ), Quaternion.identity));
             }
 
             // powerup spawn logic
@@ -81,7 +99,7 @@ public class CherryRound : Round
                 {
                     if (RoundManager.Instance.powerUpsInRotation.Count != 0)
                     {
-                        Instantiate(cratePrefab, new Vector3(randX, powerupSpawnArea.transform.position.y, randZ), Quaternion.identity);
+                        SpawnPickup(cratePrefab, new Vector3(randX, powerupSpawnArea.transform.position.y, randZ), Quaternion.identity);
                     }
                 }
             }
@@ -90,7 +108,7 @@ public class CherryRound : Round
             {
                 goldenCherrySpawned = true;
                 Vector3 spawnPos = new Vector3(goldenSpawnArea.transform.position.x, goldenSpawnArea.transform.position.y, goldenSpawnArea.transform.position.z);
-                Instantiate(goldenCherry, spawnPos, Quaternion.identity);
+                SpawnPickup(goldenCherry, spawnPos, Quaternion.identity);
             }
 
             yield return new WaitForSeconds(spawnInterval);
