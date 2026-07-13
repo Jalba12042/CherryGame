@@ -1,4 +1,5 @@
 using Unity.Netcode.Components;
+using UnityEngine;
 
 // Owner-authoritative NetworkTransform: the client controlling a player simulates its own
 // physics/movement (Playermovement, gated by IsOwner) and this replicates that transform to
