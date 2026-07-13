@@ -13,9 +13,12 @@ public class LocalSelectable : MonoBehaviour
 
     private Image img;
 
+    public RectTransform RectTransform { get; private set; }
+
     void Awake()
     {
         img = GetComponent<Image>();
+        RectTransform = GetComponent<RectTransform>();
         if (img == null)
             Debug.LogError("LocalSelectable needs an Image component on " + gameObject.name);
     }
@@ -36,7 +39,7 @@ public class LocalSelectable : MonoBehaviour
         if (!string.IsNullOrEmpty(sceneName))
             SceneManager.LoadScene(sceneName);
         else
-            Debug.Log("LocalSelectable Activate() called — no sceneName set, but that's fine for LocalMenuController");
+            Debug.Log("LocalSelectable Activate() called ï¿½ no sceneName set, but that's fine for LocalMenuController");
     }
 }
 
