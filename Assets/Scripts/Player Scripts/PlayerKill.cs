@@ -15,6 +15,9 @@ public class PlayerKill : MonoBehaviour
 
     [SerializeField] private GameObject confettiPrefab;
 
+    [SerializeField] private float respawnBlinkTime = 2f;
+    [SerializeField] private float blinkInterval = 0.12f;
+
     [Header("Audio")]
     public AudioSource audioSource;
     public AudioClip deathSound;
@@ -72,6 +75,8 @@ public class PlayerKill : MonoBehaviour
         myFaceCamStatic?.Stop();
 
         currDead = false;
+
+        StartCoroutine(BlinkRespawn());
     }
 
     public void killPlayer(bool respawn)
@@ -172,4 +177,26 @@ public class PlayerKill : MonoBehaviour
 
         pm.canMove = true;
     }
+
+    IEnumerator BlinkRespawn()
+    {
+        float timer = 0f;
+        bool visible = false;
+
+        while (timer < respawnBlinkTime)
+        {
+            visible = !visible;
+
+            foreach (Renderer r in playerRenderers)
+                r.enabled = visible;
+
+            yield return new WaitForSeconds(blinkInterval);
+            timer += blinkInterval;
+        }
+
+        foreach (Renderer r in playerRenderers)
+            r.enabled = true;
+    }
+
+
 }
