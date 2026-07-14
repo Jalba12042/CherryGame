@@ -76,7 +76,8 @@ public class PlayerKill : MonoBehaviour
 
         currDead = false;
 
-        StartCoroutine(BlinkRespawn());
+        foreach (Renderer r in playerRenderers)
+            r.enabled = true;
     }
 
     public void killPlayer(bool respawn)
@@ -111,11 +112,7 @@ public class PlayerKill : MonoBehaviour
 
         GetComponentInChildren<Animator>().enabled = false;
 
-        visualRoot.SetActive(false);
-        foreach (var r in playerRenderers)
-        {
-            r.enabled = false;
-        }
+        StartCoroutine(BlinkWhileDead());
 
         PlayerInteract interact = GetComponent<PlayerInteract>();
         if (interact != null)
@@ -178,12 +175,11 @@ public class PlayerKill : MonoBehaviour
         pm.canMove = true;
     }
 
-    IEnumerator BlinkRespawn()
+    IEnumerator BlinkWhileDead()
     {
-        float timer = 0f;
-        bool visible = false;
+        bool visible = true;
 
-        while (timer < respawnBlinkTime)
+        while (currDead)
         {
             visible = !visible;
 
@@ -191,9 +187,9 @@ public class PlayerKill : MonoBehaviour
                 r.enabled = visible;
 
             yield return new WaitForSeconds(blinkInterval);
-            timer += blinkInterval;
         }
 
+        // Make sure the player is visible again
         foreach (Renderer r in playerRenderers)
             r.enabled = true;
     }
