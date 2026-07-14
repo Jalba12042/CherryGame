@@ -83,10 +83,21 @@ public class GunPowerup : Powerup
         if (audioSource != null && shootSound != null)
         {
             audioSource.PlayOneShot(shootSound);
-            destroyDelay = shootSound.length; // Find out exactly how long the sound file is!
+            destroyDelay = shootSound.length;
         }
 
         GameObject bullet = Instantiate(bulletPrefab, barrel.position, barrel.rotation);
+
+        // --- NEW: TELL THE BULLET WHO SHOT IT ---
+        Bullet bulletScript = bullet.GetComponent<Bullet>();
+        if (bulletScript != null && powerupHandler != null)
+        {
+            Playermovement pm = powerupHandler.GetComponent<Playermovement>();
+            if (pm != null)
+            {
+                bulletScript.shooterID = pm.playerIndex; // Pass the ID to the bullet!
+            }
+        }
 
         Rigidbody rb = bullet.GetComponent<Rigidbody>();
         if (rb != null)
@@ -109,14 +120,12 @@ public class GunPowerup : Powerup
         powerUpEnd();
 
         // --- 2. HIDE THE GUN INSTANTLY ---
-        // We turn off the mesh so it looks like it was destroyed!
         foreach (var r in GetComponentsInChildren<Renderer>())
         {
             r.enabled = false;
         }
 
         // --- 3. DESTROY AFTER SOUND FINISHES ---
-        // If there's no sound, destroyDelay is 0, so it destroys instantly.
         Destroy(gameObject, destroyDelay);
 
         yield break;
