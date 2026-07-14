@@ -24,9 +24,12 @@ public class MenuSelectable : MonoBehaviour
     private Image img;
     private bool locked; // prevents double-activations
 
+    public RectTransform RectTransform { get; private set; }
+
     void Awake()
     {
         img = GetComponent<Image>();
+        RectTransform = GetComponent<RectTransform>();
         if (!img) Debug.LogError($"MenuSelectable requires an Image on: {name}");
     }
 
