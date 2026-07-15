@@ -36,6 +36,9 @@ public class UFO : MonoBehaviour
 
     [Header("Beam")]
     [SerializeField] private Transform beam; // assign your beam object
+    [SerializeField] private float beamFlashStartInterval = 0.5f;  // blink speed right as hovering begins
+    [SerializeField] private float beamFlashEndInterval = 0.05f;   // blink speed right before abduction starts
+    private Coroutine beamFlashRoutine;
 
     private void Awake()
     {
@@ -196,12 +199,25 @@ public class UFO : MonoBehaviour
         currentState = nextState;
         stateTimer = 0f;
 
+        // Any state change (including dropping into Waiting) cancels a running flash so it can't
+        // keep blinking in the background or double up next time we start hovering again.
+        if (beamFlashRoutine != null)
+        {
+            StopCoroutine(beamFlashRoutine);
+            beamFlashRoutine = null;
+        }
+
         if (beam != null)
         {
-            beam.gameObject.SetActive(
-                currentState == UFOState.Hovering ||
-                currentState == UFOState.Abducting
-            );
+            if (currentState == UFOState.Hovering)
+            {
+                beam.gameObject.SetActive(false); // first flash tick turns it on
+                beamFlashRoutine = StartCoroutine(FlashBeamRoutine());
+            }
+            else
+            {
+                beam.gameObject.SetActive(currentState == UFOState.Abducting);
+            }
         }
 
         if (currentState == UFOState.Approaching)
@@ -219,5 +235,21 @@ public class UFO : MonoBehaviour
             audioSource.Stop();
             audioSource.PlayOneShot(abductSound);
         }
+    }
+
+    // Blinks the beam faster and faster as stateTimer closes in on hoverDuration, so the flash
+    // rate always tracks however close we actually are to the abduction starting.
+    private IEnumerator FlashBeamRoutine()
+    {
+        while (currentState == UFOState.Hovering)
+        {
+            float progress = hoverDuration > 0f ? Mathf.Clamp01(stateTimer / hoverDuration) : 1f;
+            float interval = Mathf.Lerp(beamFlashStartInterval, beamFlashEndInterval, progress);
+
+            beam.gameObject.SetActive(!beam.gameObject.activeSelf);
+            yield return new WaitForSeconds(interval);
+        }
+
+        beamFlashRoutine = null;
     }
 }
