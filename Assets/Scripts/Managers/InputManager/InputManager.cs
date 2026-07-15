@@ -302,6 +302,45 @@ public class InputManager : MonoBehaviour
         };
     }
 
+    // ?? Menu (any device at once ? not tied to a player slot) ?????
+
+    public float GetMenuMoveX()
+    {
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) return -1f;
+        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) return 1f;
+
+        foreach (var pad in Gamepad.all)
+        {
+            float stickX = pad.leftStick.ReadValue().x;
+            float dpadX = pad.dpad.ReadValue().x;
+            float padX = Mathf.Abs(stickX) > Mathf.Abs(dpadX) ? stickX : dpadX;
+            if (Mathf.Abs(padX) > 0.01f) return padX;
+        }
+
+        return 0f;
+    }
+
+    public bool GetMenuConfirmDown()
+    {
+        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space))
+            return true;
+
+        foreach (var pad in Gamepad.all)
+            if (pad.buttonSouth.wasPressedThisFrame) return true;
+
+        return false;
+    }
+
+    public bool GetMenuBackDown()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape)) return true;
+
+        foreach (var pad in Gamepad.all)
+            if (pad.buttonEast.wasPressedThisFrame) return true;
+
+        return false;
+    }
+
     // ?? Helper ???????????????????????????????????????????????????
 
     private Gamepad GetPad(int playerID)

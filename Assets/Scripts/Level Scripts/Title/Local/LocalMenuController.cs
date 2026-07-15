@@ -29,8 +29,6 @@ public class LocalMenuController : MonoBehaviour
     private float deadzone = 0.5f;
     private bool isTransitioning = false;
 
-    private const int menuPlayerID = 1;
-
     void Awake()
     {
         audioSource = GetComponent<AudioSource>();
@@ -48,30 +46,18 @@ public class LocalMenuController : MonoBehaviour
 
         if (buttons == null || buttons.Length == 0) return;
 
-        float xInput = InputManager.Instance.GetMove(menuPlayerID).x;
+        float xInput = InputManager.Instance.GetMenuMoveX();
 
         if (canMove)
         {
             if (xInput > deadzone)
             {
-                int newIndex = Mathf.Min(buttons.Length - 1, currentIndex + 1);
-                if (newIndex != currentIndex)
-                {
-                    currentIndex = newIndex;
-                    HighlightCurrent();
-                    PlaySound(navigateSound);
-                }
+                SelectIndex(Mathf.Min(buttons.Length - 1, currentIndex + 1));
                 canMove = false;
             }
             else if (xInput < -deadzone)
             {
-                int newIndex = Mathf.Max(0, currentIndex - 1);
-                if (newIndex != currentIndex)
-                {
-                    currentIndex = newIndex;
-                    HighlightCurrent();
-                    PlaySound(navigateSound);
-                }
+                SelectIndex(Mathf.Max(0, currentIndex - 1));
                 canMove = false;
             }
         }
@@ -80,18 +66,57 @@ public class LocalMenuController : MonoBehaviour
             canMove = true;
 
         // Confirm
-        if (InputManager.Instance.GetConfirmDown(menuPlayerID))
-        {
-            PlaySound(selectSound);
-            SelectOption(currentIndex);
-        }
+        if (InputManager.Instance.GetMenuConfirmDown())
+            ConfirmIndex(currentIndex);
 
         // Back
-        if (InputManager.Instance.GetBackDown(menuPlayerID))
+        if (InputManager.Instance.GetMenuBackDown())
         {
             PlaySound(backSound);
             StartExitSequence(mainMenuSceneName);
         }
+
+        HandleMouse();
+    }
+
+    // Direct mouse hit-test instead of Unity's EventSystem/GraphicRaycaster pipeline —
+    // the scene's InputSystemUIInputModule points at a stale package-sample actions asset
+    // instead of the project's own, so IPointerEnterHandler/IPointerClickHandler are unreliable here.
+    void HandleMouse()
+    {
+        if (Mouse.current == null) return;
+
+        Vector2 mousePos = Mouse.current.position.ReadValue();
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            RectTransform rt = buttons[i].RectTransform;
+            if (rt == null || !RectTransformUtility.RectangleContainsScreenPoint(rt, mousePos, null))
+                continue;
+
+            SelectIndex(i);
+            if (Mouse.current.leftButton.wasPressedThisFrame)
+                ConfirmIndex(i);
+            break;
+        }
+    }
+
+    // Moves the highlighted cursor to index (keyboard/gamepad nav, or a mouse hover)
+    public void SelectIndex(int index)
+    {
+        if (buttons == null || index < 0 || index >= buttons.Length || index == currentIndex) return;
+        currentIndex = index;
+        HighlightCurrent();
+        PlaySound(navigateSound);
+    }
+
+    // Activates index directly (keyboard/gamepad confirm, or a mouse click)
+    public void ConfirmIndex(int index)
+    {
+        if (isTransitioning || buttons == null || index < 0 || index >= buttons.Length) return;
+        currentIndex = index;
+        HighlightCurrent();
+        PlaySound(selectSound);
+        SelectOption(currentIndex);
     }
 
     void HighlightCurrent()

@@ -64,6 +64,23 @@ public class Scream : MonoBehaviour
             TryScream();
     }
 
+    // Unity kills any running coroutine when this GameObject is deactivated (e.g. visualRoot
+    // turned off on death) without letting HandleScream() reach its cleanup at the end, so
+    // currentlyScreaming would otherwise get stuck true and block every scream afterward.
+    private void OnDisable()
+    {
+        if (screamRoutine != null)
+        {
+            StopCoroutine(screamRoutine);
+            screamRoutine = null;
+        }
+
+        currentlyScreaming = false;
+
+        if (faceAnimator != null) faceAnimator.SetBool("isScreaming", false);
+        if (aSource != null) aSource.Stop();
+    }
+
     private IEnumerator HandleScream()
     {
         if (currentlyScreaming || screamSFX.Count == 0)
