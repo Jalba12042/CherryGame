@@ -131,6 +131,8 @@ public class Ocean : MonoBehaviour
                 foreach (Rigidbody rb in caughtObjects)
                 {
                     if (rb == null) continue;
+                    Playermovement pm = rb.GetComponent<Playermovement>();
+                    if (pm != null) pm.canMove = false;
                     rb.MovePosition(rb.position + tideMovement * dragStrength);
                 }
 
@@ -141,8 +143,12 @@ public class Ocean : MonoBehaviour
             {
                 if (caughtObjects[i] == null) continue;
                 PlayerKill pk = caughtObjects[i].GetComponent<PlayerKill>();
-                if (pk != null)
+                Playermovement pm = caughtObjects[i].GetComponent<Playermovement>();
+                if (pk != null && pm != null)
+                {
+                    pm.canMove = true;
                     pk.killPlayer(true);
+                }
                 else
                     Destroy(caughtObjects[i].gameObject);
             }
