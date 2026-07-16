@@ -351,4 +351,9 @@ public class InputManager : MonoBehaviour
         if (!hasExplicitAssignment[idx] && idx < Gamepad.all.Count) return Gamepad.all[idx];
         return null;
     }
+
+    public Gamepad GetAssignedGamepad(int playerID)
+    {
+        return GetPad(playerID);
+    }
 }

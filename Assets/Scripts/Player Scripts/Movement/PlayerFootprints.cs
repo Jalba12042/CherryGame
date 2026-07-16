@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerFootprints : MonoBehaviour
 {
@@ -12,11 +13,14 @@ public class PlayerFootprints : MonoBehaviour
 
     [SerializeField] private float rayDistance = 0.4f;
     [SerializeField] private float footprintSpacing = 0.25f;
+    [SerializeField] private float minMoveSpeed = 0.5f;
+    [SerializeField] private float footprintLifetime = 1f;
 
     private Vector3 lastLeftPrint;
     private Vector3 lastRightPrint;
 
     private Rigidbody rb;
+    private bool footprintsEnabled;
 
     void Start()
     {
@@ -24,15 +28,20 @@ public class PlayerFootprints : MonoBehaviour
 
         lastLeftPrint = Vector3.one * 9999f;
         lastRightPrint = Vector3.one * 9999f;
+
+        // Only enable footprints on the BeachTest scene
+        footprintsEnabled = SceneManager.GetActiveScene().name == "BeachTest";
     }
 
     void Update()
     {
-        if (rb == null)
+        if (!footprintsEnabled || rb == null)
             return;
 
-        // Don't make prints while standing still
-        if (new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z).magnitude < 0.5f)
+        // Only make footprints while moving
+        Vector3 horizontalVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+
+        if (horizontalVelocity.magnitude < minMoveSpeed)
             return;
 
         CheckFoot(leftFoot, ref lastLeftPrint);
@@ -44,21 +53,22 @@ public class PlayerFootprints : MonoBehaviour
         if (foot == null)
             return;
 
-        RaycastHit hit;
-
         if (Physics.Raycast(
             foot.position + Vector3.up * 0.1f,
             Vector3.down,
-            out hit,
+            out RaycastHit hit,
             rayDistance,
             sandLayer))
         {
             if (Vector3.Distance(hit.point, lastPrint) >= footprintSpacing)
             {
-                Instantiate(
+                GameObject footprint = Instantiate(
                     footprintPrefab,
                     hit.point + Vector3.up * 0.01f,
-                    Quaternion.Euler(90, Random.Range(0, 360), 0));
+                    Quaternion.Euler(90f, Random.Range(0f, 360f), 0f));
+
+                // Remove the footprint after a short time
+                Destroy(footprint, footprintLifetime);
 
                 lastPrint = hit.point;
             }

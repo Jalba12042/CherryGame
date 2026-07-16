@@ -12,6 +12,7 @@ public class PlayerPowerupHandler : MonoBehaviour
 
     [Header("Hand Reference")]
     public Transform handHoldPoint;
+    public Transform tbHoldPoint;
 
     [Header("Powerup State")]
     public List<bool> currPowerups;
@@ -311,8 +312,8 @@ public class PlayerPowerupHandler : MonoBehaviour
         {
             hasTacoBlasterEquipped = true;
 
-            if (handHoldPoint != null)
-                activeTacoBlaster.EquipTacoBlaster(handHoldPoint);
+            if (tbHoldPoint != null)
+                activeTacoBlaster.EquipTacoBlaster(tbHoldPoint);
 
             return;
         }

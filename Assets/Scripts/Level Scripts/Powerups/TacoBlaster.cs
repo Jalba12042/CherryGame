@@ -41,7 +41,7 @@ public class TacoBlaster : Powerup
         playerAnimator = hand.root.GetComponent<Animator>();
 
         if (playerAnimator != null)
-            playerAnimator.SetBool("isPickingUp", true);
+            playerAnimator.SetBool("isHoldingTB", true);
 
         transform.SetParent(hand);
         transform.localPosition = Vector3.zero;
@@ -73,6 +73,9 @@ public class TacoBlaster : Powerup
     {
         hasShot = true;
 
+        if (playerAnimator != null)
+            playerAnimator.SetTrigger("shootTB");
+
         float destroyDelay = 0f;
 
         if (audioSource != null && shootSound != null)
@@ -94,7 +97,7 @@ public class TacoBlaster : Powerup
         Destroy(projectile, 5f);
 
         if (playerAnimator != null)
-            playerAnimator.SetBool("isPickingUp", false);
+            playerAnimator.SetBool("isHoldingTB", false);
 
         transform.SetParent(null);
 
@@ -122,7 +125,7 @@ public class TacoBlaster : Powerup
 
         if (playerAnimator != null)
         {
-            playerAnimator.SetBool("isPickingUp", false);
+            playerAnimator.SetBool("isHoldingTB", false);
         }
     }
 
@@ -138,7 +141,7 @@ public class TacoBlaster : Powerup
     {
         if (playerAnimator != null)
         {
-            playerAnimator.SetBool("isPickingUp", false);
+            playerAnimator.SetBool("isHoldingTB", false);
         }
     }
 }
