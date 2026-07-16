@@ -202,6 +202,45 @@ public class PlayerJoinController : MonoBehaviour
         int category = ui.GetCurrentCategoryIndex();
         var customization = slots[p].spawnedModel.GetComponentInChildren<PlayerCustomization>();
 
+        bool rightPressed = stick.x > 0.5f;
+        bool leftPressed = stick.x < -0.5f;
+
+        Gamepad pad = InputManager.Instance.GetAssignedGamepad(playerID);
+        if (pad != null)
+        {
+            rightPressed |= pad.dpad.right.wasPressedThisFrame;
+            leftPressed |= pad.dpad.left.wasPressedThisFrame;
+        }
+
+        if (rightPressed && !slots[p].horizontalStickInUse)
+        {
+            slots[p].horizontalStickInUse = true;
+
+            if (category == 0) ui.ChangeName(1, p);
+            else if (category == 1) ui.ChangeColor(1, slots[p].spawnedModel, p);
+            else if (category == 2) customization.ChangeHead(1);
+            else if (category == 3) customization.ChangeFace(1);
+            else if (category == 4) customization.ChangeTorso(1);
+            else if (category == 5) customization.ChangeBottom(1);
+        }
+        else if (leftPressed && !slots[p].horizontalStickInUse)
+        {
+            slots[p].horizontalStickInUse = true;
+
+            if (category == 0) ui.ChangeName(-1, p);
+            else if (category == 1) ui.ChangeColor(-1, slots[p].spawnedModel, p);
+            else if (category == 2) customization.ChangeHead(-1);
+            else if (category == 3) customization.ChangeFace(-1);
+            else if (category == 4) customization.ChangeTorso(-1);
+            else if (category == 5) customization.ChangeBottom(-1);
+        }
+
+        if (Mathf.Abs(stick.x) < 0.2f && (pad == null || (!pad.dpad.left.isPressed && !pad.dpad.right.isPressed)))
+        {
+            slots[p].horizontalStickInUse = false;
+        }
+
+
         if (InputManager.Instance.GetGrabDown(playerID))
         {
             if (category == 0) ui.ChangeName(1, p);
