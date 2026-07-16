@@ -10,8 +10,12 @@ public class CanvasManager : MonoBehaviour
     {
         int players = GameManager.Instance.playerCount;
 
+        Debug.Log($"CanvasManager: playerCount = {players}");
+
         canvas2P.SetActive(players == 2);
         canvas3P.SetActive(players == 3);
         canvas4P.SetActive(players == 4);
+
+        Debug.Log($"canvas2P active = {canvas2P.activeSelf}");
     }
 }
