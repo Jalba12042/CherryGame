@@ -1900,6 +1900,7 @@ GameObject:
   - component: {fileID: 288807765857520137}
   - component: {fileID: 91205759285197623}
   - component: {fileID: 3987543283528303132}
+  - component: {fileID: 4974484565946441783}
   m_Layer: 5
   m_Name: MenuSection
   m_TagString: Untagged
@@ -1966,6 +1967,24 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4974484565946441783
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3032579943764847499}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 303915b9a0c3a61448884a6d4de87653, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  confirmButtonImage: {fileID: 2026844350367025556}
+  backButtonImage: {fileID: 1773515310089788853}
+  xboxConfirm: {fileID: 21300000, guid: cc37fb017234fe24ebd0f0e0374d0abd, type: 3}
+  xboxBack: {fileID: 21300000, guid: 3dd28cebc77e82a44b888a190fd34c12, type: 3}
+  psConfirm: {fileID: 21300000, guid: 2b744f58a9e3d584fbab474dd94e14ec, type: 3}
+  psBack: {fileID: 21300000, guid: 8562770dbbbec8345b053b9d33785c94, type: 3}
 --- !u!1 &3962462791982354372
 GameObject:
   m_ObjectHideFlags: 0
@@ -2718,6 +2737,7 @@ GameObject:
   - component: {fileID: 4244973903056057808}
   - component: {fileID: 804972218979466006}
   - component: {fileID: 3252934320657421766}
+  - component: {fileID: 2117565632641085634}
   m_Layer: 5
   m_Name: A Button (1)
   m_TagString: Untagged
@@ -2782,6 +2802,21 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &2117565632641085634
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5250341457566649793}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7aa53291f51658740822ab45e3843417, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  xboxIcon: {fileID: 21300000, guid: 3dd28cebc77e82a44b888a190fd34c12, type: 3}
+  playstationIcon: {fileID: 21300000, guid: 8562770dbbbec8345b053b9d33785c94, type: 3}
+  flashInterval: 3
 --- !u!1 &5339471050911632392
 GameObject:
   m_ObjectHideFlags: 0
@@ -2861,6 +2896,7 @@ GameObject:
   - component: {fileID: 4629402414393884969}
   - component: {fileID: 7518829485791046606}
   - component: {fileID: 342286869438239840}
+  - component: {fileID: 4847429097827144539}
   m_Layer: 5
   m_Name: A Button
   m_TagString: Untagged
@@ -2925,6 +2961,21 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4847429097827144539
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5640980694796283093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7aa53291f51658740822ab45e3843417, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  xboxIcon: {fileID: 21300000, guid: cc37fb017234fe24ebd0f0e0374d0abd, type: 3}
+  playstationIcon: {fileID: 21300000, guid: 2b744f58a9e3d584fbab474dd94e14ec, type: 3}
+  flashInterval: 3
 --- !u!1 &5869373709963724817
 GameObject:
   m_ObjectHideFlags: 0
@@ -4167,6 +4218,7 @@ MonoBehaviour:
   customizationUI: {fileID: 8800808834842970219}
   spawnedModel: {fileID: 0}
   stickInUse: 0
+  horizontalStickInUse: 0
 --- !u!114 &8800808834842970219
 MonoBehaviour:
   m_ObjectHideFlags: 0
