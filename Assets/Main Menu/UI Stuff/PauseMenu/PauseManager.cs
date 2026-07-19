@@ -19,6 +19,9 @@ public class PauseManager : MonoBehaviour
     public GameObject pauseCanvas;
     public GameObject mainPlayerCanvas;
 
+    [Header("Loading Screen Setup")]
+    public GameObject loadingScreenPanel; // <--- NEW: Drag your loading Panel here!
+
     [Header("Pause Menu Elements")]
     public GameObject paperBackground;
     public GameObject buttonList;
@@ -27,9 +30,9 @@ public class PauseManager : MonoBehaviour
     public GameObject buttonPrompts;
 
     [Header("Controls Screen Elements")]
-    public GameObject controlsPanel;       // The new panel you just created
-    public Image controlsImageDisplay;     // The Image component inside the panel
-    public Sprite[] controlsPages;         // The 2 (or more) images you want to swap between
+    public GameObject controlsPanel;
+    public Image controlsImageDisplay;
+    public Sprite[] controlsPages;
 
     [Header("Image Buttons")]
     public CustomPauseButton[] menuButtons;
@@ -45,8 +48,8 @@ public class PauseManager : MonoBehaviour
 
     private bool isPaused = false;
     private bool isCountingDown = false;
-    private bool isShowingControls = false; // <--- NEW STATE
-    private int currentControlPage = 0;     // <--- TRACKS WHICH IMAGE YOU ARE ON
+    private bool isShowingControls = false;
+    private int currentControlPage = 0;
 
     private Gamepad controllingGamepad;
     private int currentIndex = 0;
@@ -67,6 +70,13 @@ public class PauseManager : MonoBehaviour
 
         if (!isPaused)
         {
+            // --- NEW CODE: STOP PAUSING IF THE LOADING SCREEN IS ACTIVE ---
+            if (loadingScreenPanel != null && loadingScreenPanel.activeInHierarchy)
+            {
+                return; // Exits the update loop immediately so the Start button does nothing
+            }
+            // --------------------------------------------------------------
+
             var allPads = Gamepad.all;
             for (int i = 0; i < allPads.Count; i++)
             {
@@ -84,7 +94,6 @@ public class PauseManager : MonoBehaviour
             // --- CONTROLS SCREEN LOGIC ---
             if (isShowingControls)
             {
-                // Press B to exit Controls and go back to Pause Menu
                 if (controllingGamepad.buttonEast.wasPressedThisFrame)
                 {
                     CloseControls();
@@ -95,13 +104,11 @@ public class PauseManager : MonoBehaviour
 
                 if (canMove)
                 {
-                    // Flick Right
                     if (move.x > deadzone || controllingGamepad.dpad.right.wasPressedThisFrame)
                     {
                         ChangeControlPage(1);
                         canMove = false;
                     }
-                    // Flick Left
                     else if (move.x < -deadzone || controllingGamepad.dpad.left.wasPressedThisFrame)
                     {
                         ChangeControlPage(-1);
@@ -109,13 +116,12 @@ public class PauseManager : MonoBehaviour
                     }
                 }
 
-                // Reset joystick lock
                 if (Mathf.Abs(move.x) < 0.2f && !controllingGamepad.dpad.left.isPressed && !controllingGamepad.dpad.right.isPressed)
                 {
                     canMove = true;
                 }
 
-                return; // Stop running the rest of the pause menu code while viewing controls
+                return;
             }
 
             // --- NORMAL PAUSE MENU LOGIC ---
@@ -160,34 +166,29 @@ public class PauseManager : MonoBehaviour
         switch (index)
         {
             case 0:
-                StartResumeSequence(); // Resume
+                StartResumeSequence();
                 break;
             case 1:
-                RestartMatch(); // Restart
+                RestartMatch();
                 break;
             case 2:
-                OpenControls(); // Controls (NEW!)
+                OpenControls();
                 break;
             case 3:
-                QuitToMainMenu(); // Quit To Menu
+                QuitToMainMenu();
                 break;
         }
     }
 
-    // ==========================================
-    // --- CONTROLS SCREEN FUNCTIONS ---
-    // ==========================================
     private void OpenControls()
     {
         isShowingControls = true;
         currentControlPage = 0;
 
-        // Hide the pause menu paper
         if (paperBackground != null) paperBackground.SetActive(false);
         if (buttonList != null) buttonList.SetActive(false);
         if (playerInfoBox != null) playerInfoBox.SetActive(false);
 
-        // Show the controls
         if (controlsPanel != null) controlsPanel.SetActive(true);
         UpdateControlsImage();
     }
@@ -196,10 +197,8 @@ public class PauseManager : MonoBehaviour
     {
         isShowingControls = false;
 
-        // Hide the controls
         if (controlsPanel != null) controlsPanel.SetActive(false);
 
-        // Bring the pause menu paper back
         if (paperBackground != null) paperBackground.SetActive(true);
         if (buttonList != null) buttonList.SetActive(true);
         if (playerInfoBox != null) playerInfoBox.SetActive(true);
@@ -211,7 +210,6 @@ public class PauseManager : MonoBehaviour
 
         currentControlPage += direction;
 
-        // Loop back around if they go past the end
         if (currentControlPage >= controlsPages.Length) currentControlPage = 0;
         else if (currentControlPage < 0) currentControlPage = controlsPages.Length - 1;
 
@@ -226,22 +224,22 @@ public class PauseManager : MonoBehaviour
         }
     }
 
-    // ==========================================
-
     public void PauseGame(Gamepad pad, int padIndex)
     {
         isPaused = true;
         isShowingControls = false;
         controllingGamepad = pad;
 
+        // I uncommented this so your game UI hides properly when paused during a match!
         if (mainPlayerCanvas != null) mainPlayerCanvas.SetActive(false);
+
         if (pauseCanvas != null) pauseCanvas.SetActive(true);
 
         if (paperBackground != null) paperBackground.SetActive(true);
         if (buttonList != null) buttonList.SetActive(true);
         if (playerInfoBox != null) playerInfoBox.SetActive(true);
         if (countdownText != null) countdownText.gameObject.SetActive(false);
-        if (controlsPanel != null) controlsPanel.SetActive(false); // Make sure it starts closed
+        if (controlsPanel != null) controlsPanel.SetActive(false);
 
         if (buttonPrompts != null) buttonPrompts.SetActive(true);
 
