@@ -116,6 +116,7 @@ public class PlayerPowerupHandler : MonoBehaviour
         {
             activeTacoBlaster = taco;
             nearbyPowerup = null;
+            taco.StopDespawn();
             return;
         }
 
@@ -322,7 +323,7 @@ public class PlayerPowerupHandler : MonoBehaviour
         activeTacoBlaster.Fire();
 
         hasTacoBlasterEquipped = false;
-        activeTacoBlaster = null;
+        //activeTacoBlaster = null;
     }
 
     public void ApplyTacoStun(float duration)

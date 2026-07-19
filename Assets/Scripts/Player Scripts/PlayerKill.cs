@@ -45,7 +45,19 @@ public class PlayerKill : MonoBehaviour
 
     public IEnumerator respawnTimer()
     {
-        yield return new WaitForSeconds(respawnDuration);
+        // Stay completely invisible at the beginning
+        foreach (Renderer r in playerRenderers)
+            r.enabled = false;
+
+        // Wait until it is time to start blinking
+        float invisibleTime = respawnDuration - respawnBlinkTime;
+
+        yield return new WaitForSeconds(invisibleTime);
+
+        // Start blinking for the remaining time
+        StartCoroutine(BlinkWhileDead());
+
+        yield return new WaitForSeconds(respawnBlinkTime);
 
         RespawnPlayer();
     }
@@ -112,7 +124,7 @@ public class PlayerKill : MonoBehaviour
 
         GetComponentInChildren<Animator>().enabled = false;
 
-        StartCoroutine(BlinkWhileDead());
+        //StartCoroutine(BlinkWhileDead());
 
         PlayerInteract interact = GetComponent<PlayerInteract>();
         if (interact != null)

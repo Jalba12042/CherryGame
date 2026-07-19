@@ -6,8 +6,10 @@ public class TacoBlaster : Powerup
     [Header("Taco Blaster Settings")]
     public Transform barrel;
     public float fireRate = 0.5f;
+    [SerializeField] private float shootAnimationDuration = 0.5f;
 
     private bool hasShot = false;
+    //public bool isFiring = false;
     private Animator playerAnimator;
 
     [Header("Projectile")]
@@ -18,11 +20,11 @@ public class TacoBlaster : Powerup
     public AudioSource audioSource;
     public AudioClip shootSound;
 
-    private void Awake()
+    /*private void Awake()
     {
         if (!isHoldable)
             despawnRoutine = StartCoroutine(despawnTimer());
-    }
+    }*/
 
     protected override void powerUpEffect()
     {
@@ -73,17 +75,17 @@ public class TacoBlaster : Powerup
     {
         hasShot = true;
 
+        // Start the shooting animation
         if (playerAnimator != null)
             playerAnimator.SetTrigger("shootTB");
 
-        float destroyDelay = 0f;
-
+        // Play sound
         if (audioSource != null && shootSound != null)
         {
             audioSource.PlayOneShot(shootSound);
-            destroyDelay = shootSound.length;
         }
 
+        // Fire projectile
         GameObject projectile =
             Instantiate(tacoProjectilePrefab, barrel.position, barrel.rotation);
 
@@ -96,9 +98,7 @@ public class TacoBlaster : Powerup
 
         Destroy(projectile, 5f);
 
-        if (playerAnimator != null)
-            playerAnimator.SetBool("isHoldingTB", false);
-
+        // Detach the Taco Blaster
         transform.SetParent(null);
 
         if (powerupHandler != null)
@@ -107,16 +107,28 @@ public class TacoBlaster : Powerup
             powerupHandler.activeTacoBlaster = null;
         }
 
-        powerUpEnd();
-
+        // Hide the actual Taco Blaster model
         foreach (Renderer r in GetComponentsInChildren<Renderer>())
         {
             r.enabled = false;
         }
 
-        Destroy(gameObject, destroyDelay);
+        // Wait for the shoot animation to finish
+        yield return new WaitForSeconds(shootAnimationDuration);
 
-        yield break;
+        // leave the Taco Blaster animation state
+        if (playerAnimator != null)
+            playerAnimator.SetBool("isHoldingTB", false);
+
+        if (powerupHandler != null &&
+        powerupHandler.activeTacoBlaster == this)
+        {
+            powerupHandler.activeTacoBlaster = null;
+        }
+
+        powerUpEnd();
+
+        Destroy(gameObject);
     }
 
     protected override void powerUpEnd()

@@ -203,4 +203,15 @@ public class Powerup : MonoBehaviour
             mr.enabled = true;
         }
     }
+
+    public void StopDespawn()
+    {
+        canDespawn = false;
+
+        if (despawnRoutine != null)
+        {
+            StopCoroutine(despawnRoutine);
+            despawnRoutine = null;
+        }
+    }
 }
