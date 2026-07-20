@@ -5,6 +5,10 @@ public class Basket : MonoBehaviour
 {
     public int numItemsInBasket;
 
+    // Which player (0-3) this basket belongs to, matching its index in BasketContainer.baskets.
+    // Set by BasketContainer.Awake(); used to report deposits to StatTracker.
+    public int basketOwnerID;
+
     // Online, only the server's physics simulation is authoritative for scoring - every
     // client's local copy of the cherry also triggers this collider, so without this guard
     // each machine would count independently and disagree.

@@ -8,8 +8,12 @@ public class NetworkBootstrap : MonoBehaviour
 {
     [SerializeField] private GameObject gameStatePrefab;
 
-    private void Awake()
+    // Start(), not Awake(): this sits on the same GameObject as NetworkManager itself, and
+    // sibling components' Awake() order isn't guaranteed - NetworkManager.Singleton may not be
+    // set yet if this runs first. Every object's Awake() finishes before any Start() does.
+    private void Start()
     {
+        Debug.Log($"[NetworkBootstrap] Start. gameStatePrefab assigned={gameStatePrefab != null}");
         NetworkManager.Singleton.OnServerStarted += SpawnGameState;
     }
 
@@ -21,6 +25,7 @@ public class NetworkBootstrap : MonoBehaviour
 
     private void SpawnGameState()
     {
+        Debug.Log("[NetworkBootstrap] (Server) OnServerStarted fired, spawning NetworkGameState.");
         GameObject instance = Instantiate(gameStatePrefab);
         instance.GetComponent<NetworkObject>().Spawn();
     }

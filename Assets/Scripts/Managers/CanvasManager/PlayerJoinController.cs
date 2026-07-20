@@ -14,6 +14,19 @@ public class PlayerJoinController : MonoBehaviour
     private bool[] isReady;
     private int[] assignedControllers;
 
+    // Online only: last customization data sent to NetworkCustomizeSync per local slot, so
+    // Update() only sends an RPC when something actually changed.
+    private PlayerCustomizationData[] lastSentSlotData;
+    private bool[] hasSentSlotData;
+
+    // Online only: remote players rendered into whichever UI slots this machine isn't using
+    // itself, indexed the same way as `slots[]`.
+    private GameObject[] remoteSpawnedModels;
+    private bool[] remoteSlotOccupied;
+    private ulong[] remoteSlotOwner;
+    private int[] remoteSlotLocalIndex;
+    private bool[] remoteSlotRevealing;
+
     public GameObject countdownPanel;
     public TextMeshProUGUI countdownText;
     private bool countdownStarted = false;
@@ -57,6 +70,13 @@ public class PlayerJoinController : MonoBehaviour
 
         assignedControllers = new int[slots.Length];
         isReady = new bool[slots.Length];
+        lastSentSlotData = new PlayerCustomizationData[slots.Length];
+        hasSentSlotData = new bool[slots.Length];
+        remoteSpawnedModels = new GameObject[slots.Length];
+        remoteSlotOccupied = new bool[slots.Length];
+        remoteSlotOwner = new ulong[slots.Length];
+        remoteSlotLocalIndex = new int[slots.Length];
+        remoteSlotRevealing = new bool[slots.Length];
 
         currentAllowedPlayers = 2;
         isExpanding = false;
@@ -160,6 +180,10 @@ public class PlayerJoinController : MonoBehaviour
     void Update()
     {
         if (!canInteract) return;
+
+        PushOnlineSlotDataChanges();
+        RefreshRemoteSlots();
+        CheckStartCondition();
 
         // --- DYNAMIC EXPANSION TRIGGER (SEQUENTIAL) ---
         if (currentAllowedPlayers < slots.Length)
@@ -526,6 +550,15 @@ public class PlayerJoinController : MonoBehaviour
             Gamepad pad = InputManager.Instance.GetAssignedGamepad(player + 1);
             swapper.LockInDeviceIcons(pad);
         }
+
+        if (IsOnline() && NetworkCustomizeSync.Instance != null)
+        {
+            PlayerCustomizationData data = BuildSlotData(player);
+            Debug.Log($"[PlayerJoinController] Claiming online slot for local player {player}.");
+            NetworkCustomizeSync.Instance.ClaimSlotServerRpc(player, data);
+            lastSentSlotData[player] = data;
+            hasSentSlotData[player] = true;
+        }
     }
 
     // ── Ready / Back ─────────────────────────────────────────────
@@ -535,12 +568,23 @@ public class PlayerJoinController : MonoBehaviour
         if (!slots[player].menuPanel.activeSelf) return;
         isReady[player] = !isReady[player];
         slots[player].readyPanel.SetActive(isReady[player]);
+
+        if (IsOnline() && NetworkCustomizeSync.Instance != null)
+            NetworkCustomizeSync.Instance.SetSlotReadyServerRpc(player, isReady[player]);
+
         CheckStartCondition();
     }
 
     void HandleBackPress(int player)
     {
-        if (isReady[player]) { isReady[player] = false; slots[player].readyPanel.SetActive(false); return; }
+        if (isReady[player])
+        {
+            isReady[player] = false;
+            slots[player].readyPanel.SetActive(false);
+            if (IsOnline() && NetworkCustomizeSync.Instance != null)
+                NetworkCustomizeSync.Instance.SetSlotReadyServerRpc(player, false);
+            return;
+        }
 
         assignedControllers[player] = -1;
         InputManager.Instance.UnassignGamepad(player + 1);
@@ -556,6 +600,10 @@ public class PlayerJoinController : MonoBehaviour
 
         if (slots[player].spawnedModel != null) Destroy(slots[player].spawnedModel);
         if (GameManager.Instance != null) GameManager.Instance.controllerAssignments[player] = -1;
+
+        if (IsOnline() && NetworkCustomizeSync.Instance != null)
+            NetworkCustomizeSync.Instance.ReleaseSlotServerRpc(player);
+        hasSentSlotData[player] = false;
     }
 
     void CheckStartCondition()
@@ -564,8 +612,26 @@ public class PlayerJoinController : MonoBehaviour
         int readyCount = 0;
         for (int i = 0; i < currentAllowedPlayers; i++) if (isReady[i]) readyCount++;
 
-        if (readyCount > 0 && readyCount == GetAssignedPlayerCount())
-            StartCoroutine(StartCountdown());
+        if (readyCount == 0 || readyCount != GetAssignedPlayerCount()) return;
+
+        // Online: this machine's own players being ready isn't enough - otherwise whoever
+        // finishes customizing fastest drags everyone else's screen forward with them. Only
+        // start the countdown once every player on every connected machine is ready; this is
+        // re-checked every frame (see Update()), so it also picks up once a remote player
+        // readies up after this machine already has.
+        if (IsOnline() && !AreAllOnlinePlayersReady()) return;
+
+        StartCoroutine(StartCountdown());
+    }
+
+    bool AreAllOnlinePlayersReady()
+    {
+        if (NetworkCustomizeSync.Instance == null) return false;
+        var list = NetworkCustomizeSync.Instance.Slots;
+        if (list.Count == 0) return false;
+        for (int i = 0; i < list.Count; i++)
+            if (!list[i].ready) return false;
+        return true;
     }
 
     IEnumerator StartCountdown()
@@ -576,7 +642,8 @@ public class PlayerJoinController : MonoBehaviour
 
         while (timeLeft > 0)
         {
-            if (GetReadyCount() < GetAssignedPlayerCount())
+            bool stillReady = GetReadyCount() >= GetAssignedPlayerCount() && (!IsOnline() || AreAllOnlinePlayersReady());
+            if (!stillReady)
             {
                 countdownPanel.SetActive(false);
                 countdownStarted = false;
@@ -673,11 +740,18 @@ public class PlayerJoinController : MonoBehaviour
         }
 
         bool online = Unity.Netcode.NetworkManager.Singleton != null && Unity.Netcode.NetworkManager.Singleton.IsListening;
+        Debug.Log($"[PlayerJoinController] StartGame. online={online} playerCount={GameManager.Instance.playerCount} NetworkPlayerSpawner.Instance found={NetworkPlayerSpawner.Instance != null}");
         if (online)
         {
             // Report this machine's local players to the server. The host's own confirmation
             // also starts the round (loading the scene for every connected client); other
             // clients just wait here until the host's load kicks in via NetworkManager.SceneManager.
+            if (NetworkPlayerSpawner.Instance == null)
+            {
+                Debug.LogError("[PlayerJoinController] NetworkPlayerSpawner.Instance is null - NetworkGameState was never spawned. Check NetworkBootstrap logs.");
+                return;
+            }
+            Debug.Log($"[PlayerJoinController] Registering {GameManager.Instance.playerCustomizations.Count} local player(s) with the server. IsHost={Unity.Netcode.NetworkManager.Singleton.IsHost}");
             NetworkPlayerSpawner.Instance.RegisterLocalPlayersServerRpc(GameManager.Instance.playerCustomizations.ToArray());
             if (Unity.Netcode.NetworkManager.Singleton.IsHost)
                 NetworkPlayerSpawner.Instance.StartRound();
@@ -694,6 +768,182 @@ public class PlayerJoinController : MonoBehaviour
     int GetReadyCount() { int c = 0; foreach (bool r in isReady) if (r) c++; return c; }
     int GetPlayerIndexFromController(int cIdx) { for (int i = 0; i < assignedControllers.Length; i++) if (assignedControllers[i] == cIdx) return i; return -1; }
 
+    // ── Online sync ──────────────────────────────────────────────
+
+    bool IsOnline() => Unity.Netcode.NetworkManager.Singleton != null && Unity.Netcode.NetworkManager.Singleton.IsListening;
+
+    void PushOnlineSlotDataChanges()
+    {
+        if (!IsOnline() || NetworkCustomizeSync.Instance == null) return;
+
+        for (int p = 0; p < slots.Length; p++)
+        {
+            if (assignedControllers[p] == -1 || slots[p].spawnedModel == null) continue;
+
+            PlayerCustomizationData current = BuildSlotData(p);
+            if (hasSentSlotData[p] && current.Equals(lastSentSlotData[p])) continue;
+
+            NetworkCustomizeSync.Instance.UpdateSlotDataServerRpc(p, current);
+            lastSentSlotData[p] = current;
+            hasSentSlotData[p] = true;
+        }
+    }
+
+    // ── Remote slot rendering ────────────────────────────────────
+    // Local slots always occupy 0..(local count-1) exactly as before (untouched). Remote
+    // players (claimed by other machines) get rendered into whatever UI slots are left over,
+    // in a stable order, so both machines end up looking at the same "room".
+
+    void RefreshRemoteSlots()
+    {
+        if (!IsOnline() || NetworkCustomizeSync.Instance == null || Unity.Netcode.NetworkManager.Singleton == null) return;
+
+        ulong myId = Unity.Netcode.NetworkManager.Singleton.LocalClientId;
+        var list = NetworkCustomizeSync.Instance.Slots;
+
+        List<PlayerSlotSyncData> remoteEntries = new List<PlayerSlotSyncData>();
+        for (int i = 0; i < list.Count; i++)
+            if (list[i].ownerClientId != myId) remoteEntries.Add(list[i]);
+
+        remoteEntries.Sort((a, b) => a.ownerClientId != b.ownerClientId
+            ? a.ownerClientId.CompareTo(b.ownerClientId)
+            : a.localSlotOnOwner.CompareTo(b.localSlotOnOwner));
+
+        // Only slots this machine hasn't claimed itself are available for remote previews -
+        // computed fresh from current state each frame, so a local join always wins the slot
+        // it claims, even if a remote preview got there first.
+        List<int> freeSlots = new List<int>();
+        for (int i = 0; i < slots.Length; i++)
+            if (assignedControllers[i] == -1) freeSlots.Add(i);
+
+        // uiSlot -> desired remote entry for this frame
+        Dictionary<int, PlayerSlotSyncData> desired = new Dictionary<int, PlayerSlotSyncData>();
+        for (int i = 0; i < remoteEntries.Count && i < freeSlots.Count; i++)
+            desired[freeSlots[i]] = remoteEntries[i];
+
+        for (int uiSlot = 0; uiSlot < slots.Length; uiSlot++)
+        {
+            bool shouldHaveRemote = desired.TryGetValue(uiSlot, out PlayerSlotSyncData entry);
+
+            if (remoteSlotOccupied[uiSlot])
+            {
+                bool sameOccupant = shouldHaveRemote && remoteSlotOwner[uiSlot] == entry.ownerClientId && remoteSlotLocalIndex[uiSlot] == entry.localSlotOnOwner;
+                if (!sameOccupant)
+                {
+                    ClearRemoteSlot(uiSlot);
+                }
+                else
+                {
+                    UpdateRemoteSlotVisual(uiSlot, entry);
+                    continue;
+                }
+            }
+
+            if (shouldHaveRemote && !remoteSlotRevealing[uiSlot])
+            {
+                remoteSlotRevealing[uiSlot] = true;
+                StartCoroutine(RevealAndPopulateRemoteSlot(uiSlot, entry));
+            }
+        }
+    }
+
+    IEnumerator RevealAndPopulateRemoteSlot(int uiSlot, PlayerSlotSyncData entry)
+    {
+        while (uiSlot >= currentAllowedPlayers)
+        {
+            if (!isExpanding) StartCoroutine(ExpandLayoutSequence());
+            yield return null;
+        }
+
+        // A local player may have claimed this exact slot while we were waiting to reveal it -
+        // don't stomp on them. RefreshRemoteSlots will retarget this entry to a free slot on
+        // its next pass instead.
+        if (assignedControllers[uiSlot] == -1)
+            PopulateRemoteSlot(uiSlot, entry);
+
+        remoteSlotRevealing[uiSlot] = false;
+    }
+
+    void PopulateRemoteSlot(int uiSlot, PlayerSlotSyncData entry)
+    {
+        if (remoteSpawnedModels[uiSlot] != null) Destroy(remoteSpawnedModels[uiSlot]);
+
+        slots[uiSlot].joinPanel.SetActive(false);
+        slots[uiSlot].menuPanel.SetActive(true);
+        if (slots[uiSlot].customizationUI != null) slots[uiSlot].customizationUI.gameObject.SetActive(true);
+
+        slots[uiSlot].previewCamera.gameObject.SetActive(true);
+        slots[uiSlot].previewImage.texture = slots[uiSlot].previewCamera.targetTexture;
+        slots[uiSlot].previewImage.gameObject.SetActive(true);
+
+        GameObject model = Instantiate(playerModelPrefab,
+            slots[uiSlot].modelSpawnPoint.position,
+            slots[uiSlot].modelSpawnPoint.rotation,
+            slots[uiSlot].modelSpawnPoint);
+        remoteSpawnedModels[uiSlot] = model;
+        slots[uiSlot].spawnedModel = model;
+
+        remoteSlotOccupied[uiSlot] = true;
+        remoteSlotOwner[uiSlot] = entry.ownerClientId;
+        remoteSlotLocalIndex[uiSlot] = entry.localSlotOnOwner;
+
+        UpdateRemoteSlotVisual(uiSlot, entry);
+
+        Debug.Log($"[PlayerJoinController] Populated remote slot uiSlot={uiSlot} owner={entry.ownerClientId} localSlotOnOwner={entry.localSlotOnOwner}");
+    }
+
+    void UpdateRemoteSlotVisual(int uiSlot, PlayerSlotSyncData entry)
+    {
+        if (remoteSpawnedModels[uiSlot] == null) return;
+
+        var customization = remoteSpawnedModels[uiSlot].GetComponentInChildren<PlayerCustomization>();
+        if (customization != null) customization.ApplyFromData(entry.data);
+
+        if (slots[uiSlot].customizationUI != null) slots[uiSlot].customizationUI.SetNameIndex(entry.data.nameIndex);
+
+        slots[uiSlot].readyPanel.SetActive(entry.ready);
+    }
+
+    void ClearRemoteSlot(int uiSlot)
+    {
+        if (remoteSpawnedModels[uiSlot] != null) Destroy(remoteSpawnedModels[uiSlot]);
+        remoteSpawnedModels[uiSlot] = null;
+        remoteSlotOccupied[uiSlot] = false;
+
+        // If a local player has since claimed this exact slot (the race this whole system has
+        // to guard against), their SetupPlayerSlot() already set this UI up correctly - don't
+        // tear it back down.
+        if (assignedControllers[uiSlot] != -1)
+        {
+            Debug.Log($"[PlayerJoinController] Remote slot uiSlot={uiSlot} vacated, but a local player now owns it - leaving its UI alone.");
+            return;
+        }
+
+        slots[uiSlot].spawnedModel = null;
+        slots[uiSlot].menuPanel.SetActive(false);
+        slots[uiSlot].readyPanel.SetActive(false);
+        if (slots[uiSlot].previewCamera != null) slots[uiSlot].previewCamera.gameObject.SetActive(false);
+        if (slots[uiSlot].previewImage != null) slots[uiSlot].previewImage.gameObject.SetActive(false);
+
+        Debug.Log($"[PlayerJoinController] Cleared remote slot uiSlot={uiSlot}.");
+    }
+
+    PlayerCustomizationData BuildSlotData(int player)
+    {
+        PlayerCustomizationData data = new PlayerCustomizationData();
+        if (slots[player].spawnedModel != null)
+        {
+            var cust = slots[player].spawnedModel.GetComponentInChildren<PlayerCustomization>();
+            data.headIndex = cust.GetHeadIndex();
+            data.faceIndex = cust.GetFaceIndex();
+            data.torsoIndex = cust.GetTorsoIndex();
+            data.bottomIndex = cust.GetBottomIndex();
+        }
+        data.colorIndex = slots[player].customizationUI.GetCurrentColorIndex();
+        data.nameIndex = slots[player].customizationUI.GetCurrentNameIndex();
+        return data;
+    }
+
     public bool IsColorTaken(int colorIndex, int requestingPlayer)
     {
         for (int i = 0; i < slots.Length; i++)
@@ -702,6 +952,18 @@ public class PlayerJoinController : MonoBehaviour
             var ui = slots[i].customizationUI;
             if (ui != null && ui.GetCurrentColorIndex() == colorIndex) return true;
         }
+
+        if (IsOnline() && NetworkCustomizeSync.Instance != null && Unity.Netcode.NetworkManager.Singleton != null)
+        {
+            ulong myId = Unity.Netcode.NetworkManager.Singleton.LocalClientId;
+            var list = NetworkCustomizeSync.Instance.Slots;
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].ownerClientId == myId && list[i].localSlotOnOwner == requestingPlayer) continue;
+                if (list[i].data.colorIndex == colorIndex) return true;
+            }
+        }
+
         return false;
     }
 
@@ -713,6 +975,18 @@ public class PlayerJoinController : MonoBehaviour
             var ui = slots[i].customizationUI;
             if (ui != null && ui.GetCurrentNameIndex() == nameIndex) return true;
         }
+
+        if (IsOnline() && NetworkCustomizeSync.Instance != null && Unity.Netcode.NetworkManager.Singleton != null)
+        {
+            ulong myId = Unity.Netcode.NetworkManager.Singleton.LocalClientId;
+            var list = NetworkCustomizeSync.Instance.Slots;
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i].ownerClientId == myId && list[i].localSlotOnOwner == requestingPlayer) continue;
+                if (list[i].data.nameIndex == nameIndex) return true;
+            }
+        }
+
         return false;
     }
 }

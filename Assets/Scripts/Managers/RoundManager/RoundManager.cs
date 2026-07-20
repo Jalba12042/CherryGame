@@ -206,6 +206,8 @@ public class RoundManager : MonoBehaviour
         SpawnPlayers();
         currRound.setValues();
 
+        Debug.Log($"[RoundManager] BeginRound. IsOnline={IsOnline} IsOnlineServer={IsOnlineServer} playerObjects={(playerObjects != null ? playerObjects.Length : -1)}");
+
         // Only the server (or local/offline play) actually drives the timer/goal-spawning
         // coroutines - online clients just mirror OnlineRoundSync's replicated state instead,
         // otherwise every machine would run its own independent, unsynced timer.
@@ -217,8 +219,10 @@ public class RoundManager : MonoBehaviour
 
     private IEnumerator FollowOnlineRound()
     {
+        Debug.Log("[RoundManager] (Client) FollowOnlineRound: waiting for OnlineRoundSync.Instance...");
         while (OnlineRoundSync.Instance == null) yield return null;
         OnlineRoundSync sync = OnlineRoundSync.Instance;
+        Debug.Log("[RoundManager] (Client) FollowOnlineRound: OnlineRoundSync.Instance found, following replicated state.");
 
         RefreshUIReferences();
         if (timerBackgroundUI != null) timerBackgroundUI.SetActive(true);
@@ -324,6 +328,11 @@ public class RoundManager : MonoBehaviour
             .OrderBy(p => p.GlobalIndex.Value)
             .ToArray();
 
+        Debug.Log($"[RoundManager] AdoptOnlinePlayers: found {allPlayers.Length} Playermovement(s) in scene. " +
+            $"IDs/owners: {string.Join(", ", allPlayers.Select(p => $"(global={p.GlobalIndex.Value}, owner={p.OwnerClientId}, isOwner={p.IsOwner})"))}");
+        if (allPlayers.Length == 0)
+            Debug.LogWarning("[RoundManager] AdoptOnlinePlayers found ZERO players - likely ran before NetworkPlayerSpawner finished spawning on this client (race condition). Look for '[NetworkPlayerSpawner]' spawn logs on the host and compare timing.");
+
         playerObjects = new GameObject[allPlayers.Length];
 
         // BasketContainer.Awake() hid baskets based on this machine's *local* playerCount,
@@ -379,10 +388,13 @@ public class RoundManager : MonoBehaviour
             Gamepad assignedGamepad = GameManager.Instance.GetAssignedGamepad(i);
             if (assignedGamepad != null) ownedPlayers[i].assignedGamepad = assignedGamepad;
         }
+        Debug.Log($"[RoundManager] AdoptOnlinePlayers done. {ownedPlayers.Length} locally-owned player(s) mapped to local input slots.");
     }
 
     public IEnumerator StartTimer()
     {
+        Debug.Log($"[RoundManager] StartTimer starting (this is the server/local-authoritative path). IsOnlineServer={IsOnlineServer}");
+
         // 1. Double check UI is attached
         RefreshUIReferences();
 
@@ -424,9 +436,17 @@ public class RoundManager : MonoBehaviour
 
         if (IsOnlineServer)
         {
-            OnlineRoundSync.Instance.RoundDuration.Value = currRoundDurationInSecs;
-            OnlineRoundSync.Instance.RoundActive.Value = true;
-            OnlineRoundSync.Instance.PlayersCanMove.Value = true;
+            if (OnlineRoundSync.Instance == null)
+            {
+                Debug.LogError("[RoundManager] (Server) IsOnlineServer but OnlineRoundSync.Instance is null - round state won't replicate to clients! Check NetworkBootstrap/NetworkGameState spawn logs.");
+            }
+            else
+            {
+                OnlineRoundSync.Instance.RoundDuration.Value = currRoundDurationInSecs;
+                OnlineRoundSync.Instance.RoundActive.Value = true;
+                OnlineRoundSync.Instance.PlayersCanMove.Value = true;
+                Debug.Log($"[RoundManager] (Server) Pushed to OnlineRoundSync: RoundDuration={currRoundDurationInSecs} RoundActive=true PlayersCanMove=true");
+            }
         }
 
         if (sprinklerManager != null) sprinklerManager?.StartSprinklers();

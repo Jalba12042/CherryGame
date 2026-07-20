@@ -21,10 +21,17 @@ public class OnlineRoundSync : NetworkBehaviour
     private void Awake()
     {
         Instance = this;
+        Debug.Log("[OnlineRoundSync] Awake, Instance set.");
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        Debug.Log($"[OnlineRoundSync] OnNetworkSpawn. IsServer={IsServer} IsClient={IsClient}");
     }
 
     public override void OnNetworkDespawn()
     {
+        Debug.Log("[OnlineRoundSync] OnNetworkDespawn.");
         if (Instance == this) Instance = null;
     }
 
@@ -33,5 +40,6 @@ public class OnlineRoundSync : NetworkBehaviour
         if (!IsServer) return;
         Scores.Clear();
         for (int i = 0; i < scores.Length; i++) Scores.Add(scores[i]);
+        Debug.Log($"[OnlineRoundSync] (Server) SetScores: [{string.Join(", ", scores)}]");
     }
 }

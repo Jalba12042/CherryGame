@@ -16,6 +16,9 @@ public class BasketContainer : MonoBehaviour
     {
         for (int i = 0; i < baskets.Count; i++)
         {
+            Basket basket = baskets[i].GetComponentInChildren<Basket>();
+            if (basket != null) basket.basketOwnerID = i;
+
             if (i > GameManager.Instance.playerCount-1)
             {
                 baskets[i].SetActive(false);

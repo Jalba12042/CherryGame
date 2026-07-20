@@ -162,4 +162,13 @@ public class PlayerCustomizationUI : MonoBehaviour
     {
         return currentNameIndex;
     }
+
+    // Directly sets the displayed name without the taken-check/stepping ChangeName does -
+    // used to mirror a remote player's already-chosen name, not to pick a new one locally.
+    public void SetNameIndex(int index)
+    {
+        if (playerNames.Length == 0) return;
+        currentNameIndex = Mathf.Clamp(index, 0, playerNames.Length - 1);
+        ApplyName();
+    }
 }
