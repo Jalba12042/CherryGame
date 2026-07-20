@@ -8,7 +8,6 @@ public class EventManager : MonoBehaviour
     public static EventManager Instance;
 
     [Header("Events")]
-    [SerializeField] private List<GameEvent> eventsInRotation;
     public GameEvent currEvent;
     public Coroutine currEventRoutine;
     public Coroutine UIRoutine;
@@ -84,24 +83,10 @@ public class EventManager : MonoBehaviour
 
     public GameEvent GetRandomEvent()
     {
-        List<GameEvent> excluded = RoundManager.Instance.currRound?.excludedEvents;
-        float totalWeight = 0f;
-        foreach (var e in eventsInRotation)
-        {
-            if (excluded != null && excluded.Contains(e)) continue;
-            totalWeight += e.weight;
-        }
+        List<GameEvent> pool = RoundManager.Instance.currRound?.possibleEvents;
+        if (pool == null || pool.Count == 0) return null;
 
-        if (totalWeight <= 0f) return null;
-        float randomValue = Random.Range(0, totalWeight);
-
-        foreach (var e in eventsInRotation)
-        {
-            if (excluded != null && excluded.Contains(e)) continue;
-            if (randomValue < e.weight) return e;
-            randomValue -= e.weight;
-        }
-        return null;
+        return pool[Random.Range(0, pool.Count)];
     }
 
     public IEnumerator EventTimer()

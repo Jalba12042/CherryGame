@@ -316,8 +316,6 @@ public class Playermovement : MonoBehaviour
         velocity.y = rb.linearVelocity.y;
         rb.linearVelocity = velocity;
 
-        dashSource.pitch = initialPitch;
-
         Invoke(nameof(ResetDash), dashCooldown);
     }
 
