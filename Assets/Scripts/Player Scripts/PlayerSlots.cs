@@ -19,4 +19,5 @@ public class PlayerSlots : MonoBehaviour
     [HideInInspector]
     public GameObject spawnedModel;
     [HideInInspector] public bool stickInUse = false;
+    public bool horizontalStickInUse;
 }

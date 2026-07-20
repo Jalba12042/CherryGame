@@ -15,6 +15,9 @@ public class PlayerKill : MonoBehaviour
 
     [SerializeField] private GameObject confettiPrefab;
 
+    [SerializeField] private float respawnBlinkTime = 2f;
+    [SerializeField] private float blinkInterval = 0.12f;
+
     [Header("Audio")]
     public AudioSource audioSource;
     public AudioClip deathSound;
@@ -42,7 +45,19 @@ public class PlayerKill : MonoBehaviour
 
     public IEnumerator respawnTimer()
     {
-        yield return new WaitForSeconds(respawnDuration);
+        // Stay completely invisible at the beginning
+        foreach (Renderer r in playerRenderers)
+            r.enabled = false;
+
+        // Wait until it is time to start blinking
+        float invisibleTime = respawnDuration - respawnBlinkTime;
+
+        yield return new WaitForSeconds(invisibleTime);
+
+        // Start blinking for the remaining time
+        StartCoroutine(BlinkWhileDead());
+
+        yield return new WaitForSeconds(respawnBlinkTime);
 
         RespawnPlayer();
     }
@@ -72,6 +87,9 @@ public class PlayerKill : MonoBehaviour
         myFaceCamStatic?.Stop();
 
         currDead = false;
+
+        foreach (Renderer r in playerRenderers)
+            r.enabled = true;
     }
 
     public void killPlayer(bool respawn)
@@ -106,11 +124,7 @@ public class PlayerKill : MonoBehaviour
 
         GetComponentInChildren<Animator>().enabled = false;
 
-        visualRoot.SetActive(false);
-        foreach (var r in playerRenderers)
-        {
-            r.enabled = false;
-        }
+        //StartCoroutine(BlinkWhileDead());
 
         PlayerInteract interact = GetComponent<PlayerInteract>();
         if (interact != null)
@@ -172,4 +186,25 @@ public class PlayerKill : MonoBehaviour
 
         pm.canMove = true;
     }
+
+    IEnumerator BlinkWhileDead()
+    {
+        bool visible = true;
+
+        while (currDead)
+        {
+            visible = !visible;
+
+            foreach (Renderer r in playerRenderers)
+                r.enabled = visible;
+
+            yield return new WaitForSeconds(blinkInterval);
+        }
+
+        // Make sure the player is visible again
+        foreach (Renderer r in playerRenderers)
+            r.enabled = true;
+    }
+
+
 }

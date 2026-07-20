@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class FakeLoadingScreen : MonoBehaviour
 {
@@ -11,14 +12,13 @@ public class FakeLoadingScreen : MonoBehaviour
     public TMP_Text tipsText;
     public string[] tips;
     public float tipInterval = 2f;
+    public TMP_Text levelTitleText;
 
     [Header("Ready Up UI")]
     public Image[] playerReadyIcons;
-
     private bool[] playerReady = new bool[4];
     private int totalPlayers;
     private int readyCount;
-
     public TimerUIManager timerManager;
 
     [Header("Pac-Man Loading Elements")]
@@ -26,20 +26,47 @@ public class FakeLoadingScreen : MonoBehaviour
     public RectTransform startPoint;
     public RectTransform endPoint;
     public GameObject[] cherries;
+
+    // ==========================================
+    // --- THEME SETTINGS & SCALES ---
+    // ==========================================
+    [Header("Park Theme")]
+    public Sprite parkCherrySprite;
     public Sprite runningSprite;
     public Sprite sittingSprite;
+    public Vector3 parkItemScale = new Vector3(1f, 1f, 1f);
+    public Vector3 parkRunScale = new Vector3(1f, 1f, 1f);
+    public Vector3 parkSitScale = new Vector3(0.6f, 0.6f, 1f);
 
-    public Vector3 runningScale = new Vector3(1f, 1f, 1f);
-    public Vector3 sittingScale = new Vector3(0.6f, 0.6f, 1f);
+    [Header("Beach Theme")]
+    public Sprite beachShellSprite;
+    public Sprite beachRunningSprite;
+    public Sprite beachSittingSprite;
+    public Vector3 beachItemScale = new Vector3(1f, 1f, 1f);
+    public Vector3 beachRunScale = new Vector3(1f, 1f, 1f);
+    public Vector3 beachSitScale = new Vector3(0.6f, 0.6f, 1f);
+
+    [Header("Mountain Theme")]
+    public Sprite mountainSnowballSprite;
+    public Sprite mountainRunningSprite;
+    public Sprite mountainSittingSprite;
+    public Vector3 mountainItemScale = new Vector3(1f, 1f, 1f); // Lower this to shrink the snowballs!
+    public Vector3 mountainRunScale = new Vector3(1f, 1f, 1f);
+    public Vector3 mountainSitScale = new Vector3(0.6f, 0.6f, 1f);
+    // ==========================================
+
+    // Internal tracking for whatever map we are currently on
+    private Sprite activeRunSprite;
+    private Sprite activeSitSprite;
+    private Vector3 activeRunScale;
+    private Vector3 activeSitScale;
 
     [Header("Timing")]
     public float loadDuration = 10f;
-
     private float timer = 0f;
     private bool loadingComplete = false;
     private float tipTimer = 0f;
     private int currentTip = 0;
-
     private bool roundStarted = false;
 
     [Header("Color Icons")]
@@ -47,6 +74,8 @@ public class FakeLoadingScreen : MonoBehaviour
 
     private void Start()
     {
+        ApplyMapTheme();
+
         foreach (var player in FindObjectsByType<Playermovement>(FindObjectsSortMode.None))
         {
             player.allowJumpInput = false;
@@ -64,10 +93,11 @@ public class FakeLoadingScreen : MonoBehaviour
             tipsText.text = tips[0];
         }
 
-        if (playerIcon != null && runningSprite != null)
+        // Apply the correct Run Sprite and Run Scale when loading starts
+        if (playerIcon != null && activeRunSprite != null)
         {
-            playerIcon.sprite = runningSprite;
-            playerIcon.rectTransform.localScale = runningScale;
+            playerIcon.sprite = activeRunSprite;
+            playerIcon.rectTransform.localScale = activeRunScale;
         }
 
         if (cherries != null)
@@ -93,6 +123,64 @@ public class FakeLoadingScreen : MonoBehaviour
         }
 
         readyCount = 0;
+    }
+
+    private void ApplyMapTheme()
+    {
+        string sceneName = SceneManager.GetActiveScene().name;
+
+        // Set Defaults (Park)
+        Sprite currentItemSprite = parkCherrySprite;
+        Vector3 currentItemScale = parkItemScale;
+
+        activeRunSprite = runningSprite;
+        activeSitSprite = sittingSprite;
+        activeRunScale = parkRunScale;
+        activeSitScale = parkSitScale;
+
+        if (sceneName.Contains("Beach"))
+        {
+            if (levelTitleText != null) levelTitleText.text = "Level Loading: Beach";
+            currentItemSprite = beachShellSprite;
+            currentItemScale = beachItemScale;
+
+            activeRunSprite = beachRunningSprite;
+            activeSitSprite = beachSittingSprite;
+            activeRunScale = beachRunScale;
+            activeSitScale = beachSitScale;
+        }
+        else if (sceneName.Contains("Mountain"))
+        {
+            if (levelTitleText != null) levelTitleText.text = "Level Loading: Mountain";
+            currentItemSprite = mountainSnowballSprite;
+            currentItemScale = mountainItemScale;
+
+            activeRunSprite = mountainRunningSprite;
+            activeSitSprite = mountainSittingSprite;
+            activeRunScale = mountainRunScale;
+            activeSitScale = mountainSitScale;
+        }
+        else
+        {
+            if (levelTitleText != null) levelTitleText.text = "Level Loading: Park";
+        }
+
+        // Swap the image AND the scale for all 18 objects
+        if (cherries != null)
+        {
+            foreach (GameObject item in cherries)
+            {
+                if (item != null)
+                {
+                    Image img = item.GetComponent<Image>();
+                    if (img != null)
+                    {
+                        img.sprite = currentItemSprite;
+                        img.rectTransform.localScale = currentItemScale;
+                    }
+                }
+            }
+        }
     }
 
     private void Update()
@@ -137,10 +225,11 @@ public class FakeLoadingScreen : MonoBehaviour
                 loadingComplete = true;
                 pressAButtonPrompt.SetActive(true);
 
-                if (playerIcon != null && sittingSprite != null)
+                // Apply the correct Sit Sprite and Sit Scale when loading ends
+                if (playerIcon != null && activeSitSprite != null)
                 {
-                    playerIcon.sprite = sittingSprite;
-                    playerIcon.rectTransform.localScale = sittingScale;
+                    playerIcon.sprite = activeSitSprite;
+                    playerIcon.rectTransform.localScale = activeSitScale;
                 }
             }
             return;
@@ -183,17 +272,14 @@ public class FakeLoadingScreen : MonoBehaviour
         if (roundStarted) return;
         roundStarted = true;
 
-        // 1. Force the gameplay canvas ON so we can see the 3-2-1
         GameObject canvas = GameObject.Find("PlayerCanvas");
         if (canvas != null) canvas.SetActive(true);
 
-        // 2. Tell the RoundManager to take over completely
         if (RoundManager.Instance != null)
         {
             RoundManager.Instance.BeginRound();
         }
 
-        // 3. Hide the loading screen
         if (loadingPanel != null)
         {
             loadingPanel.SetActive(false);

@@ -19,13 +19,29 @@ public class Basket : MonoBehaviour
     {
         if (!IsAuthority) return;
         LevelPickup pickup = other.GetComponent<LevelPickup>();
-        if (pickup != null) numItemsInBasket += pickup.pointValue;
+        if (pickup != null)
+        {
+            numItemsInBasket += pickup.pointValue;
+
+            // --- THE REPORTER ---
+            // Tell the StatTracker that this player just deposited an item!
+            if (StatTracker.Instance != null)
+            {
+                StatTracker.Instance.AddCherry(basketOwnerID);
+            }
+        }
     }
 
     private void OnTriggerExit(Collider other)
     {
         if (!IsAuthority) return;
         LevelPickup pickup = other.GetComponent<LevelPickup>();
-        if (pickup != null) numItemsInBasket -= pickup.pointValue;
+        if (pickup != null)
+        {
+            numItemsInBasket -= pickup.pointValue;
+
+            // Note: If you want players to LOSE a stat point when an item is knocked out, 
+            // Max would just add a "RemoveCherry" function in the StatTracker and we'd call it right here.
+        }
     }
 }

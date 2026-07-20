@@ -16,13 +16,22 @@ public class PlayerJoinController : MonoBehaviour
 
     public GameObject countdownPanel;
     public TextMeshProUGUI countdownText;
-
     private bool countdownStarted = false;
 
     [Header("Intro Animation Settings")]
     public float introDelay = 2.0f;
     public float fadeDuration = 0.5f;
     private bool canInteract = false;
+
+    [Header("Dynamic Layout Expansion (Sequential)")]
+    public float promptFadeDuration = 1.6f; // <--- Fades in the prompts over 1.6 seconds!
+    public GameObject p3StartPrompt; // <--- Drag the Left "Press To Add" here
+    public Animator[] p3Animators;
+    public GameObject p4StartPrompt; // <--- Drag the Right "Press To Add" here
+    public Animator[] p4Animators;
+    public KeyCode addPlayersKey = KeyCode.Equals;
+    public int currentAllowedPlayers = 2;
+    private bool isExpanding = false;
 
     [Header("Outro Transition Settings (Ready Up)")]
     public Animator boxAnimator;
@@ -32,6 +41,7 @@ public class PlayerJoinController : MonoBehaviour
     public AudioSource sfxSource;
     public AudioClip catThrowSound;
     public AudioClip hoverSound;
+    public AudioClip slideSound;
     public Image backgroundImage;
     public Sprite loadingScreenSprite;
     public float timeToWaitForThrow = 1.5f;
@@ -48,12 +58,15 @@ public class PlayerJoinController : MonoBehaviour
         assignedControllers = new int[slots.Length];
         isReady = new bool[slots.Length];
 
+        currentAllowedPlayers = 2;
+        isExpanding = false;
+
         for (int i = 0; i < slots.Length; i++)
         {
             assignedControllers[i] = -1;
             isReady[i] = false;
 
-            slots[i].joinPanel.SetActive(true);
+            slots[i].joinPanel.SetActive(i < currentAllowedPlayers);
             slots[i].menuPanel.SetActive(false);
             slots[i].readyPanel.SetActive(false);
 
@@ -77,7 +90,7 @@ public class PlayerJoinController : MonoBehaviour
         canInteract = false;
         CanvasGroup[] joinGroups = new CanvasGroup[slots.Length];
 
-        for (int i = 0; i < slots.Length; i++)
+        for (int i = 0; i < currentAllowedPlayers; i++)
         {
             if (slots[i].joinPanel != null)
             {
@@ -87,84 +100,136 @@ public class PlayerJoinController : MonoBehaviour
             }
         }
 
+        // Setup the Start Prompts for fading
+        CanvasGroup p3PromptGroup = null;
+        CanvasGroup p4PromptGroup = null;
+
+        if (p3StartPrompt != null)
+        {
+            p3StartPrompt.SetActive(true);
+            p3PromptGroup = p3StartPrompt.GetComponent<CanvasGroup>();
+            if (p3PromptGroup == null) p3PromptGroup = p3StartPrompt.AddComponent<CanvasGroup>();
+            p3PromptGroup.alpha = 0f;
+        }
+
+        if (p4StartPrompt != null)
+        {
+            p4StartPrompt.SetActive(true);
+            p4PromptGroup = p4StartPrompt.GetComponent<CanvasGroup>();
+            if (p4PromptGroup == null) p4PromptGroup = p4StartPrompt.AddComponent<CanvasGroup>();
+            p4PromptGroup.alpha = 0f;
+        }
+
         yield return new WaitForSeconds(introDelay);
+
+        // Start fading the prompts in the background
+        StartCoroutine(FadeInPrompts(p3PromptGroup, p4PromptGroup));
 
         float elapsed = 0f;
         while (elapsed < fadeDuration)
         {
             elapsed += Time.deltaTime;
             float alpha = Mathf.Lerp(0f, 1f, elapsed / fadeDuration);
-            for (int i = 0; i < joinGroups.Length; i++)
+            for (int i = 0; i < currentAllowedPlayers; i++)
                 if (joinGroups[i] != null) joinGroups[i].alpha = alpha;
             yield return null;
         }
 
-        for (int i = 0; i < joinGroups.Length; i++)
+        for (int i = 0; i < currentAllowedPlayers; i++)
             if (joinGroups[i] != null) joinGroups[i].alpha = 1f;
 
         canInteract = true;
+    }
+
+    // --- NEW: Fades in the "Press To Add" prompts over 1.6 seconds ---
+    private IEnumerator FadeInPrompts(CanvasGroup p3Group, CanvasGroup p4Group)
+    {
+        float elapsed = 0f;
+        while (elapsed < promptFadeDuration)
+        {
+            elapsed += Time.deltaTime;
+            float alpha = Mathf.Lerp(0f, 1f, elapsed / promptFadeDuration);
+            if (p3Group != null) p3Group.alpha = alpha;
+            if (p4Group != null) p4Group.alpha = alpha;
+            yield return null;
+        }
+        if (p3Group != null) p3Group.alpha = 1f;
+        if (p4Group != null) p4Group.alpha = 1f;
     }
 
     void Update()
     {
         if (!canInteract) return;
 
-        // Arcade mode — use InputManager prefix-based input per slot
+        // --- DYNAMIC EXPANSION TRIGGER (SEQUENTIAL) ---
+        if (currentAllowedPlayers < slots.Length)
+        {
+            bool triggerExpansion = false;
+
+            if (Input.GetKeyDown(addPlayersKey))
+            {
+                triggerExpansion = true;
+            }
+
+            for (int c = 0; c < Gamepad.all.Count; c++)
+            {
+                Gamepad pad = Gamepad.all[c];
+                if (pad != null && pad.startButton.wasPressedThisFrame)
+                {
+                    triggerExpansion = true;
+                    break;
+                }
+            }
+
+            // Only expand if we aren't already currently animating an expansion
+            if (triggerExpansion && !isExpanding)
+            {
+                StartCoroutine(ExpandLayoutSequence());
+            }
+        }
+
         if (InputManager.CurrentMode == InputManager.InputMode.Arcade)
         {
-            for (int p = 0; p < slots.Length; p++)
+            for (int p = 0; p < currentAllowedPlayers; p++)
             {
                 int playerID = p + 1;
 
                 if (InputManager.Instance.GetConfirmDown(playerID))
                 {
-                    if (assignedControllers[p] != -1)
-                        HandleReadyPress(p);
-                    else
-                        TryAssignArcadePlayer(p);
+                    if (assignedControllers[p] != -1) HandleReadyPress(p);
+                    else TryAssignArcadePlayer(p);
                 }
 
                 if (InputManager.Instance.GetBackDown(playerID))
                 {
-                    if (assignedControllers[p] != -1)
-                        HandleBackPress(p);
-                    else if (GetAssignedPlayerCount() == 0)
-                        StartCoroutine(BackToMenuTransition());
+                    if (assignedControllers[p] != -1) HandleBackPress(p);
+                    else if (GetAssignedPlayerCount() == 0) StartCoroutine(BackToMenuTransition());
                 }
 
-                if (assignedControllers[p] != -1)
-                    HandleCustomizationInputArcade(p);
+                if (assignedControllers[p] != -1) HandleCustomizationInputArcade(p);
             }
             return;
         }
 
-        // Keyboard mode — only P1 slot
         if (InputManager.CurrentMode == InputManager.InputMode.Keyboard)
         {
             if (InputManager.Instance.GetConfirmDown(1))
             {
-                if (assignedControllers[0] != -1)
-                    HandleReadyPress(0);
-                else
-                    TryAssignKeyboardPlayer();
+                if (assignedControllers[0] != -1) HandleReadyPress(0);
+                else TryAssignKeyboardPlayer();
             }
 
             if (InputManager.Instance.GetBackDown(1))
             {
-                if (assignedControllers[0] != -1)
-                    HandleBackPress(0);
-                else if (GetAssignedPlayerCount() == 0)
-                    StartCoroutine(BackToMenuTransition());
+                if (assignedControllers[0] != -1) HandleBackPress(0);
+                else if (GetAssignedPlayerCount() == 0) StartCoroutine(BackToMenuTransition());
             }
 
-            if (assignedControllers[0] != -1)
-                HandleCustomizationInputKeyboard();
-
+            if (assignedControllers[0] != -1) HandleCustomizationInputKeyboard();
             return;
         }
 
-        // Gamepad mode — assigned players go through InputManager; unassigned gamepads polled for join
-        for (int p = 0; p < slots.Length; p++)
+        for (int p = 0; p < currentAllowedPlayers; p++)
         {
             if (assignedControllers[p] == -1) continue;
             int playerID = p + 1;
@@ -185,6 +250,67 @@ public class PlayerJoinController : MonoBehaviour
         }
     }
 
+    // ── Expansion Sequence (One Slot at a Time) ───────────────────
+    private IEnumerator ExpandLayoutSequence()
+    {
+        isExpanding = true;
+        int newPlayerIndex = currentAllowedPlayers; // Will be 2 (for P3) or 3 (for P4)
+
+        if (sfxSource != null && slideSound != null)
+        {
+            sfxSource.PlayOneShot(slideSound);
+        }
+
+        // Determine which slot we are opening and hide the correct Start prompt
+        Animator[] animsToPlay = null;
+
+        if (newPlayerIndex == 2)
+        {
+            animsToPlay = p3Animators;
+            if (p3StartPrompt != null) p3StartPrompt.SetActive(false);
+        }
+        else if (newPlayerIndex == 3)
+        {
+            animsToPlay = p4Animators;
+            if (p4StartPrompt != null) p4StartPrompt.SetActive(false);
+        }
+
+        // Play the spawn animations for ONLY the new slot
+        if (animsToPlay != null)
+        {
+            foreach (Animator anim in animsToPlay)
+            {
+                if (anim != null) anim.gameObject.SetActive(true);
+            }
+        }
+
+        yield return new WaitForSeconds(0.9f); // Wait for the ~53 frame animation
+
+        // Officially increase the player cap
+        currentAllowedPlayers++;
+
+        // Fade in the Join Panel just for the new player
+        slots[newPlayerIndex].joinPanel.SetActive(true);
+        CanvasGroup cg = slots[newPlayerIndex].joinPanel.GetComponent<CanvasGroup>();
+        if (cg == null) cg = slots[newPlayerIndex].joinPanel.AddComponent<CanvasGroup>();
+
+        StartCoroutine(FadeInGroup(cg, fadeDuration));
+
+        isExpanding = false; // Unlocks it so they can press Start again for P4!
+    }
+
+    private IEnumerator FadeInGroup(CanvasGroup cg, float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            cg.alpha = Mathf.Lerp(0f, 1f, elapsed / duration);
+            yield return null;
+        }
+        cg.alpha = 1f;
+    }
+
     // ── Customization input ───────────────────────────────────────
 
     private void HandleCustomizationInputGamepad(int p)
@@ -201,6 +327,44 @@ public class PlayerJoinController : MonoBehaviour
 
         int category = ui.GetCurrentCategoryIndex();
         var customization = slots[p].spawnedModel.GetComponentInChildren<PlayerCustomization>();
+
+        bool rightPressed = stick.x > 0.5f;
+        bool leftPressed = stick.x < -0.5f;
+
+        Gamepad pad = InputManager.Instance.GetAssignedGamepad(playerID);
+        if (pad != null)
+        {
+            rightPressed |= pad.dpad.right.wasPressedThisFrame;
+            leftPressed |= pad.dpad.left.wasPressedThisFrame;
+        }
+
+        if (rightPressed && !slots[p].horizontalStickInUse)
+        {
+            slots[p].horizontalStickInUse = true;
+
+            if (category == 0) ui.ChangeName(1, p);
+            else if (category == 1) ui.ChangeColor(1, slots[p].spawnedModel, p);
+            else if (category == 2) customization.ChangeHead(1);
+            else if (category == 3) customization.ChangeFace(1);
+            else if (category == 4) customization.ChangeTorso(1);
+            else if (category == 5) customization.ChangeBottom(1);
+        }
+        else if (leftPressed && !slots[p].horizontalStickInUse)
+        {
+            slots[p].horizontalStickInUse = true;
+
+            if (category == 0) ui.ChangeName(-1, p);
+            else if (category == 1) ui.ChangeColor(-1, slots[p].spawnedModel, p);
+            else if (category == 2) customization.ChangeHead(-1);
+            else if (category == 3) customization.ChangeFace(-1);
+            else if (category == 4) customization.ChangeTorso(-1);
+            else if (category == 5) customization.ChangeBottom(-1);
+        }
+
+        if (Mathf.Abs(stick.x) < 0.2f && (pad == null || (!pad.dpad.left.isPressed && !pad.dpad.right.isPressed)))
+        {
+            slots[p].horizontalStickInUse = false;
+        }
 
         if (InputManager.Instance.GetGrabDown(playerID))
         {
@@ -301,7 +465,7 @@ public class PlayerJoinController : MonoBehaviour
         for (int i = 0; i < assignedControllers.Length; i++)
             if (assignedControllers[i] == controllerIndex) return;
 
-        for (int player = 0; player < assignedControllers.Length; player++)
+        for (int player = 0; player < currentAllowedPlayers; player++)
         {
             if (assignedControllers[player] == -1)
             {
@@ -318,7 +482,7 @@ public class PlayerJoinController : MonoBehaviour
 
     void TryAssignArcadePlayer(int player)
     {
-        if (assignedControllers[player] != -1) return;
+        if (player >= currentAllowedPlayers || assignedControllers[player] != -1) return;
         assignedControllers[player] = player;
         SetupPlayerSlot(player);
         if (GameManager.Instance != null)
@@ -355,6 +519,13 @@ public class PlayerJoinController : MonoBehaviour
         if (customization != null) customization.Initialize();
 
         slots[player].customizationUI.SetColorIndex(player, slots[player].spawnedModel);
+
+        ControllerDeviceSwapper swapper = slots[player].menuPanel.GetComponentInChildren<ControllerDeviceSwapper>(true);
+        if (swapper != null)
+        {
+            Gamepad pad = InputManager.Instance.GetAssignedGamepad(player + 1);
+            swapper.LockInDeviceIcons(pad);
+        }
     }
 
     // ── Ready / Back ─────────────────────────────────────────────
@@ -391,8 +562,10 @@ public class PlayerJoinController : MonoBehaviour
     {
         if (countdownStarted) return;
         int readyCount = 0;
-        for (int i = 0; i < isReady.Length; i++) if (isReady[i]) readyCount++;
-        if (readyCount >= slots.Length) StartCoroutine(StartCountdown());
+        for (int i = 0; i < currentAllowedPlayers; i++) if (isReady[i]) readyCount++;
+
+        if (readyCount > 0 && readyCount == GetAssignedPlayerCount())
+            StartCoroutine(StartCountdown());
     }
 
     IEnumerator StartCountdown()
@@ -403,7 +576,7 @@ public class PlayerJoinController : MonoBehaviour
 
         while (timeLeft > 0)
         {
-            if (GetReadyCount() < slots.Length)
+            if (GetReadyCount() < GetAssignedPlayerCount())
             {
                 countdownPanel.SetActive(false);
                 countdownStarted = false;
@@ -477,11 +650,14 @@ public class PlayerJoinController : MonoBehaviour
     void StartGame()
     {
         if (GameManager.Instance == null) return;
-        GameManager.Instance.playerCount = slots.Length;
+
+        GameManager.Instance.playerCount = GetAssignedPlayerCount();
         GameManager.Instance.playerCustomizations.Clear();
 
-        for (int i = 0; i < slots.Length; i++)
+        for (int i = 0; i < currentAllowedPlayers; i++)
         {
+            if (assignedControllers[i] == -1) continue;
+
             PlayerCustomizationData data = new PlayerCustomizationData();
             if (slots[i].spawnedModel != null)
             {

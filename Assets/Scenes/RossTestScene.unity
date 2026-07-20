@@ -17420,6 +17420,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1576099220}
   m_Mesh: {fileID: 2494185979427425891, guid: bfe4c20cb0197004bad9b012b7671242, type: 3}
+--- !u!1 &1721607365 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 853841316640057920, guid: a23fefc26f0549e468f0f3e55213e10e, type: 3}
+  m_PrefabInstance: {fileID: 686881045}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1723667549
 GameObject:
   m_ObjectHideFlags: 0
@@ -21240,51 +21245,51 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1251880502033377585, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1251880502033377585, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1251880502033377585, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 1251880502033377585, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -87.50001
       objectReference: {fileID: 0}
     - target: {fileID: 1338763781874483903, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1338763781874483903, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1338763781874483903, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 1338763781874483903, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -12.500001
       objectReference: {fileID: 0}
     - target: {fileID: 7453569563015197335, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7453569563015197335, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7453569563015197335, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 7453569563015197335, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -37.500004
       objectReference: {fileID: 0}
     - target: {fileID: 7944887964581281766, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
       propertyPath: m_Pivot.x
@@ -21370,21 +21375,25 @@ PrefabInstance:
       propertyPath: m_Name
       value: PauseCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 8414586611436746774, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8952472242333300546, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8952472242333300546, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8952472242333300546, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 8952472242333300546, guid: b03c87f17ced9fa48919b00a9abc32a9, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -62.500004
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -22293,6 +22302,10 @@ PrefabInstance:
       propertyPath: pausingPlayerText
       value: 
       objectReference: {fileID: 648056533}
+    - target: {fileID: 3830619256354327188, guid: 2552139364177814787e22ba0d735124, type: 3}
+      propertyPath: loadingScreenPanel
+      value: 
+      objectReference: {fileID: 1721607365}
     - target: {fileID: 3830619256354327188, guid: 2552139364177814787e22ba0d735124, type: 3}
       propertyPath: controlsImageDisplay
       value: 

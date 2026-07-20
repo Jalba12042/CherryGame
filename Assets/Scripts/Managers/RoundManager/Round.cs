@@ -8,10 +8,9 @@ public class Round : ScriptableObject
     public float roundTimeInSeconds;
     public string sceneName;
     public GameObject startTimerUI;
-    public bool canHaveEvents;
 
-    [Header("Events excluded from this round")]
-    public List<GameEvent> excludedEvents;
+    [Header("Events this round can randomly trigger (empty = no events)")]
+    public List<GameEvent> possibleEvents;
 
     public virtual IEnumerator StartGoal()
     {

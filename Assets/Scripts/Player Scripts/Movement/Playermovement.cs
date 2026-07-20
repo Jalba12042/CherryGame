@@ -81,6 +81,8 @@ public class Playermovement : NetworkBehaviour
     [Header("Dash Audio")]
     [SerializeField] private AudioSource dashSource;
     [SerializeField] private AudioClip dashSound;
+    [SerializeField] private AudioClip fartSound;
+    [SerializeField] private int fartChance = 3;
 
     [Header("Dash VFX")]
     [SerializeField] private ParticleSystem dashSmoke;
@@ -122,6 +124,7 @@ public class Playermovement : NetworkBehaviour
         {
             dashSource = gameObject.AddComponent<AudioSource>();
             dashSource.playOnAwake = false;
+            dashSource.volume = .25f;
         }
 
         // Guard against prefab data missing new dash fields
@@ -316,17 +319,38 @@ public class Playermovement : NetworkBehaviour
         dashedFromGround = gc.isGrounded;
         dashTimer = dashDuration;
         dashCooldownTimer = dashCooldown;
-
+        float initialPitch = dashSource.pitch;
         if (dashBarObject != null) dashBarObject.SetActive(true);
 
         if (dashSmoke != null) { dashSmoke.Clear(); dashSmoke.Play(); }
-        if (dashSound != null && dashSource != null) dashSource.PlayOneShot(dashSound);
+        if (dashSource != null)
+        {
+            int rand = Random.Range(0, fartChance);
+            if (rand == 0)
+            {
+                float randPitch = Random.Range(1.3f, 2f);
+                dashSource.pitch = randPitch;
+                dashSource.PlayOneShot(fartSound);
+                StartCoroutine(ResetPitchAfter(fartSound.length / randPitch, initialPitch));
+            }
+            else
+            {
+                dashSource.pitch = initialPitch; // normal dash sound plays at normal pitch immediately
+                if (dashSound != null) dashSource.PlayOneShot(dashSound);
+            }
+        }
 
         Vector3 velocity = transform.forward * dashForce;
         velocity.y = rb.linearVelocity.y;
         rb.linearVelocity = velocity;
 
         Invoke(nameof(ResetDash), dashCooldown);
+    }
+
+    private IEnumerator ResetPitchAfter(float delay, float pitchToRestore)
+    {
+        yield return new WaitForSeconds(delay);
+        dashSource.pitch = pitchToRestore;
     }
 
     private void ResetDash()

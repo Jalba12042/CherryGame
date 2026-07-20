@@ -1275,15 +1275,15 @@ RectTransform:
   m_GameObject: {fileID: 1313679290560204805}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.2475, y: 1.3354487, z: 1.2475}
+  m_LocalScale: {x: 2.3058789, y: 2.4684434, z: 2.3058789}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4631772743935686064}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 33, y: -10.6}
+  m_SizeDelta: {x: 242.1364, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &635681478431390984
 CanvasRenderer:
@@ -1313,17 +1313,17 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Press A to Start Round
+  m_text: Press       to Start Round
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 7bfff9de90ca390409e6dd0e20d291d7, type: 2}
+  m_sharedMaterial: {fileID: 1437974896889321891, guid: 7bfff9de90ca390409e6dd0e20d291d7, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1346,7 +1346,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 16
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -1769,7 +1769,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1811536279105911509}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -0.9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1777,7 +1777,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -432.8, y: -1.2948761}
+  m_AnchoredPosition: {x: -432.8, y: -1.2}
   m_SizeDelta: {x: 49.4238, y: 46.3832}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1872625126192336528
@@ -1916,7 +1916,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1952,7 +1952,7 @@ MonoBehaviour:
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
-  m_Transition: 1
+  m_Transition: 0
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
@@ -3486,6 +3486,7 @@ MonoBehaviour:
   - Angry and want to unleash frustrations in the game? Press B to scream your hearts
     out!
   tipInterval: 5
+  levelTitleText: {fileID: 1881583604443073135}
   playerReadyIcons:
   - {fileID: 2652580800432043642}
   - {fileID: 7330454421469255534}
@@ -3509,10 +3510,24 @@ MonoBehaviour:
   - {fileID: 3599167145505681361}
   - {fileID: 7629270663579424769}
   - {fileID: 2735326397172324693}
+  parkCherrySprite: {fileID: 21300000, guid: 55e06427bb4af4d45ab824ba762bc5e6, type: 3}
   runningSprite: {fileID: 21300000, guid: 379c75a0a39caf8439bc283ab89cdf95, type: 3}
   sittingSprite: {fileID: 21300000, guid: 8ac9ada5e7cdb9047b1bd116a952b7d3, type: 3}
-  runningScale: {x: 1, y: 1, z: 1}
-  sittingScale: {x: 0.7, y: 0.8, z: 1}
+  parkItemScale: {x: 0.5427328, y: 0.5427328, z: 0.5427328}
+  parkRunScale: {x: 0.9395197, y: 0.9395197, z: 0.9395197}
+  parkSitScale: {x: 0.73484, y: 0.73484, z: 0.73484}
+  beachShellSprite: {fileID: 21300000, guid: 0a7f6b142d6d13e469e4279b9d2d49f0, type: 3}
+  beachRunningSprite: {fileID: 21300000, guid: f387c849ad165d74bb4b18faf68b2135, type: 3}
+  beachSittingSprite: {fileID: 21300000, guid: dff4b9cd22bd48a44bdf04b3f24ce478, type: 3}
+  beachItemScale: {x: 0.5427328, y: 0.5427328, z: 0.5427328}
+  beachRunScale: {x: 0.73484, y: 0.73484, z: 0.73484}
+  beachSitScale: {x: 0.3917887, y: 0.71450984, z: 0.5136663}
+  mountainSnowballSprite: {fileID: 21300000, guid: 115f7ed21831a374882d528f88c0c825, type: 3}
+  mountainRunningSprite: {fileID: 21300000, guid: 79abdddd6bed03742a432f1b33c449f5, type: 3}
+  mountainSittingSprite: {fileID: 21300000, guid: 0d456fe2e5013cc46818ce5f2013ba4a, type: 3}
+  mountainItemScale: {x: 0.5139517, y: 0.5139517, z: 0.5139517}
+  mountainRunScale: {x: 0.4362524, y: 0.73484, z: 0.73484}
+  mountainSitScale: {x: 0.3793349, y: 0.73246056, z: 0.73246056}
   loadDuration: 10
   colorIcons:
   - {fileID: 21300000, guid: 2801a3db8c8debb4d9258d0f226fac01, type: 3}
@@ -3663,10 +3678,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: f387c849ad165d74bb4b18faf68b2135, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 379c75a0a39caf8439bc283ab89cdf95, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
-  m_FillCenter: 1
+  m_FillCenter: 0
   m_FillMethod: 4
   m_FillAmount: 1
   m_FillClockwise: 1
@@ -7131,14 +7146,14 @@ RectTransform:
   m_GameObject: {fileID: 7904901688647282807}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.706333, y: 0.4018736, z: 0.4018736}
+  m_LocalScale: {x: 0.8222676, y: 0.8222676, z: 0.8222676}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4631772743935686064}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 26, y: 20}
+  m_AnchoredPosition: {x: -111, y: 2.2}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8701500483969290417
@@ -7169,7 +7184,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: d936bc60974aca640a7d0b9be1799b84, type: 3}
+  m_Sprite: {fileID: 21300000, guid: cc37fb017234fe24ebd0f0e0374d0abd, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -8123,16 +8138,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8997143178060122677}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.38128838, y: 0.5563736, z: 0.5563736}
+  m_LocalScale: {x: 0.665903, y: 0.9716814, z: 0.9716814}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8100603196233434287}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.78491, y: 259}
+  m_AnchoredPosition: {x: 0.7849121, y: 292.99997}
   m_SizeDelta: {x: 362.57, y: 203.22}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &311324485757842085
