@@ -85,8 +85,9 @@ public class RoundManager : MonoBehaviour
 
     private void RefreshUIReferences()
     {
-        GameObject timerGO = GameObject.FindWithTag("Timer");
-        if (timerGO != null) timerText = timerGO.GetComponent<TextMeshProUGUI>();
+        // --- FIX: Find the TimerLocator directly instead of relying on Unity Tags! ---
+        TimerLocator locator = FindFirstObjectByType<TimerLocator>();
+        if (locator != null) timerText = locator.GetComponent<TextMeshProUGUI>();
 
         TimerUIManager tManager = FindFirstObjectByType<TimerUIManager>();
         if (tManager != null) timerBackgroundUI = tManager.timerBackgroundObject;
@@ -258,7 +259,7 @@ public class RoundManager : MonoBehaviour
         // 1. Double check UI is attached
         RefreshUIReferences();
 
-        // 2. --- THE FIX: Reveal the Cardboard UI IMMEDIATELY! ---
+        // 2. Reveal the Cardboard UI IMMEDIATELY!
         if (timerBackgroundUI != null)
         {
             timerBackgroundUI.SetActive(true);
@@ -318,20 +319,49 @@ public class RoundManager : MonoBehaviour
             yield return null;
         }
 
+        // ==========================================
+        // --- THE TIMER HIT ZERO: TRIGGER END SEQUENCE ---
+        // ==========================================
+
         currRoundProgress = currRoundDurationInSecs;
         currRoundProgressNormalized = 1f;
+        if (timerText != null) timerText.text = "0";
 
+        // 1. Lock down the game immediately so nobody can move or press anything!
+        SetPlayersCanMove(false);
+        if (sprinklerManager != null) sprinklerManager.StopSprinklers();
+
+        // 2. Tally up the final scores while they are frozen
         currRoundScores = currRound.ScoreCount();
         WinScript.winningPlayers = checkWinIndexes();
-
         List<int> gameWinners = checkGameWinIndexes();
+
+        // 3. Figure out if we are going to the Final Win Scene or the standard Win Scene
+        string sceneToLoad;
         if (gameWinners.Count != 0)
         {
             GameWinScript.winningPlayers = gameWinners;
             roundsWon = new int[] { 0, 0, 0, 0 };
-            SceneManager.LoadSceneAsync(gameWinSceneName);
+            sceneToLoad = gameWinSceneName;
         }
-        else SceneManager.LoadSceneAsync(winSceneName);
+        else
+        {
+            sceneToLoad = winSceneName;
+        }
+
+        // 4. Trigger the Whistle, "Time's Up" text, and the Paper Wipe Transition!
+        EndOfRoundTransition transition = FindFirstObjectByType<EndOfRoundTransition>();
+        if (transition != null)
+        {
+            // Tell the transition script exactly which scene to load after the paper drops
+            transition.nextSceneName = sceneToLoad;
+            transition.TriggerEndSequence();
+        }
+        else
+        {
+            // Fallback just in case the transition prefab isn't in the map
+            SceneManager.LoadSceneAsync(sceneToLoad);
+        }
 
         currRoundActive = false;
         currRound = null;

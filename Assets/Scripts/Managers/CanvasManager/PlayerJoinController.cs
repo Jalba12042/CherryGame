@@ -645,6 +645,10 @@ public class PlayerJoinController : MonoBehaviour
             if (slots[i].previewCamera != null) slots[i].previewCamera.gameObject.SetActive(false);
             if (slots[i].previewImage != null) slots[i].previewImage.gameObject.SetActive(false);
         }
+
+        // --- NEW ADDITION: Force the prompts to hide when the box is thrown ---
+        if (p3StartPrompt != null) p3StartPrompt.SetActive(false);
+        if (p4StartPrompt != null) p4StartPrompt.SetActive(false);
     }
 
     void StartGame()
