@@ -47,8 +47,12 @@ MonoBehaviour:
   roundTimeInSeconds: 90
   sceneName: RossTestScene
   startTimerUI: {fileID: 0}
-  canHaveEvents: 1
-  excludedEvents: []
+  possibleEvents:
+  - {fileID: 11400000, guid: 6ace94c6eec7c4b4582c0292034928bf, type: 2}
+  - {fileID: 11400000, guid: 26ee35e2d468a1c4eba11603a12e0173, type: 2}
+  - {fileID: 11400000, guid: 4d4f6a528c6c568449bbbf817e0017d4, type: 2}
+  - {fileID: 11400000, guid: c6ff4330a1548f349ae7430c8e9bbf1e, type: 2}
+  - {fileID: 11400000, guid: c3f09c411aa3d6243ad3739fd051b5b6, type: 2}
   cherryPrefab: {fileID: 7949051319438289543, guid: 2ac301d897576f64e9f79d9fa776a3a6, type: 3}
   cherryBombPrefab: {fileID: 7949051319438289543, guid: 15482be0350824048b1c886ba7aafb1f, type: 3}
   cratePrefab: {fileID: 3717461046737942922, guid: dda622c7c4fb1f74a87b1e4c57ee4038, type: 3}
