@@ -6,34 +6,58 @@ using UnityEngine.InputSystem.DualShock;
 public class ControllerDeviceSwapper : MonoBehaviour
 {
     [Header("The UI Images on Screen")]
-    public Image confirmButtonImage; // The button for "Ready Up"
-    public Image backButtonImage;    // The button for "Go Back"
+    public Image confirmButtonImage;
+    public Image backButtonImage;
+
+    public Image[] leftTriggerImages;
+    public Image[] rightTriggerImages;
 
     [Header("Your Xbox Art")]
-    public Sprite xboxConfirm;       // The Green A
-    public Sprite xboxBack;          // The Red B
+    public Sprite xboxConfirm;
+    public Sprite xboxBack;
+    public Sprite xboxLT;
+    public Sprite xboxRT;
 
     [Header("Your PlayStation Art")]
-    public Sprite psConfirm;         // The Blue Cross (X)
-    public Sprite psBack;            // The Red Circle (O)
+    public Sprite psConfirm;
+    public Sprite psBack;
+    public Sprite psL2;
+    public Sprite psR2;
 
-    // Max's code will shout at this function the exact millisecond the player joins
-    public void LockInDeviceIcons(Gamepad pad)
+    public void LockInDeviceIcons(Gamepad gamepad)
     {
-        if (pad == null) return;
+        bool isPlaystation = gamepad is DualShockGamepad || gamepad.name.Contains("DualSense");
 
-        // Unity checks the controller's internal hardware name
-        if (pad is DualShockGamepad || pad.name.Contains("DualShock") || pad.name.Contains("DualSense"))
+        if (isPlaystation)
         {
-            // It's a PlayStation controller! Swap to PS art.
             if (confirmButtonImage != null) confirmButtonImage.sprite = psConfirm;
             if (backButtonImage != null) backButtonImage.sprite = psBack;
+
+            // Loop through and just swap the sprite. No resizing!
+            foreach (Image img in leftTriggerImages)
+            {
+                if (img != null) img.sprite = psL2;
+            }
+
+            foreach (Image img in rightTriggerImages)
+            {
+                if (img != null) img.sprite = psR2;
+            }
         }
         else
         {
-            // Default to Xbox art for everything else (Xbox, generic PC pads)
             if (confirmButtonImage != null) confirmButtonImage.sprite = xboxConfirm;
             if (backButtonImage != null) backButtonImage.sprite = xboxBack;
+
+            foreach (Image img in leftTriggerImages)
+            {
+                if (img != null) img.sprite = xboxLT;
+            }
+
+            foreach (Image img in rightTriggerImages)
+            {
+                if (img != null) img.sprite = xboxRT;
+            }
         }
     }
 }
