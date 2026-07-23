@@ -243,11 +243,18 @@ public class Projectile : MonoBehaviour
         heldCherry.transform.SetParent(null);
 
         Cherry cherryScript = heldCherry.GetComponent<Cherry>();
+        Shell shellScript = heldCherry.GetComponent<Shell>();
+
         if (cherryScript != null)
         {
             cherryScript.isHeld = false;
             cherryScript.playerHolding = null;
             cherryScript.EnableTrail();
+        }
+        else if (shellScript != null)
+        {
+            shellScript.isHeld = false;
+            shellScript.playerHolding = null;
         }
 
         /*cherryTrail = heldCherry.GetComponent<TrailRenderer>();

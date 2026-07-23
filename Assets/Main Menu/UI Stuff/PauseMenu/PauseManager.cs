@@ -15,6 +15,7 @@ public class CustomPauseButton
 
 public class PauseManager : MonoBehaviour
 {
+    public static PauseManager Instance { get; private set; }
     [Header("UI Canvases")]
     public GameObject pauseCanvas;
     public GameObject mainPlayerCanvas;
@@ -51,6 +52,8 @@ public class PauseManager : MonoBehaviour
     private bool isShowingControls = false;
     private int currentControlPage = 0;
 
+    public bool IsPaused => isPaused || isCountingDown;
+
     private Gamepad controllingGamepad;
     private int currentIndex = 0;
     private bool canMove = true;
@@ -62,6 +65,11 @@ public class PauseManager : MonoBehaviour
         if (countdownText != null) countdownText.gameObject.SetActive(false);
         if (controlsPanel != null) controlsPanel.SetActive(false);
         if (mainPlayerCanvas != null) mainPlayerCanvas.SetActive(true);
+    }
+
+    private void Awake()
+    {
+        Instance = this;
     }
 
     void Update()

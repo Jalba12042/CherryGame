@@ -22,7 +22,8 @@ public class InputManager : MonoBehaviour
 
     private Gamepad[] assignedGamepads = new Gamepad[4];
     private bool[] hasExplicitAssignment = new bool[4];
-    private int[] disconnectedDeviceIds = { -1, -1, -1, -1 };
+    //private int[] disconnectedDeviceIds = { -1, -1, -1, -1 };
+    private bool[] playerDisconnected = new bool[4];
 
     public event System.Action<int> OnPlayerDisconnected;
     public event System.Action<int> OnPlayerReconnected;
@@ -43,7 +44,55 @@ public class InputManager : MonoBehaviour
         InputSystem.onDeviceChange -= OnDeviceChange;
     }
 
-    private void OnDeviceChange(InputDevice device, InputDeviceChange change)
+    private void OnDeviceChange(
+    InputDevice device,
+    InputDeviceChange change)
+    {
+        if (device is not Gamepad gamepad)
+            return;
+
+        if (change == InputDeviceChange.Disconnected)
+        {
+            for (int i = 0; i < assignedGamepads.Length; i++)
+            {
+                if (assignedGamepads[i] == gamepad)
+                {
+                    playerDisconnected[i] = true;
+                    assignedGamepads[i] = null;
+
+                    Debug.Log(
+                        $"Player {i + 1} controller disconnected."
+                    );
+
+                    OnPlayerDisconnected?.Invoke(i + 1);
+
+                    break;
+                }
+            }
+        }
+        else if (change == InputDeviceChange.Reconnected ||
+                 change == InputDeviceChange.Added)
+        {
+            for (int i = 0; i < playerDisconnected.Length; i++)
+            {
+                if (playerDisconnected[i])
+                {
+                    AssignGamepad(i + 1, gamepad);
+
+                    Debug.Log(
+                        $"Reconnected controller assigned back to " +
+                        $"Player {i + 1}"
+                    );
+
+                    OnPlayerReconnected?.Invoke(i + 1);
+
+                    break;
+                }
+            }
+        }
+    }
+
+    /*private void OnDeviceChange(InputDevice device, InputDeviceChange change)
     {
         if (!(device is Gamepad gamepad)) return;
 
@@ -73,32 +122,69 @@ public class InputManager : MonoBehaviour
                 }
             }
         }
-    }
+    }*/
 
     public void AssignGamepad(int playerID, Gamepad pad)
+    {
+        if (playerID < 1 || playerID > 4)
+            return;
+
+        int idx = playerID - 1;
+
+        assignedGamepads[idx] = pad;
+        hasExplicitAssignment[idx] = true;
+        playerDisconnected[idx] = false;
+
+        Debug.Log(
+            $"InputManager: Player {playerID} assigned to " +
+            $"{pad.displayName} (Device ID: {pad.deviceId})"
+        );
+    }
+
+    /*public void AssignGamepad(int playerID, Gamepad pad)
     {
         if (playerID < 1 || playerID > 4) return;
         int idx = playerID - 1;
         assignedGamepads[idx] = pad;
         hasExplicitAssignment[idx] = true;
         disconnectedDeviceIds[idx] = -1;
-    }
+    }*/
 
     public void UnassignGamepad(int playerID)
+    {
+        if (playerID < 1 || playerID > 4)
+            return;
+
+        int idx = playerID - 1;
+
+        assignedGamepads[idx] = null;
+        hasExplicitAssignment[idx] = false;
+        playerDisconnected[idx] = false;
+    }
+
+    /*public void UnassignGamepad(int playerID)
     {
         if (playerID < 1 || playerID > 4) return;
         int idx = playerID - 1;
         assignedGamepads[idx] = null;
         hasExplicitAssignment[idx] = false;
         disconnectedDeviceIds[idx] = -1;
-    }
+    }*/
 
     public bool IsPlayerDisconnected(int playerID)
+    {
+        if (playerID < 1 || playerID > 4)
+            return false;
+
+        return playerDisconnected[playerID - 1];
+    }
+
+    /*public bool IsPlayerDisconnected(int playerID)
     {
         if (playerID < 1 || playerID > 4) return false;
         int idx = playerID - 1;
         return hasExplicitAssignment[idx] && assignedGamepads[idx] == null;
-    }
+    }*/
 
     public bool IsAssigned(int playerID)
     {

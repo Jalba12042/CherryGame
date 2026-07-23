@@ -20,6 +20,9 @@ public class PlayerEffects : MonoBehaviour
     [SerializeField] private float stunDuration;
     public bool isTasing;
 
+    [Header("Magic Mirror Effect")]
+    [SerializeField] private GameObject dizzyVFX;
+
     void Start()
     {
         player = GetComponent<Playermovement>();
@@ -115,5 +118,13 @@ public class PlayerEffects : MonoBehaviour
         }
         yield return new WaitForSeconds(duration);
         pm.canMove = true;
+    }
+
+    public void SetDizzyVFX(bool enabled)
+    {
+        if (dizzyVFX != null)
+        {
+            dizzyVFX.SetActive(enabled);
+        }
     }
 }
