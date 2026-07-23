@@ -176,5 +176,11 @@ public class Ocean : MonoBehaviour
         {
             caughtObjects.Remove(rb);
         }
+
+        Playermovement pm = other.GetComponent<Playermovement>();
+        if (pm != null)
+        {
+            pm.canMove = true;
+        }
     }
 }
