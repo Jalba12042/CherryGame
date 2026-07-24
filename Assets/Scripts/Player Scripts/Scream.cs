@@ -60,6 +60,11 @@ public class Scream : MonoBehaviour
     private void Update()
     {
         if (player == null) return;
+
+        // Do not allow screaming while the pause menu or resume countdown is active
+        if (PauseManager.Instance != null && PauseManager.Instance.IsPaused)
+            return;
+
         if (InputManager.Instance.GetScreamDown(player.playerID))
             TryScream();
     }

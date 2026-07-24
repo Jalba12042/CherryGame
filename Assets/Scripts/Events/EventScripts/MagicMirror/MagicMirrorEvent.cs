@@ -14,6 +14,14 @@ public class MagicMirrorEvent : GameEvent
         foreach (Playermovement player in players)
         {
             player.controlsReversed = true;
+
+            PlayerEffects effects =
+                player.GetComponent<PlayerEffects>();
+
+            if (effects != null)
+            {
+                effects.SetDizzyVFX(true);
+            }
         }
 
         float elapsed = 0f;
@@ -30,6 +38,14 @@ public class MagicMirrorEvent : GameEvent
             if (player != null)
             {
                 player.controlsReversed = false;
+
+                PlayerEffects effects =
+                player.GetComponent<PlayerEffects>();
+
+                if (effects != null)
+                {
+                    effects.SetDizzyVFX(false);
+                }
             }
         }
 

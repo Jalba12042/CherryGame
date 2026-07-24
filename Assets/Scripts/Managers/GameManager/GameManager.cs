@@ -123,11 +123,61 @@ public class GameManager : MonoBehaviour
 
     public Gamepad GetAssignedGamepad(int playerIndex)
     {
+        int assignedDeviceId = controllerAssignments[playerIndex];
+
+        if (assignedDeviceId < 0)
+            return null;
+
+        foreach (Gamepad gamepad in Gamepad.all)
+        {
+            if (gamepad.deviceId == assignedDeviceId)
+            {
+                return gamepad;
+            }
+        }
+
+        return null;
+    }
+
+    public void RefreshPlayerController(int playerIndex)
+    {
+        if (RoundManager.Instance == null)
+            return;
+
+        if (RoundManager.Instance.playerObjects == null)
+            return;
+
+        if (playerIndex < 0 ||
+            playerIndex >= RoundManager.Instance.playerObjects.Length)
+            return;
+
+        Gamepad gamepad = GetAssignedGamepad(playerIndex);
+
+        if (gamepad == null)
+            return;
+
+        GameObject playerObject =
+            RoundManager.Instance.playerObjects[playerIndex];
+
+        if (playerObject == null)
+            return;
+
+        Playermovement player =
+            playerObject.GetComponentInChildren<Playermovement>();
+
+        if (player != null)
+        {
+            player.assignedGamepad = gamepad;
+        }
+    }
+
+    /*public Gamepad GetAssignedGamepad(int playerIndex)
+    {
         int controllerIndex = controllerAssignments[playerIndex];
         if (controllerIndex >= 0 && controllerIndex < Gamepad.all.Count)
             return Gamepad.all[controllerIndex];
         return null;
-    }
+    }*/
 
     // ==========================================
     // --- THE TRUE REBOOT SYSTEM (SOFT RESET) ---
