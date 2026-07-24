@@ -7,7 +7,6 @@ public class InputManager : MonoBehaviour
 
     public enum InputMode { Keyboard, Gamepad, Arcade }
 
-    // Evaluates live every time it's accessed � no stale state
     public static InputMode CurrentMode
     {
         get
@@ -21,6 +20,7 @@ public class InputManager : MonoBehaviour
     }
 
     private Gamepad[] assignedGamepads = new Gamepad[4];
+    private bool[] assignedKeyboard = new bool[4];
     private bool[] hasExplicitAssignment = new bool[4];
     private int[] disconnectedDeviceIds = { -1, -1, -1, -1 };
 
@@ -33,15 +33,8 @@ public class InputManager : MonoBehaviour
         Instance = this;
     }
 
-    void OnEnable()
-    {
-        InputSystem.onDeviceChange += OnDeviceChange;
-    }
-
-    void OnDisable()
-    {
-        InputSystem.onDeviceChange -= OnDeviceChange;
-    }
+    void OnEnable() { InputSystem.onDeviceChange += OnDeviceChange; }
+    void OnDisable() { InputSystem.onDeviceChange -= OnDeviceChange; }
 
     private void OnDeviceChange(InputDevice device, InputDeviceChange change)
     {
@@ -80,6 +73,17 @@ public class InputManager : MonoBehaviour
         if (playerID < 1 || playerID > 4) return;
         int idx = playerID - 1;
         assignedGamepads[idx] = pad;
+        assignedKeyboard[idx] = false;
+        hasExplicitAssignment[idx] = true;
+        disconnectedDeviceIds[idx] = -1;
+    }
+
+    public void AssignKeyboard(int playerID)
+    {
+        if (playerID < 1 || playerID > 4) return;
+        int idx = playerID - 1;
+        assignedKeyboard[idx] = true;
+        assignedGamepads[idx] = null;
         hasExplicitAssignment[idx] = true;
         disconnectedDeviceIds[idx] = -1;
     }
@@ -89,6 +93,7 @@ public class InputManager : MonoBehaviour
         if (playerID < 1 || playerID > 4) return;
         int idx = playerID - 1;
         assignedGamepads[idx] = null;
+        assignedKeyboard[idx] = false;
         hasExplicitAssignment[idx] = false;
         disconnectedDeviceIds[idx] = -1;
     }
@@ -97,212 +102,184 @@ public class InputManager : MonoBehaviour
     {
         if (playerID < 1 || playerID > 4) return false;
         int idx = playerID - 1;
-        return hasExplicitAssignment[idx] && assignedGamepads[idx] == null;
+        return hasExplicitAssignment[idx] && assignedGamepads[idx] == null && !assignedKeyboard[idx];
+    }
+
+    public bool IsKeyboardPlayer(int playerID)
+    {
+        if (playerID < 1 || playerID > 4) return false;
+        return assignedKeyboard[playerID - 1];
     }
 
     public bool IsAssigned(int playerID)
     {
         if (playerID < 1 || playerID > 4) return false;
         int idx = playerID - 1;
-        return CurrentMode switch
-        {
-            InputMode.Keyboard => playerID == 1,
-            // If a player had an explicit assignment but disconnected, don't fall back to another pad
-            InputMode.Gamepad => assignedGamepads[idx] != null || (!hasExplicitAssignment[idx] && idx < Gamepad.all.Count),
-            InputMode.Arcade => /*true*/ false,
-            _ => false
-        };
+
+        if (CurrentMode == InputMode.Arcade) return false;
+
+        return assignedKeyboard[idx] || assignedGamepads[idx] != null;
     }
 
-    // ?? Move ?????????????????????????????????????????????????????
+    // --- DYNAMIC UNASSIGNED KEYBOARD CHECKS ---
+    public bool GetUnassignedKeyboardJoin()
+    {
+        // 1. Check every single player slot (0 through 3)
+        // 2. If the keyboard is ALREADY assigned to ANY slot, instantly return FALSE and ignore the input!
+        for (int i = 0; i < 4; i++)
+            if (assignedKeyboard[i]) return false;
+
+        // 3. If no keyboard is found in the lobby, THEN listen for the Spacebar or Enter key to join
+        return Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space);
+    }
+
+    public bool GetUnassignedKeyboardBack()
+    {
+        for (int i = 0; i < 4; i++) if (assignedKeyboard[i]) return false;
+        return Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.E);
+    }
+
+    // -- Move -----------------------------------------------------
 
     public Vector2 GetMove(int playerID)
     {
         if (!IsAssigned(playerID)) return Vector2.zero;
-        string prefix = "P" + playerID;
+        if (CurrentMode == InputMode.Arcade) return Vector2.zero;
 
-        return CurrentMode switch
-        {
-            InputMode.Keyboard => new Vector2(Input.GetAxis("HorizontalWASD"), Input.GetAxis("VerticalWASD")),
-            InputMode.Gamepad => GetPad(playerID)?.leftStick.ReadValue() ?? Vector2.zero,
-            InputMode.Arcade => /*new Vector2(Input.GetAxisRaw(prefix + "Horizontal"), Input.GetAxisRaw(prefix + "Vertical"))*/ Vector2.zero,
-            _ => Vector2.zero
-        };
+        if (IsKeyboardPlayer(playerID)) return GetKeyboardMoveVector();
+
+        return GetPad(playerID)?.leftStick.ReadValue() ?? Vector2.zero;
     }
 
-    // ?? Buttons (pressed this frame) ?????????????????????????????
+    private Vector2 GetKeyboardMoveVector()
+    {
+        Vector2 dir = Vector2.zero;
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) dir.y += 1f;
+        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) dir.y -= 1f;
+        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) dir.x += 1f;
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) dir.x -= 1f;
+        return dir.normalized;
+    }
+
+    // -- Buttons (pressed this frame) -----------------------------
 
     public bool GetGrabDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-        string prefix = "P" + playerID;
+        if (CurrentMode == InputMode.Arcade) return false;
 
-        return CurrentMode switch
-        {
-            InputMode.Keyboard => Input.GetKeyDown(KeyCode.E),
-            InputMode.Gamepad => GetPad(playerID)?.rightTrigger.wasPressedThisFrame ?? false,
-            InputMode.Arcade => /*Input.GetButtonDown(prefix + "Button1")*/ false,
-            _ => false
-        };
+        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.Q);
+        return GetPad(playerID)?.rightTrigger.wasPressedThisFrame ?? false;
     }
 
     public bool GetThrowDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-        string prefix = "P" + playerID;
+        if (CurrentMode == InputMode.Arcade) return false;
 
-        return CurrentMode switch
-        {
-            InputMode.Keyboard => Input.GetKeyDown(KeyCode.T),
-            InputMode.Gamepad => GetPad(playerID)?.leftTrigger.wasPressedThisFrame ?? false,
-            InputMode.Arcade => /*Input.GetButtonDown(prefix + "Button2")*/ false,
-            _ => false
-        };
+        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.T);
+        return GetPad(playerID)?.leftTrigger.wasPressedThisFrame ?? false;
     }
 
     public bool GetDashDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-        string prefix = "P" + playerID;
+        if (CurrentMode == InputMode.Arcade) return false;
 
-        return CurrentMode switch
-        {
-            InputMode.Keyboard => Input.GetKeyDown(KeyCode.LeftShift),
-            InputMode.Gamepad => GetPad(playerID)?.buttonWest.wasPressedThisFrame ?? false,
-            InputMode.Arcade => /*Input.GetButtonDown(prefix + "Button3")*/ false,
-            _ => false
-        };
+        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.LeftShift);
+        return GetPad(playerID)?.buttonWest.wasPressedThisFrame ?? false;
     }
 
     public bool GetJumpDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
+        if (CurrentMode == InputMode.Arcade) return false;
 
-        return CurrentMode switch
-        {
-            InputMode.Keyboard => Input.GetKeyDown(KeyCode.Space),
-            InputMode.Gamepad => GetPad(playerID)?.buttonSouth.wasPressedThisFrame ?? false,
-            InputMode.Arcade => false,
-            _ => false
-        };
+        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.Space);
+        return GetPad(playerID)?.buttonSouth.wasPressedThisFrame ?? false;
     }
 
     public bool GetScreamDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
+        if (CurrentMode == InputMode.Arcade) return false;
 
-        return CurrentMode switch
-        {
-            InputMode.Keyboard => Input.GetKeyDown(KeyCode.R),
-            InputMode.Gamepad => GetPad(playerID)?.buttonEast.wasPressedThisFrame ?? false,
-            InputMode.Arcade => false,
-            _ => false
-        };
+        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.R);
+        return GetPad(playerID)?.buttonEast.wasPressedThisFrame ?? false;
     }
 
     public bool GetEscapeDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
+        if (CurrentMode == InputMode.Arcade) return false;
 
-        return CurrentMode switch
-        {
-            InputMode.Keyboard => Input.GetKeyDown(KeyCode.Q),
-            InputMode.Gamepad => GetPad(playerID)?.buttonNorth.wasPressedThisFrame ?? false,
-            InputMode.Arcade => false,
-            _ => false
-        };
+        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.Escape);
+        return GetPad(playerID)?.buttonNorth.wasPressedThisFrame ?? false;
     }
 
-    // ?? Buttons (held) ???????????????????????????????????????????
+    // -- Buttons (held) -------------------------------------------
 
     public bool GetButton1Held(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-        string prefix = "P" + playerID;
+        if (CurrentMode == InputMode.Arcade) return false;
 
-        return CurrentMode switch
-        {
-            InputMode.Keyboard => Input.GetKey(KeyCode.E),
-            InputMode.Gamepad => GetPad(playerID)?.rightTrigger.isPressed ?? false,
-            InputMode.Arcade => /*Input.GetButton(prefix + "Button1")*/ false,
-            _ => false
-        };
+        if (IsKeyboardPlayer(playerID)) return Input.GetKey(KeyCode.Q);
+        return GetPad(playerID)?.rightTrigger.isPressed ?? false;
     }
 
     public bool GetButton2Held(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-        string prefix = "P" + playerID;
+        if (CurrentMode == InputMode.Arcade) return false;
 
-        return CurrentMode switch
-        {
-            InputMode.Keyboard => Input.GetKey(KeyCode.T),
-            InputMode.Gamepad => GetPad(playerID)?.leftTrigger.isPressed ?? false,
-            InputMode.Arcade => /*Input.GetButton(prefix + "Button2")*/ false,
-            _ => false
-        };
+        if (IsKeyboardPlayer(playerID)) return Input.GetKey(KeyCode.T);
+        return GetPad(playerID)?.leftTrigger.isPressed ?? false;
     }
 
     public bool GetButton3Held(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-        string prefix = "P" + playerID;
+        if (CurrentMode == InputMode.Arcade) return false;
 
-        return CurrentMode switch
-        {
-            InputMode.Keyboard => Input.GetKey(KeyCode.LeftShift),
-            InputMode.Gamepad => GetPad(playerID)?.buttonWest.isPressed ?? false,
-            InputMode.Arcade => /*Input.GetButton(prefix + "Button3")*/ false,
-            _ => false
-        };
+        if (IsKeyboardPlayer(playerID)) return Input.GetKey(KeyCode.LeftShift);
+        return GetPad(playerID)?.buttonWest.isPressed ?? false;
     }
 
-    // ?? Menu ?????????????????????????????????????????????????????
+    // -- Menu -----------------------------------------------------
 
     public bool GetConfirmDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-        string prefix = "P" + playerID;
+        if (CurrentMode == InputMode.Arcade) return false;
 
-        return CurrentMode switch
-        {
-            InputMode.Keyboard => Input.GetKeyDown(KeyCode.Return),
-            InputMode.Gamepad => GetPad(playerID)?.buttonSouth.wasPressedThisFrame ?? false,
-            InputMode.Arcade => /*Input.GetButtonDown(prefix + "Button1")*/ false,
-            _ => false
-        };
+        if (IsKeyboardPlayer(playerID))
+            return Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space);
+
+        return GetPad(playerID)?.buttonSouth.wasPressedThisFrame ?? false;
     }
 
     public bool GetBackDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-        string prefix = "P" + playerID;
+        if (CurrentMode == InputMode.Arcade) return false;
 
-        return CurrentMode switch
-        {
-            InputMode.Keyboard => Input.GetKeyDown(KeyCode.Escape),
-            InputMode.Gamepad => GetPad(playerID)?.buttonEast.wasPressedThisFrame ?? false,
-            InputMode.Arcade => /*Input.GetButtonDown(prefix + "Button2")*/ false,
-            _ => false
-        };
+        if (IsKeyboardPlayer(playerID))
+            return Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.E);
+
+        return GetPad(playerID)?.buttonEast.wasPressedThisFrame ?? false;
     }
-
-    // ?? Pause ????????????????????????????????????????????????????
 
     public bool GetPauseDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
+        if (CurrentMode == InputMode.Arcade) return false;
 
-        return CurrentMode switch
-        {
-            InputMode.Keyboard => Input.GetKeyDown(KeyCode.Escape),
-            InputMode.Gamepad => GetPad(playerID)?.startButton.wasPressedThisFrame ?? false,
-            InputMode.Arcade => /*Input.GetKeyDown(KeyCode.Space)*/ false,
-            _ => false
-        };
+        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.Escape);
+        return GetPad(playerID)?.startButton.wasPressedThisFrame ?? false;
     }
 
-    // ?? Menu (any device at once ? not tied to a player slot) ?????
+    // -- Menu (any device at once) ---------------------------------
 
     public float GetMenuMoveX()
     {
@@ -316,7 +293,6 @@ public class InputManager : MonoBehaviour
             float padX = Mathf.Abs(stickX) > Mathf.Abs(dpadX) ? stickX : dpadX;
             if (Mathf.Abs(padX) > 0.01f) return padX;
         }
-
         return 0f;
     }
 
@@ -333,7 +309,7 @@ public class InputManager : MonoBehaviour
 
     public bool GetMenuBackDown()
     {
-        if (Input.GetKeyDown(KeyCode.Escape)) return true;
+        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.E)) return true;
 
         foreach (var pad in Gamepad.all)
             if (pad.buttonEast.wasPressedThisFrame) return true;
@@ -341,15 +317,14 @@ public class InputManager : MonoBehaviour
         return false;
     }
 
-    // ?? Helper ???????????????????????????????????????????????????
+    // -- Helper ---------------------------------------------------
 
     private Gamepad GetPad(int playerID)
     {
         int idx = playerID - 1;
         if (idx < 0 || idx >= assignedGamepads.Length) return null;
-        if (assignedGamepads[idx] != null) return assignedGamepads[idx];
-        if (!hasExplicitAssignment[idx] && idx < Gamepad.all.Count) return Gamepad.all[idx];
-        return null;
+
+        return assignedGamepads[idx];
     }
 
     public Gamepad GetAssignedGamepad(int playerID)

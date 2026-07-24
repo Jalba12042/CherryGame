@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
+using UnityEngine.EventSystems;
 
 public class PlayerJoinController : MonoBehaviour
 {
@@ -23,11 +24,17 @@ public class PlayerJoinController : MonoBehaviour
     public float fadeDuration = 0.5f;
     private bool canInteract = false;
 
+    [Header("Leave Lobby Prompt")]
+    public GameObject leaveLobbyPromptPanel;
+    public GameObject yesButton;
+    public GameObject noButton;
+    private bool isLeavePromptActive = false;
+
     [Header("Dynamic Layout Expansion (Sequential)")]
-    public float promptFadeDuration = 1.6f; // <--- Fades in the prompts over 1.6 seconds!
-    public GameObject p3StartPrompt; // <--- Drag the Left "Press To Add" here
+    public float promptFadeDuration = 1.6f;
+    public GameObject p3StartPrompt;
     public Animator[] p3Animators;
-    public GameObject p4StartPrompt; // <--- Drag the Right "Press To Add" here
+    public GameObject p4StartPrompt;
     public Animator[] p4Animators;
     public KeyCode addPlayersKey = KeyCode.Equals;
     public int currentAllowedPlayers = 2;
@@ -57,9 +64,11 @@ public class PlayerJoinController : MonoBehaviour
 
         assignedControllers = new int[slots.Length];
         isReady = new bool[slots.Length];
-
         currentAllowedPlayers = 2;
         isExpanding = false;
+        isLeavePromptActive = false;
+
+        if (leaveLobbyPromptPanel != null) leaveLobbyPromptPanel.SetActive(false);
 
         for (int i = 0; i < slots.Length; i++)
         {
@@ -100,7 +109,6 @@ public class PlayerJoinController : MonoBehaviour
             }
         }
 
-        // Setup the Start Prompts for fading
         CanvasGroup p3PromptGroup = null;
         CanvasGroup p4PromptGroup = null;
 
@@ -121,8 +129,6 @@ public class PlayerJoinController : MonoBehaviour
         }
 
         yield return new WaitForSeconds(introDelay);
-
-        // Start fading the prompts in the background
         StartCoroutine(FadeInPrompts(p3PromptGroup, p4PromptGroup));
 
         float elapsed = 0f;
@@ -141,7 +147,6 @@ public class PlayerJoinController : MonoBehaviour
         canInteract = true;
     }
 
-    // --- NEW: Fades in the "Press To Add" prompts over 1.6 seconds ---
     private IEnumerator FadeInPrompts(CanvasGroup p3Group, CanvasGroup p4Group)
     {
         float elapsed = 0f;
@@ -161,15 +166,23 @@ public class PlayerJoinController : MonoBehaviour
     {
         if (!canInteract) return;
 
-        // --- DYNAMIC EXPANSION TRIGGER (SEQUENTIAL) ---
+        // --- Leave Lobby Prompt Intercept ---
+        if (isLeavePromptActive)
+        {
+            if (InputManager.Instance.GetMenuBackDown())
+            {
+                CancelLeaveLobby();
+            }
+            return;
+        }
+
+        bool playerBackedOutThisFrame = false;
+
+        // --- DYNAMIC EXPANSION TRIGGER ---
         if (currentAllowedPlayers < slots.Length)
         {
             bool triggerExpansion = false;
-
-            if (Input.GetKeyDown(addPlayersKey))
-            {
-                triggerExpansion = true;
-            }
+            if (Input.GetKeyDown(addPlayersKey)) triggerExpansion = true;
 
             for (int c = 0; c < Gamepad.all.Count; c++)
             {
@@ -181,87 +194,115 @@ public class PlayerJoinController : MonoBehaviour
                 }
             }
 
-            // Only expand if we aren't already currently animating an expansion
-            if (triggerExpansion && !isExpanding)
-            {
-                StartCoroutine(ExpandLayoutSequence());
-            }
+            if (triggerExpansion && !isExpanding) StartCoroutine(ExpandLayoutSequence());
         }
 
+        // --- ARCADE MODE ---
         if (InputManager.CurrentMode == InputManager.InputMode.Arcade)
         {
             for (int p = 0; p < currentAllowedPlayers; p++)
             {
                 int playerID = p + 1;
-
                 if (InputManager.Instance.GetConfirmDown(playerID))
                 {
                     if (assignedControllers[p] != -1) HandleReadyPress(p);
                     else TryAssignArcadePlayer(p);
                 }
-
                 if (InputManager.Instance.GetBackDown(playerID))
                 {
-                    if (assignedControllers[p] != -1) HandleBackPress(p);
-                    else if (GetAssignedPlayerCount() == 0) StartCoroutine(BackToMenuTransition());
+                    if (assignedControllers[p] != -1)
+                    {
+                        HandleBackPress(p);
+                        playerBackedOutThisFrame = true;
+                    }
+                    else if (GetAssignedPlayerCount() == 0 && !playerBackedOutThisFrame) ShowLeavePrompt();
                 }
-
                 if (assignedControllers[p] != -1) HandleCustomizationInputArcade(p);
             }
             return;
         }
 
-        if (InputManager.CurrentMode == InputManager.InputMode.Keyboard)
-        {
-            if (InputManager.Instance.GetConfirmDown(1))
-            {
-                if (assignedControllers[0] != -1) HandleReadyPress(0);
-                else TryAssignKeyboardPlayer();
-            }
-
-            if (InputManager.Instance.GetBackDown(1))
-            {
-                if (assignedControllers[0] != -1) HandleBackPress(0);
-                else if (GetAssignedPlayerCount() == 0) StartCoroutine(BackToMenuTransition());
-            }
-
-            if (assignedControllers[0] != -1) HandleCustomizationInputKeyboard();
-            return;
-        }
-
+        // --- ALREADY ASSIGNED PLAYERS ---
         for (int p = 0; p < currentAllowedPlayers; p++)
         {
             if (assignedControllers[p] == -1) continue;
+
             int playerID = p + 1;
 
             if (InputManager.Instance.GetConfirmDown(playerID)) HandleReadyPress(p);
-            if (InputManager.Instance.GetBackDown(playerID)) HandleBackPress(p);
-            HandleCustomizationInputGamepad(p);
+            if (InputManager.Instance.GetBackDown(playerID))
+            {
+                HandleBackPress(p);
+                playerBackedOutThisFrame = true;
+            }
+
+            if (InputManager.Instance.IsKeyboardPlayer(playerID))
+            {
+                HandleCustomizationInputKeyboard(p);
+            }
+            else
+            {
+                HandleCustomizationInputGamepad(p);
+            }
         }
 
+        // --- UNASSIGNED KEYBOARD JOIN ---
+        if (InputManager.Instance.GetUnassignedKeyboardJoin())
+        {
+            TryAssignKeyboardPlayer();
+        }
+        else if (InputManager.Instance.GetUnassignedKeyboardBack() && GetAssignedPlayerCount() == 0 && !playerBackedOutThisFrame)
+        {
+            ShowLeavePrompt();
+        }
+
+        // --- UNASSIGNED GAMEPADS JOIN ---
         for (int c = 0; c < Gamepad.all.Count; c++)
         {
             Gamepad pad = Gamepad.all[c];
             if (pad == null || GetPlayerIndexFromController(c) != -1) continue;
 
             if (pad.buttonSouth.wasPressedThisFrame) TryAssignController(c);
-            if (pad.buttonEast.wasPressedThisFrame && GetAssignedPlayerCount() == 0)
-                StartCoroutine(BackToMenuTransition());
+            if (pad.buttonEast.wasPressedThisFrame && GetAssignedPlayerCount() == 0 && !playerBackedOutThisFrame)
+                ShowLeavePrompt();
         }
     }
 
-    // ── Expansion Sequence (One Slot at a Time) ───────────────────
+    void ShowLeavePrompt()
+    {
+        if (leaveLobbyPromptPanel != null)
+            leaveLobbyPromptPanel.SetActive(true);
+
+        isLeavePromptActive = true;
+
+        if (noButton != null)
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+            EventSystem.current.SetSelectedGameObject(noButton);
+        }
+    }
+
+    public void ConfirmLeaveLobby()
+    {
+        isLeavePromptActive = false;
+        if (leaveLobbyPromptPanel != null) leaveLobbyPromptPanel.SetActive(false);
+        StartCoroutine(BackToMenuTransition());
+    }
+
+    public void CancelLeaveLobby()
+    {
+        isLeavePromptActive = false;
+        if (leaveLobbyPromptPanel != null) leaveLobbyPromptPanel.SetActive(false);
+    }
+
     private IEnumerator ExpandLayoutSequence()
     {
         isExpanding = true;
-        int newPlayerIndex = currentAllowedPlayers; // Will be 2 (for P3) or 3 (for P4)
+        int newPlayerIndex = currentAllowedPlayers;
 
         if (sfxSource != null && slideSound != null)
-        {
             sfxSource.PlayOneShot(slideSound);
-        }
 
-        // Determine which slot we are opening and hide the correct Start prompt
         Animator[] animsToPlay = null;
 
         if (newPlayerIndex == 2)
@@ -275,28 +316,21 @@ public class PlayerJoinController : MonoBehaviour
             if (p4StartPrompt != null) p4StartPrompt.SetActive(false);
         }
 
-        // Play the spawn animations for ONLY the new slot
         if (animsToPlay != null)
-        {
             foreach (Animator anim in animsToPlay)
-            {
                 if (anim != null) anim.gameObject.SetActive(true);
-            }
-        }
 
-        yield return new WaitForSeconds(0.9f); // Wait for the ~53 frame animation
+        yield return new WaitForSeconds(0.9f);
 
-        // Officially increase the player cap
         currentAllowedPlayers++;
 
-        // Fade in the Join Panel just for the new player
         slots[newPlayerIndex].joinPanel.SetActive(true);
         CanvasGroup cg = slots[newPlayerIndex].joinPanel.GetComponent<CanvasGroup>();
         if (cg == null) cg = slots[newPlayerIndex].joinPanel.AddComponent<CanvasGroup>();
 
         StartCoroutine(FadeInGroup(cg, fadeDuration));
 
-        isExpanding = false; // Unlocks it so they can press Start again for P4!
+        isExpanding = false;
     }
 
     private IEnumerator FadeInGroup(CanvasGroup cg, float duration)
@@ -310,8 +344,6 @@ public class PlayerJoinController : MonoBehaviour
         }
         cg.alpha = 1f;
     }
-
-    // ── Customization input ───────────────────────────────────────
 
     private void HandleCustomizationInputGamepad(int p)
     {
@@ -341,7 +373,6 @@ public class PlayerJoinController : MonoBehaviour
         if (rightPressed && !slots[p].horizontalStickInUse)
         {
             slots[p].horizontalStickInUse = true;
-
             if (category == 0) ui.ChangeName(1, p);
             else if (category == 1) ui.ChangeColor(1, slots[p].spawnedModel, p);
             else if (category == 2) customization.ChangeHead(1);
@@ -352,7 +383,6 @@ public class PlayerJoinController : MonoBehaviour
         else if (leftPressed && !slots[p].horizontalStickInUse)
         {
             slots[p].horizontalStickInUse = true;
-
             if (category == 0) ui.ChangeName(-1, p);
             else if (category == 1) ui.ChangeColor(-1, slots[p].spawnedModel, p);
             else if (category == 2) customization.ChangeHead(-1);
@@ -423,42 +453,50 @@ public class PlayerJoinController : MonoBehaviour
         }
     }
 
-    private void HandleCustomizationInputKeyboard()
+    private void HandleCustomizationInputKeyboard(int p)
     {
-        var ui = slots[0].customizationUI;
-        if (ui == null || slots[0].spawnedModel == null) return;
+        var ui = slots[p].customizationUI;
+        if (ui == null || slots[p].spawnedModel == null) return;
 
-        Vector2 stick = InputManager.Instance.GetMove(1);
+        int playerID = p + 1;
+        Vector2 stick = InputManager.Instance.GetMove(playerID);
 
-        if (stick.y > 0.5f && !slots[0].stickInUse) { ui.MoveSelection(-1); slots[0].stickInUse = true; }
-        else if (stick.y < -0.5f && !slots[0].stickInUse) { ui.MoveSelection(1); slots[0].stickInUse = true; }
-        if (Mathf.Abs(stick.y) < 0.2f) slots[0].stickInUse = false;
+        if (stick.y > 0.5f && !slots[p].stickInUse) { ui.MoveSelection(-1); slots[p].stickInUse = true; }
+        else if (stick.y < -0.5f && !slots[p].stickInUse) { ui.MoveSelection(1); slots[p].stickInUse = true; }
+        if (Mathf.Abs(stick.y) < 0.2f) slots[p].stickInUse = false;
 
         int category = ui.GetCurrentCategoryIndex();
-        var customization = slots[0].spawnedModel.GetComponentInChildren<PlayerCustomization>();
+        var customization = slots[p].spawnedModel.GetComponentInChildren<PlayerCustomization>();
 
-        if (InputManager.Instance.GetDashDown(1))
+        bool rightPressed = stick.x > 0.5f;
+        bool leftPressed = stick.x < -0.5f;
+
+        if (rightPressed && !slots[p].horizontalStickInUse)
         {
-            if (category == 0) ui.ChangeName(1, 0);
-            else if (category == 1) ui.ChangeColor(1, slots[0].spawnedModel, 0);
+            slots[p].horizontalStickInUse = true;
+            if (category == 0) ui.ChangeName(1, p);
+            else if (category == 1) ui.ChangeColor(1, slots[p].spawnedModel, p);
             else if (category == 2) customization.ChangeHead(1);
             else if (category == 3) customization.ChangeFace(1);
             else if (category == 4) customization.ChangeTorso(1);
             else if (category == 5) customization.ChangeBottom(1);
         }
-
-        if (InputManager.Instance.GetGrabDown(1))
+        else if (leftPressed && !slots[p].horizontalStickInUse)
         {
-            if (category == 0) ui.ChangeName(-1, 0);
-            else if (category == 1) ui.ChangeColor(-1, slots[0].spawnedModel, 0);
+            slots[p].horizontalStickInUse = true;
+            if (category == 0) ui.ChangeName(-1, p);
+            else if (category == 1) ui.ChangeColor(-1, slots[p].spawnedModel, p);
             else if (category == 2) customization.ChangeHead(-1);
             else if (category == 3) customization.ChangeFace(-1);
             else if (category == 4) customization.ChangeTorso(-1);
             else if (category == 5) customization.ChangeBottom(-1);
         }
-    }
 
-    // ── Assignment ───────────────────────────────────────────────
+        if (Mathf.Abs(stick.x) < 0.2f)
+        {
+            slots[p].horizontalStickInUse = false;
+        }
+    }
 
     void TryAssignController(int controllerIndex)
     {
@@ -491,11 +529,18 @@ public class PlayerJoinController : MonoBehaviour
 
     void TryAssignKeyboardPlayer()
     {
-        if (assignedControllers[0] != -1) return;
-        assignedControllers[0] = 0;
-        SetupPlayerSlot(0);
-        if (GameManager.Instance != null)
-            GameManager.Instance.controllerAssignments[0] = 0;
+        for (int player = 0; player < currentAllowedPlayers; player++)
+        {
+            if (assignedControllers[player] == -1)
+            {
+                assignedControllers[player] = 99;
+                InputManager.Instance.AssignKeyboard(player + 1);
+                if (GameManager.Instance != null)
+                    GameManager.Instance.controllerAssignments[player] = 99;
+                SetupPlayerSlot(player);
+                return;
+            }
+        }
     }
 
     void SetupPlayerSlot(int player)
@@ -523,12 +568,16 @@ public class PlayerJoinController : MonoBehaviour
         ControllerDeviceSwapper swapper = slots[player].menuPanel.GetComponentInChildren<ControllerDeviceSwapper>(true);
         if (swapper != null)
         {
-            Gamepad pad = InputManager.Instance.GetAssignedGamepad(player + 1);
-            swapper.LockInDeviceIcons(pad);
+            InputDevice device = InputManager.Instance.GetAssignedGamepad(player + 1);
+
+            if (device == null && InputManager.Instance.IsKeyboardPlayer(player + 1))
+            {
+                device = Keyboard.current;
+            }
+
+            swapper.LockInDeviceIcons(device);
         }
     }
-
-    // ── Ready / Back ─────────────────────────────────────────────
 
     void HandleReadyPress(int player)
     {
@@ -589,8 +638,6 @@ public class PlayerJoinController : MonoBehaviour
         StartCoroutine(ThrowBoxTransition());
     }
 
-    // ── Transitions ──────────────────────────────────────────────
-
     IEnumerator BackToMenuTransition()
     {
         canInteract = false;
@@ -646,7 +693,6 @@ public class PlayerJoinController : MonoBehaviour
             if (slots[i].previewImage != null) slots[i].previewImage.gameObject.SetActive(false);
         }
 
-        // --- NEW ADDITION: Force the prompts to hide when the box is thrown ---
         if (p3StartPrompt != null) p3StartPrompt.SetActive(false);
         if (p4StartPrompt != null) p4StartPrompt.SetActive(false);
     }
@@ -677,8 +723,6 @@ public class PlayerJoinController : MonoBehaviour
         }
         SceneManager.LoadScene(RoundManager.Instance.currRound.sceneName);
     }
-
-    // ── Helpers ──────────────────────────────────────────────────
 
     int GetAssignedPlayerCount() { int c = 0; foreach (int a in assignedControllers) if (a != -1) c++; return c; }
     int GetReadyCount() { int c = 0; foreach (bool r in isReady) if (r) c++; return c; }

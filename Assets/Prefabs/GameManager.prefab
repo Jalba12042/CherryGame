@@ -142,7 +142,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   eventUIPoint: {fileID: 0}
-  eventUITag: 
+  eventUITag: EventUI
   eventTextObj: {fileID: 0}
   eventText: {fileID: 0}
   eventRunning: 0
@@ -238,14 +238,16 @@ MonoBehaviour:
   currRoundProgress: 0
   currRoundDurationInSecs: 0
   currRoundProgressNormalized: 0
-  currRound: {fileID: 11400000, guid: 4e72d7c2a3959b44c9ab620218cefceb, type: 2}
+  currRound: {fileID: 0}
   currRoundActive: 0
   currRoundScores: 
   roundList:
   - {fileID: 11400000, guid: 4e72d7c2a3959b44c9ab620218cefceb, type: 2}
+  - {fileID: 11400000, guid: bc25e5b0f40d3b144a966154274f1b3d, type: 2}
+  - {fileID: 11400000, guid: fd9fd8cbfb66367459e91bac441a4080, type: 2}
   timerBackgroundUI: {fileID: 0}
   powerUpsInRotation: []
-  allowRepeats: 1
+  allowRepeats: 0
   shopSceneName: Shop
   controllerSceneName: ControllerConnectScene
   winSceneName: WinScene
@@ -313,6 +315,6 @@ MonoBehaviour:
   controllerAssignments: 
   playerTotalScores: 
   timerText: {fileID: 0}
-  isOnKeyboard: 0
+  isOnKeyboard: 1
   playerCustomizations: []
   currGameState: 0
