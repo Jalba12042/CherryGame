@@ -151,7 +151,6 @@ public class PlayerKill : MonoBehaviour
         {
             interact.ForceDrop();
             interact.ForceRelease();
-            interact.ReleaseIfGrabbed();
         }
     }
 
