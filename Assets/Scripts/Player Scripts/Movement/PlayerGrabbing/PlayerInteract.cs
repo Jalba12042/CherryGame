@@ -91,6 +91,7 @@ public class PlayerInteract : MonoBehaviour
 
     private bool rtWasDown = false;
     private float rtHoldTime = 0f;
+    private bool ignoreNextRelease = false;
 
     [SerializeField]
     private float throwHoldThreshold = 0.2f;
@@ -130,51 +131,68 @@ public class PlayerInteract : MonoBehaviour
         // PICKUP / GRAB IMMEDIATELY ON PRESS
         if (rtPressed)
         {
-            rtHoldTime = 0f;
-
-            // Let Projectile handle RT while holding a throwable pickup
-            if (heldPickup != null)
-            {
-                LevelPickup pickup = heldPickup.GetComponent<LevelPickup>();
-
-                if (pickup != null && pickup.useProjectileThrow)
-                {
-                    
-                }
-                else
-                {
-                    OnInteractPressed();
-                }
-            }
-            else
+            // Only pick up/grab if we are currently empty-handed
+            if (heldPickup == null)
             {
                 OnInteractPressed();
+
+                // Prevent the release of this same button press
+                // from immediately dropping the newly picked-up item.
+                ignoreNextRelease = true;
             }
 
+            rtHoldTime = 0f;
         }
 
+        // TRACK HOLD TIME
         if (rt)
         {
             rtHoldTime += Time.deltaTime;
         }
 
+        // HANDLE RELEASE
         if (rtReleased)
         {
-            // If holding a throwable pickup and this was a short tap,
-            // drop it instead of throwing it.
-            if (heldPickup != null &&
-                rtHoldTime < throwHoldThreshold)
+            // This is the release of the RT press that picked up the item.
+            // Ignore it so the item does not instantly drop.
+            if (ignoreNextRelease)
             {
-                LevelPickup pickup =
-                    heldPickup.GetComponent<LevelPickup>();
+                ignoreNextRelease = false;
+                rtHoldTime = 0f;
+                rtWasDown = rt;
+                return;
+            }
 
-                if (pickup != null && pickup.useProjectileThrow)
+            bool wasHold = rtHoldTime >= throwHoldThreshold;
+
+            if (!wasHold)
+            {
+                // Tap while already holding a pickup = drop it
+                if (heldPickup != null)
                 {
-                    CancelAimAndDrop();
+                    LevelPickup pickup =
+                        heldPickup.GetComponent<LevelPickup>();
+
+                    if (pickup != null && pickup.useProjectileThrow)
+                    {
+                        // Cherry
+                        if (!projectileScript.IsAiming())
+                        {
+                            CancelAimAndDrop();
+                        }
+                    }
+                    else
+                    {
+                        // Snowball
+                        snowballThrow.ThrowSnowball();
+                    }
                 }
             }
 
-            ReleaseAllGrabbedPlayers();
+            // IMPORTANT:
+            // If this was a hold, do nothing here.
+            // Projectile handles the actual throw when RT is released.
+            rtHoldTime = 0f;
         }
 
         rtWasDown = rt;
