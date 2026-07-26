@@ -1,4 +1,3 @@
-using Assets.DuckType.Jiggle;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -71,7 +70,6 @@ public class PlayerInteract : MonoBehaviour
     private Projectile projectileScript;
     private SnowballThrow snowballThrow;
     private Animator animator;
-    private Jiggle[] jiggleParts;
     private PlayerPowerupHandler powerupHandler;
     private Collider myCollider;
 
@@ -79,10 +77,11 @@ public class PlayerInteract : MonoBehaviour
 
     public bool IsBeingGrabbed => grabbingPlayers.Count > 0;
 
+    public bool IsGrabbingSomeone => grabbedPlayers.Count > 0;
+
     public int NumberOfGrabbers => grabbingPlayers.Count;
 
     private GameObject nearbyPlayer;
-    private bool ltWasHeld = false;
 
     // SNOWBALL STUFF
     private SnowballPile nearbySnowPile;
@@ -90,12 +89,8 @@ public class PlayerInteract : MonoBehaviour
 
     private int snowballsRemaining = 0;
 
-
-    private bool rtHeld = false;
-    private float rtHoldTime = 0f;
     private bool rtWasDown = false;
-    private bool ignoreNextRelease = false;
-
+    private float rtHoldTime = 0f;
 
     [SerializeField]
     private float throwHoldThreshold = 0.2f;
@@ -116,7 +111,6 @@ public class PlayerInteract : MonoBehaviour
         projectileScript = GetComponent<Projectile>();
         animator = GetComponent<Animator>();
         myCollider = GetComponent<Collider>();
-        jiggleParts = GetComponentsInChildren<Jiggle>();
         snowballThrow = GetComponent<SnowballThrow>();
     }
 
@@ -136,14 +130,50 @@ public class PlayerInteract : MonoBehaviour
         // PICKUP / GRAB IMMEDIATELY ON PRESS
         if (rtPressed)
         {
-            if (heldPickup == null)
+            rtHoldTime = 0f;
+
+            // Let Projectile handle RT while holding a throwable pickup
+            if (heldPickup != null)
+            {
+                LevelPickup pickup = heldPickup.GetComponent<LevelPickup>();
+
+                if (pickup != null && pickup.useProjectileThrow)
+                {
+                    
+                }
+                else
+                {
+                    OnInteractPressed();
+                }
+            }
+            else
             {
                 OnInteractPressed();
             }
+
+        }
+
+        if (rt)
+        {
+            rtHoldTime += Time.deltaTime;
         }
 
         if (rtReleased)
         {
+            // If holding a throwable pickup and this was a short tap,
+            // drop it instead of throwing it.
+            if (heldPickup != null &&
+                rtHoldTime < throwHoldThreshold)
+            {
+                LevelPickup pickup =
+                    heldPickup.GetComponent<LevelPickup>();
+
+                if (pickup != null && pickup.useProjectileThrow)
+                {
+                    CancelAimAndDrop();
+                }
+            }
+
             ReleaseAllGrabbedPlayers();
         }
 
@@ -185,8 +215,7 @@ public class PlayerInteract : MonoBehaviour
         HandlePickup();
     }
 
-    // ===== GRAB =====
-
+    // =================================== START OF PLAYER GRABBING ==========================
     public bool TryGrab()
     {
         if (!canGrab)
@@ -216,12 +245,8 @@ public class PlayerInteract : MonoBehaviour
 
         if (pe != null && pe.isBig)
             return false;
-
-
-        // =====================================================
-        // ADD THIS PLAYER AS A GRABBER
-        // =====================================================
-
+        
+        //Adds this player as a grabber
         if (grabbedPlayers.Contains(targetInteract))
             return false;
 
@@ -230,18 +255,11 @@ public class PlayerInteract : MonoBehaviour
 
         targetInteract.AddGrabber(this);
 
-        // =====================================================
-        // ANIMATION
-        // =====================================================
 
         if (animator != null)
             animator.SetBool("isGrabbing", true);
 
-
-        // =====================================================
-        // AUDIO
-        // =====================================================
-
+        
         if (grabSource != null && grabClip != null)
         {
             grabSource.pitch = Random.Range(0.95f, 1.05f);
@@ -272,10 +290,7 @@ public class PlayerInteract : MonoBehaviour
                 continue;
 
 
-            // =====================================================
-            // GET THE CONNECTION DIRECTION
-            // =====================================================
-
+            //Gets connection direction
             Vector3 connection =
                 grabbedPlayer.transform.position -
                 transform.position;
@@ -291,21 +306,13 @@ public class PlayerInteract : MonoBehaviour
             Vector3 direction =
                 connection.normalized;
 
-
-            // =====================================================
-            // DETERMINE HOW FAR FROM THE IDEAL DISTANCE
-            // THEY ARE
-            // =====================================================
-
+            //Determines ideal distance for both players
             float distanceError =
                 distance -
                 grabConnectionDistance;
-
-
-            // =====================================================
-            // GET BOTH PLAYERS' HORIZONTAL VELOCITIES
-            // =====================================================
-
+  
+            
+            //Gets both players horizontal vertices
             Vector3 grabberVelocity =
                 grabberRigidbody.linearVelocity;
 
@@ -315,10 +322,6 @@ public class PlayerInteract : MonoBehaviour
             grabberVelocity.y = 0f;
             grabbedVelocity.y = 0f;
 
-
-            // =====================================================
-            // RELATIVE VELOCITY
-            // =====================================================
 
             Vector3 relativeVelocity =
                 grabbedVelocity -
@@ -331,20 +334,12 @@ public class PlayerInteract : MonoBehaviour
                     relativeVelocity,
                     direction);
 
-
-            // =====================================================
-            // SPRING FORCE
-            // =====================================================
-
+            //Spring Force
             float springForce =
                 distanceError *
                 grabConnectionStrength;
 
-
-            // =====================================================
-            // DAMPING
-            // =====================================================
-
+            //Damping
             float dampingForce =
                 separatingVelocity *
                 grabConnectionDamping;
@@ -355,10 +350,8 @@ public class PlayerInteract : MonoBehaviour
                 dampingForce;
 
 
-            // =====================================================
-            // APPLY FORCE TO BOTH PLAYERS
-            // =====================================================
-
+          
+            //Applies force to both players
             Vector3 force =
                 direction *
                 totalForce;
@@ -422,10 +415,7 @@ public class PlayerInteract : MonoBehaviour
     }
 
 
-    // =========================================================
-    // CALLED ON THE PLAYER BEING GRABBED
-    // =========================================================
-
+    //Is called on player being grabbed
     public void AddGrabber(PlayerInteract grabber)
     {
         if (grabber == null)
@@ -435,12 +425,8 @@ public class PlayerInteract : MonoBehaviour
             return;
 
         grabbingPlayers.Add(grabber);
-
-
-        // =====================================================
-        // APPLY SLOWDOWN
-        // =====================================================
-
+        
+        //Applies Slowdown
         if (grabbingPlayers.Count == 1)
         {
             StartCoroutine(ApplyGrabSlowdown());
@@ -454,11 +440,8 @@ public class PlayerInteract : MonoBehaviour
                 escapeUI.StartBeingGrabbed();
         }
 
-
-        // =====================================================
-        // ANIMATION
-        // =====================================================
-
+        
+        //Grabbed animation
         if (animator != null)
             animator.SetBool("isGrabbed", true);
     }
@@ -472,10 +455,8 @@ public class PlayerInteract : MonoBehaviour
         grabbingPlayers.Remove(grabber);
 
 
-        // =====================================================
-        // IF NO ONE IS GRABBING ANYMORE
-        // =====================================================
-
+        
+        //if no one is grabbing anyone
         if (grabbingPlayers.Count == 0)
         {
             StopBeingGrabbed();
@@ -489,10 +470,7 @@ public class PlayerInteract : MonoBehaviour
     }
 
 
-    // =========================================================
-    // SLOWDOWN
-    // =========================================================
-
+    //Grabbed player is slow after being released/Escaping
     private IEnumerator ApplyGrabSlowdown()
     {
         float originalSpeed = player.moveSpeed;
@@ -574,10 +552,8 @@ public class PlayerInteract : MonoBehaviour
         StartCoroutine(GrabCooldown());
     }
 
-    // =========================================================
-    // RELEASE EVERYONE THIS PLAYER IS GRABBING
-    // =========================================================
 
+    // Release all grabbing players
     public void ReleaseAllGrabbedPlayers()
     {
         List<PlayerInteract> playersToRelease =
@@ -589,11 +565,7 @@ public class PlayerInteract : MonoBehaviour
         }
     }
 
-
-    // =========================================================
-    // ESCAPED PLAYER RELEASES FROM EVERYONE
-    // =========================================================
-
+    //Escaped player releases from everyone
     public void EscapeFromAllGrabbers()
     {
         List<PlayerInteract> grabbers =
@@ -624,10 +596,7 @@ public class PlayerInteract : MonoBehaviour
     }
 
 
-    // =========================================================
-    // REMOVE A PLAYER WITHOUT NORMAL GRAB COOLDOWN
-    // =========================================================
-
+    //Removes player without normal grab cooldown
     public void RemoveGrabbedPlayerWithoutCooldown(PlayerInteract target)
     {
         if (target == null)
@@ -712,7 +681,51 @@ public class PlayerInteract : MonoBehaviour
         nearbyPlayer = null;
     }
 
-    // ===== CHERRY =====
+    private void FaceGrabbedPlayer()
+    {
+        PlayerInteract interact =
+            GetComponent<PlayerInteract>();
+
+        if (interact == null ||
+            !interact.IsGrabbingSomeone)
+            return;
+
+
+        Vector3 direction =
+            interact.GetGrabbedPlayerPosition() -
+            transform.position;
+
+
+        direction.y = 0f;
+
+
+        if (direction.sqrMagnitude < 0.01f)
+            return;
+
+
+        Quaternion targetRotation =
+            Quaternion.LookRotation(direction);
+
+
+        transform.rotation =
+            Quaternion.Slerp(
+                transform.rotation,
+                targetRotation,
+                10f * Time.deltaTime);
+    }
+
+    public Vector3 GetGrabbedPlayerPosition()
+    {
+        if (grabbedPlayers.Count == 0)
+            return transform.position;
+
+        return grabbedPlayers[0].transform.position;
+    }
+
+
+    // ===================================== END OF PLAYER GRAB ============================================
+
+    // ======================================== ITEM PICKUP ================================================
 
     private void HandlePickup()
     {
@@ -746,8 +759,6 @@ public class PlayerInteract : MonoBehaviour
             pickupSource.pitch = Random.Range(0.95f, 1.05f);
             pickupSource.PlayOneShot(pickupClip);
         }
-
-        SetJiggle(false);
 
         Rigidbody rbCherry = heldPickup.GetComponent<Rigidbody>();
         if (rbCherry != null) rbCherry.isKinematic = true;
@@ -800,7 +811,6 @@ public class PlayerInteract : MonoBehaviour
         if (rbCherry != null) rbCherry.isKinematic = false;
 
         SetCherryCollision(true);
-        SetJiggle(true);
 
         if (animator != null) animator.SetBool("isPickingUp", false);
 
@@ -943,12 +953,5 @@ public class PlayerInteract : MonoBehaviour
         foreach (var p in playerCols)
             foreach (var c in cherryCols)
                 Physics.IgnoreCollision(p, c, !enabled);
-    }
-
-    private void SetJiggle(bool enabled)
-    {
-        if (jiggleParts == null) return;
-        foreach (var jiggle in jiggleParts)
-            if (jiggle != null) jiggle.enabled = enabled;
     }
 }
