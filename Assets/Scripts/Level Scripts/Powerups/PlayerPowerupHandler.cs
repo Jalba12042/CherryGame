@@ -42,6 +42,11 @@ public class PlayerPowerupHandler : MonoBehaviour
     [SerializeField] private Transform rightHandHoldPoint;
     [SerializeField] private GameObject tacoPrefab;
 
+    [Header("Taco Dance Outfit")]
+    [SerializeField] private GameObject sombrero;
+    [SerializeField] private GameObject mustache;
+    [SerializeField] private GameObject poncho;
+
     private GameObject leftTaco;
     private GameObject rightTaco;
 
@@ -344,6 +349,15 @@ public class PlayerPowerupHandler : MonoBehaviour
 
         SpawnTacos();
 
+        if (sombrero != null)
+            sombrero.SetActive(true);
+
+        if (mustache != null)
+            mustache.SetActive(true);
+
+        if (poncho != null)
+            poncho.SetActive(true);
+
         Rigidbody rb = GetComponent<Rigidbody>();
 
         Vector3 storedVelocity = Vector3.zero;
@@ -413,6 +427,15 @@ public class PlayerPowerupHandler : MonoBehaviour
         }
 
         RemoveTacos();
+
+        if (sombrero != null)
+            sombrero.SetActive(false);
+
+        if (mustache != null)
+            mustache.SetActive(false);
+
+        if (poncho != null)
+            poncho.SetActive(false);
 
         isTased = false;
     }
