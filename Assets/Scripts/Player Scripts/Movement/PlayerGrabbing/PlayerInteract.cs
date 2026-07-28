@@ -34,6 +34,20 @@ public class PlayerInteract : MonoBehaviour
 
     [SerializeField] private float grabberPriority = 1.25f;
 
+    [Header("Locked Grab Side")]
+    [SerializeField] private float lockedGrabOffset = 0.8f;
+    [SerializeField] private float lockedGrabStrength = 30f;
+    [SerializeField] private float lockedGrabDamping = 10f;
+
+    private class GrabData
+    {
+        public PlayerInteract target;
+        public Vector3 localGrabOffset;
+        public string lockedSide;
+    }
+
+    private readonly List<GrabData> grabData = new List<GrabData>();
+
 
     [Header("Grab Audio")]
     [SerializeField] private AudioSource grabSource;
@@ -63,6 +77,9 @@ public class PlayerInteract : MonoBehaviour
     // Players this player currently cannot grab because of an escape cooldown
     private readonly Dictionary<PlayerInteract, Coroutine> escapeCooldowns =
         new Dictionary<PlayerInteract, Coroutine>();
+
+    private readonly Dictionary<PlayerInteract, Vector3> grabDirections =
+    new Dictionary<PlayerInteract, Vector3>();
 
 
     // ===== PRIVATE =====
@@ -136,13 +153,31 @@ public class PlayerInteract : MonoBehaviour
             {
                 OnInteractPressed();
 
+                // Only use the pickup release protection if
+                // we actually picked up an item.
+                if (heldPickup != null)
+                {
+                    ignoreNextRelease = true;
+                }
+            }
+
+            rtHoldTime = 0f;
+        }
+
+        /*if (rtPressed)
+        {
+            // Only pick up/grab if we are currently empty-handed
+            if (heldPickup == null)
+            {
+                OnInteractPressed();
+
                 // Prevent the release of this same button press
                 // from immediately dropping the newly picked-up item.
                 ignoreNextRelease = true;
             }
 
             rtHoldTime = 0f;
-        }
+        }*/
 
         // TRACK HOLD TIME
         if (rt)
@@ -152,6 +187,71 @@ public class PlayerInteract : MonoBehaviour
 
         // HANDLE RELEASE
         if (rtReleased)
+        {
+            // =====================================================
+            // PLAYER GRAB RELEASE
+            // =====================================================
+
+            // If we are grabbing a player, releasing RT releases them.
+            // This happens before pickup logic so it does not interfere
+            // with cherries/snowballs.
+            if (IsGrabbingSomeone)
+            {
+                ReleaseAllGrabbedPlayers();
+
+                rtHoldTime = 0f;
+                rtWasDown = rt;
+                return;
+            }
+
+
+            // =====================================================
+            // LEVEL PICKUP LOGIC
+            // =====================================================
+
+            // This is the release of the RT press that picked up
+            // the item. Keep the existing protection.
+            if (ignoreNextRelease)
+            {
+                ignoreNextRelease = false;
+                rtHoldTime = 0f;
+                rtWasDown = rt;
+                return;
+            }
+
+            bool wasHold = rtHoldTime >= throwHoldThreshold;
+
+            if (!wasHold)
+            {
+                // Tap while already holding a pickup = drop it
+                if (heldPickup != null)
+                {
+                    LevelPickup pickup =
+                        heldPickup.GetComponent<LevelPickup>();
+
+                    if (pickup != null && pickup.useProjectileThrow)
+                    {
+                        // Cherry
+                        if (!projectileScript.IsAiming())
+                        {
+                            CancelAimAndDrop();
+                        }
+                    }
+                    else
+                    {
+                        // Snowball
+                        snowballThrow.ThrowSnowball();
+                    }
+                }
+            }
+
+            // If this was a hold, Projectile handles the throw.
+            rtHoldTime = 0f;
+        }
+
+
+
+        /*if (rtReleased)
         {
             // This is the release of the RT press that picked up the item.
             // Ignore it so the item does not instantly drop.
@@ -193,7 +293,7 @@ public class PlayerInteract : MonoBehaviour
             // If this was a hold, do nothing here.
             // Projectile handles the actual throw when RT is released.
             rtHoldTime = 0f;
-        }
+    }*/
 
         rtWasDown = rt;
     }
@@ -201,6 +301,11 @@ public class PlayerInteract : MonoBehaviour
     private void FixedUpdate()
     {
         UpdateGrabbedPlayers();
+
+        if (IsBeingGrabbed)
+        {
+            UpdateGrabbedPullAnimation();
+        }
     }
 
     private void OnInteractPressed()
@@ -273,6 +378,46 @@ public class PlayerInteract : MonoBehaviour
 
         targetInteract.AddGrabber(this);
 
+        // Remember exactly which side we grabbed them from.
+        Vector3 grabDirection =
+            transform.position - targetInteract.transform.position;
+
+        grabDirection.y = 0f;
+
+        if (grabDirection.sqrMagnitude > 0.01f)
+        {
+            // Convert the grabber's position into the grabbed player's
+            // local space so we know which side they are on.
+            Vector3 localDirection =
+                targetInteract.transform.InverseTransformDirection(
+                    grabDirection.normalized
+                );
+
+            string lockedSide;
+
+            if (Mathf.Abs(localDirection.x) > Mathf.Abs(localDirection.z))
+            {
+                lockedSide = localDirection.x > 0f ? "RIGHT" : "LEFT";
+            }
+            else
+            {
+                lockedSide = localDirection.z > 0f ? "BACK" : "FRONT";
+            }
+
+            Debug.Log("Player is grabbing " + lockedSide + " side");
+
+            GrabData data = new GrabData();
+
+            data.target = targetInteract;
+            data.lockedSide = lockedSide;
+
+            // Store the grabber's position relative to the grabbed player's rotation.
+            data.localGrabOffset =
+                localDirection * lockedGrabOffset;
+
+            grabData.Add(data);
+        }
+
 
         if (animator != null)
             animator.SetBool("isGrabbing", true);
@@ -288,6 +433,242 @@ public class PlayerInteract : MonoBehaviour
     }
 
     private void UpdateGrabbedPlayers()
+    {
+        if (grabData.Count > 0)
+        {
+            GrabData debugData = grabData[0];
+
+            if (debugData != null && debugData.target != null)
+            {
+                Vector3 currentDirection =
+                    transform.position - debugData.target.transform.position;
+
+                currentDirection.y = 0f;
+
+                if (currentDirection.sqrMagnitude > 0.01f)
+                {
+                    Vector3 localCurrentDirection =
+                        debugData.target.transform.InverseTransformDirection(
+                            currentDirection.normalized
+                        );
+
+                    string currentSide;
+
+                    if (Mathf.Abs(localCurrentDirection.x) >
+                        Mathf.Abs(localCurrentDirection.z))
+                    {
+                        currentSide =
+                            localCurrentDirection.x > 0f
+                            ? "RIGHT"
+                            : "LEFT";
+                    }
+                    else
+                    {
+                        currentSide =
+                            localCurrentDirection.z > 0f
+                            ? "FRONT"
+                            : "BACK";
+                    }
+
+                    Debug.Log(
+                        "Locked side: " +
+                        debugData.lockedSide +
+                        " | Current side: " +
+                        currentSide
+                    );
+                }
+            }
+        }
+
+
+        if (grabData.Count == 0)
+            return;
+
+        foreach (GrabData data in grabData)
+        {
+            if (data == null || data.target == null)
+                continue;
+
+            PlayerInteract grabbedPlayer = data.target;
+
+            Rigidbody grabberRigidbody =
+                GetComponent<Rigidbody>();
+
+            Rigidbody grabbedRigidbody =
+                grabbedPlayer.GetComponent<Rigidbody>();
+
+            if (grabberRigidbody == null ||
+                grabbedRigidbody == null)
+                continue;
+
+
+            // =====================================================
+            // FIND WHERE THE GRABBER SHOULD BE
+            // =====================================================
+
+            Vector3 desiredOffset =
+                grabbedPlayer.transform.TransformDirection(
+                    data.localGrabOffset
+                );
+
+            desiredOffset.y = 0f;
+
+            Vector3 desiredPosition =
+                grabbedPlayer.transform.position +
+                desiredOffset;
+
+
+            // =====================================================
+            // HOW FAR IS THE GRABBER FROM ITS LOCKED POSITION?
+            // =====================================================
+
+            Vector3 positionError =
+                desiredPosition -
+                transform.position;
+
+            positionError.y = 0f;
+
+
+            // =====================================================
+            // RELATIVE VELOCITY
+            // =====================================================
+
+            Vector3 grabberVelocity =
+                grabberRigidbody.linearVelocity;
+
+            Vector3 grabbedVelocity =
+                grabbedRigidbody.linearVelocity;
+
+            grabberVelocity.y = 0f;
+            grabbedVelocity.y = 0f;
+
+            Vector3 relativeVelocity =
+                grabbedVelocity -
+                grabberVelocity;
+
+
+            // =====================================================
+            // SPRING + DAMPING
+            // =====================================================
+
+            float separatingVelocity =
+                Vector3.Dot(
+                    relativeVelocity,
+                    positionError.normalized
+                );
+
+
+            float springForce =
+                positionError.magnitude *
+                lockedGrabStrength;
+
+
+            float dampingForce =
+                separatingVelocity *
+                lockedGrabDamping;
+
+
+            float totalForce =
+                springForce +
+                dampingForce;
+
+
+            Vector3 force;
+
+            if (positionError.sqrMagnitude > 0.0001f)
+            {
+                force =
+                    positionError.normalized *
+                    totalForce;
+            }
+            else
+            {
+                force = Vector3.zero;
+            }
+
+
+            // =====================================================
+            // BOTH PLAYERS PARTICIPATE IN THE CONNECTION
+            // =====================================================
+
+            // Grabber gets pulled toward the locked position.
+            grabberRigidbody.AddForce(
+                force,
+                ForceMode.Acceleration
+            );
+
+            // Grabbed player gets pulled along with the grabber.
+            grabbedRigidbody.AddForce(
+                -force * grabberPriority,
+                ForceMode.Acceleration
+            );
+        }
+    }
+
+    private void UpdateGrabbedPullAnimation()
+    {
+        // This player isn't being grabbed.
+        if (grabbingPlayers.Count == 0)
+        {
+            animator.SetBool("isPullingLeft", false);
+            animator.SetBool("isPullingRight", false);
+            animator.SetBool("isPullingBoth", false);
+            return;
+        }
+
+        bool hasLeftGrabber = false;
+        bool hasRightGrabber = false;
+
+        foreach (PlayerInteract grabber in grabbingPlayers)
+        {
+            if (grabber == null)
+                continue;
+
+            Vector3 direction =
+                grabber.transform.position - transform.position;
+
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude < 0.01f)
+                continue;
+
+            // Convert grabber position into THIS player's local space.
+            Vector3 localDirection =
+                transform.InverseTransformDirection(
+                    direction.normalized
+                );
+
+            // Ignore front/back for these animations.
+            if (Mathf.Abs(localDirection.x) >
+                Mathf.Abs(localDirection.z))
+            {
+                if (localDirection.x > 0f)
+                    hasRightGrabber = true;
+                else
+                    hasLeftGrabber = true;
+            }
+        }
+
+        // LEFT + RIGHT
+        animator.SetBool(
+            "isPullingBoth",
+            hasLeftGrabber && hasRightGrabber
+        );
+
+        // LEFT only
+        animator.SetBool(
+            "isPullingLeft",
+            hasLeftGrabber && !hasRightGrabber
+        );
+
+        // RIGHT only
+        animator.SetBool(
+            "isPullingRight",
+            hasRightGrabber && !hasLeftGrabber
+        );
+    }
+
+    /*private void UpdateGrabbedPlayers()
     {
         if (grabbedPlayers.Count == 0)
             return;
@@ -387,7 +768,7 @@ public class PlayerInteract : MonoBehaviour
                 grabberPriority,
                 ForceMode.Acceleration);
         }
-    }
+    }*/
 
     private GameObject FindClosestPlayer()
     {
@@ -538,7 +919,13 @@ public class PlayerInteract : MonoBehaviour
     private void StopBeingGrabbed()
     {
         if (animator != null)
+        {
             animator.SetBool("isGrabbed", false);
+
+            animator.SetBool("isPullingLeft", false);
+            animator.SetBool("isPullingRight", false);
+            animator.SetBool("isPullingBoth", false);
+        }
     }
 
     public void ReleaseGrabbedPlayer(PlayerInteract target)
@@ -550,6 +937,8 @@ public class PlayerInteract : MonoBehaviour
             return;
 
         grabbedPlayers.Remove(target);
+
+        grabData.RemoveAll(data => data.target == target);
 
         target.RemoveGrabber(this);
 
@@ -624,6 +1013,8 @@ public class PlayerInteract : MonoBehaviour
             return;
 
         grabbedPlayers.Remove(target);
+
+        grabData.RemoveAll(data => data.target == target);
 
 
         if (grabbedPlayers.Count == 0)
