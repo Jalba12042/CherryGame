@@ -46,7 +46,6 @@ public class RoundManager : MonoBehaviour
     private int currRoundIndex;
 
     public RenderTexture[] playerFaceRenderTextures;
-    public int[] roundsWon = { 0, 0, 0, 0 };
 
     private BasketContainer basketContainer;
     public SprinklerManager sprinklerManager;
@@ -85,7 +84,6 @@ public class RoundManager : MonoBehaviour
 
     private void RefreshUIReferences()
     {
-        // --- FIX: Find the TimerLocator directly instead of relying on Unity Tags! ---
         TimerLocator locator = FindFirstObjectByType<TimerLocator>();
         if (locator != null) timerText = locator.GetComponent<TextMeshProUGUI>();
 
@@ -133,44 +131,6 @@ public class RoundManager : MonoBehaviour
         {
             SceneManager.LoadSceneAsync(currRound.sceneName);
         }
-    }
-
-    private List<int> checkWinIndexes()
-    {
-        int currWinnerScore = currRoundScores[0];
-        List<int> currWinnerIndexes = new List<int>();
-        for (int i = 0; i < currRoundScores.Length; i++)
-        {
-            if (currRoundScores[i] > currWinnerScore)
-            {
-                currWinnerIndexes.Clear();
-                currWinnerIndexes.Add(i);
-            }
-            else if (currRoundScores[i] == currWinnerScore)
-            {
-                currWinnerIndexes.Add(i);
-            }
-        }
-
-        for (int i = 0; i < currWinnerIndexes.Count; i++)
-        {
-            roundsWon[currWinnerIndexes[i]]++;
-        }
-        return currWinnerIndexes;
-    }
-
-    private List<int> checkGameWinIndexes()
-    {
-        List<int> currWinnerIndexes = new List<int>();
-        for (int i = 0; i < roundsWon.Length; i++)
-        {
-            if (roundsWon[i] == maxScore)
-            {
-                currWinnerIndexes.Add(i);
-                powerUpsInRotation.Clear();
-            }
-        }
-        return currWinnerIndexes;
     }
 
     public void BeginRound()
@@ -256,10 +216,8 @@ public class RoundManager : MonoBehaviour
 
     public IEnumerator StartTimer()
     {
-        // 1. Double check UI is attached
         RefreshUIReferences();
 
-        // 2. Reveal the Cardboard UI IMMEDIATELY!
         if (timerBackgroundUI != null)
         {
             timerBackgroundUI.SetActive(true);
@@ -270,12 +228,10 @@ public class RoundManager : MonoBehaviour
         TimerUIManager tManager = FindFirstObjectByType<TimerUIManager>();
         if (tManager != null) tManager.RevealTimer();
 
-        // 3. Keep the actual timer clock numbers empty so it doesn't count early
         if (timerText != null) timerText.text = "";
 
         SetPlayersCanMove(false);
 
-        // 4. Run the 3-2-1 Screen Text Loop
         float timer = 0;
         float maxTimer = 3;
         if (currRound != null && currRound.startTimerUI != null)
@@ -291,7 +247,6 @@ public class RoundManager : MonoBehaviour
             currRound.startTimerUI.SetActive(false);
         }
 
-        // 5. GO! Now allow movement and start the real background clock
         SetPlayersCanMove(true);
         currRoundActive = true;
 
@@ -319,52 +274,79 @@ public class RoundManager : MonoBehaviour
             yield return null;
         }
 
-        // ==========================================
-        // --- THE TIMER HIT ZERO: TRIGGER END SEQUENCE ---
-        // ==========================================
-
         currRoundProgress = currRoundDurationInSecs;
         currRoundProgressNormalized = 1f;
         if (timerText != null) timerText.text = "0";
 
-        // 1. Lock down the game immediately so nobody can move or press anything!
         SetPlayersCanMove(false);
         if (sprinklerManager != null) sprinklerManager.StopSprinklers();
 
-        // 2. Tally up the final scores while they are frozen
+        // --- NEW SCORING LOGIC FIX ---
         currRoundScores = currRound.ScoreCount();
-        WinScript.winningPlayers = checkWinIndexes();
-        List<int> gameWinners = checkGameWinIndexes();
+        List<int> gameWinners = UpdateScoresAndCheckGameWin();
 
-        // 3. Figure out if we are going to the Final Win Scene or the standard Win Scene
         string sceneToLoad;
-        if (gameWinners.Count != 0)
+        if (gameWinners.Count > 0)
         {
-            GameWinScript.winningPlayers = gameWinners;
-            roundsWon = new int[] { 0, 0, 0, 0 };
-            sceneToLoad = gameWinSceneName;
+            sceneToLoad = gameWinSceneName; // First to 3 hit! Go to final screen
         }
         else
         {
-            sceneToLoad = winSceneName;
+            sceneToLoad = winSceneName; // Keep playing
         }
 
-        // 4. Trigger the Whistle, "Time's Up" text, and the Paper Wipe Transition!
         EndOfRoundTransition transition = FindFirstObjectByType<EndOfRoundTransition>();
         if (transition != null)
         {
-            // Tell the transition script exactly which scene to load after the paper drops
             transition.nextSceneName = sceneToLoad;
             transition.TriggerEndSequence();
         }
         else
         {
-            // Fallback just in case the transition prefab isn't in the map
             SceneManager.LoadSceneAsync(sceneToLoad);
         }
 
         currRoundActive = false;
         currRound = null;
+    }
+
+    // This calculates points perfectly and directly updates the GameManager
+    private List<int> UpdateScoresAndCheckGameWin()
+    {
+        // 1. Find the highest score IN THIS ROUND
+        int highestRoundScore = -1;
+        for (int i = 0; i < currRoundScores.Length; i++)
+        {
+            if (currRoundScores[i] > highestRoundScore)
+                highestRoundScore = currRoundScores[i];
+        }
+
+        // 2. Give a permanent point in GameManager to anyone who tied for highest score
+        if (GameManager.Instance != null)
+        {
+            for (int i = 0; i < currRoundScores.Length; i++)
+            {
+                if (currRoundScores[i] == highestRoundScore && i < GameManager.Instance.playerTotalScores.Length)
+                {
+                    GameManager.Instance.playerTotalScores[i]++;
+                }
+            }
+        }
+
+        // 3. Check if anyone hit 3 points
+        List<int> gameWinners = new List<int>();
+        if (GameManager.Instance != null)
+        {
+            for (int i = 0; i < GameManager.Instance.playerTotalScores.Length; i++)
+            {
+                if (GameManager.Instance.playerTotalScores[i] >= maxScore)
+                {
+                    gameWinners.Add(i);
+                }
+            }
+        }
+
+        return gameWinners;
     }
 
     public void SetPlayersCanMove(bool value)
@@ -384,7 +366,6 @@ public class RoundManager : MonoBehaviour
     {
         basketContainer = FindFirstObjectByType<BasketContainer>();
         sprinklerManager = FindFirstObjectByType<SprinklerManager>();
-
         RefreshUIReferences();
     }
 }
