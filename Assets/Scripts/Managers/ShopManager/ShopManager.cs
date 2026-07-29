@@ -236,7 +236,7 @@ public class ShopManager : MonoBehaviour
             {
                 if (lockedIn[i]) continue;
 
-                int deviceId = GameManager.Instance.controllerAssignments[i];
+                /*int deviceId = GameManager.Instance.controllerAssignments[i];
                 if (deviceId == -1) continue;
 
                 Gamepad pad = null;
@@ -251,6 +251,13 @@ public class ShopManager : MonoBehaviour
                 }
 
                 if (pad == null) continue;
+
+                Vector2 move = pad.leftStick.ReadValue();*/
+
+                Gamepad pad = InputManager.Instance.GetAssignedGamepad(i + 1);
+
+                if (pad == null)
+                    continue;
 
                 Vector2 move = pad.leftStick.ReadValue();
 

@@ -622,14 +622,29 @@ public class PlayerJoinController : MonoBehaviour
         if (GameManager.Instance != null) GameManager.Instance.controllerAssignments[player] = -1;
     }
 
-    void CheckStartCondition()
+    /*void CheckStartCondition()
     {
         if (countdownStarted) return;
         int readyCount = 0;
         for (int i = 0; i < currentAllowedPlayers; i++) if (isReady[i]) readyCount++;
 
-        if (readyCount > 0 && readyCount == GetAssignedPlayerCount())
+        if (readyCount > 2 && readyCount == GetAssignedPlayerCount())
             StartCoroutine(StartCountdown());
+    }*/
+
+    void CheckStartCondition()
+    {
+        if (countdownStarted) return;
+
+        int readyCount = GetReadyCount();
+        int assignedCount = GetAssignedPlayerCount();
+
+        Debug.Log($"READY CHECK: {readyCount} ready / {assignedCount} assigned");
+
+        if (assignedCount >= 2 && readyCount == assignedCount)
+        {
+            StartCoroutine(StartCountdown());
+        }
     }
 
     IEnumerator StartCountdown()
@@ -739,8 +754,34 @@ public class PlayerJoinController : MonoBehaviour
         SceneManager.LoadScene(RoundManager.Instance.currRound.sceneName);
     }
 
-    int GetAssignedPlayerCount() { int c = 0; foreach (int a in assignedControllers) if (a != -1) c++; return c; }
-    int GetReadyCount() { int c = 0; foreach (bool r in isReady) if (r) c++; return c; }
+    //int GetAssignedPlayerCount() { int c = 0; foreach (int a in assignedControllers) if (a != -1) c++; return c; }
+
+    int GetAssignedPlayerCount()
+    {
+        int count = 0;
+
+        for (int i = 0; i < currentAllowedPlayers; i++)
+        {
+            if (assignedControllers[i] != -1)
+                count++;
+        }
+
+        return count;
+    }
+    //int GetReadyCount() { int c = 0; foreach (bool r in isReady) if (r) c++; return c; }
+
+    int GetReadyCount()
+    {
+        int count = 0;
+
+        for (int i = 0; i < currentAllowedPlayers; i++)
+        {
+            if (isReady[i])
+                count++;
+        }
+
+        return count;
+    }
     int GetPlayerIndexFromController(int cIdx) { for (int i = 0; i < assignedControllers.Length; i++) if (assignedControllers[i] == cIdx) return i; return -1; }
 
     public bool IsColorTaken(int colorIndex, int requestingPlayer)
