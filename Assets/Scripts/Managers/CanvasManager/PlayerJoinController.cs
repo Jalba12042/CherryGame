@@ -182,8 +182,22 @@ public class PlayerJoinController : MonoBehaviour
         if (currentAllowedPlayers < slots.Length)
         {
             bool triggerExpansion = false;
+
+            // 1. Manual expansion
             if (Input.GetKeyDown(addPlayersKey)) triggerExpansion = true;
 
+            // 2. Keyboard Expansion (If they press Join but all visible slots are full)
+            if (InputManager.Instance.GetUnassignedKeyboardJoin())
+            {
+                int assignedCount = 0;
+                for (int i = 0; i < currentAllowedPlayers; i++)
+                {
+                    if (assignedControllers[i] != -1) assignedCount++;
+                }
+                if (assignedCount == currentAllowedPlayers) triggerExpansion = true;
+            }
+
+            // 3. Controller Expansion
             for (int c = 0; c < Gamepad.all.Count; c++)
             {
                 Gamepad pad = Gamepad.all[c];
@@ -197,7 +211,7 @@ public class PlayerJoinController : MonoBehaviour
             if (triggerExpansion && !isExpanding) StartCoroutine(ExpandLayoutSequence());
         }
 
-        // --- ARCADE MODE ---
+        // --- ARCADE MODE FIX (Removed the hard return so spacebar isn't ignored) ---
         if (InputManager.CurrentMode == InputManager.InputMode.Arcade)
         {
             for (int p = 0; p < currentAllowedPlayers; p++)
@@ -219,30 +233,31 @@ public class PlayerJoinController : MonoBehaviour
                 }
                 if (assignedControllers[p] != -1) HandleCustomizationInputArcade(p);
             }
-            return;
         }
-
-        // --- ALREADY ASSIGNED PLAYERS ---
-        for (int p = 0; p < currentAllowedPlayers; p++)
+        else
         {
-            if (assignedControllers[p] == -1) continue;
-
-            int playerID = p + 1;
-
-            if (InputManager.Instance.GetConfirmDown(playerID)) HandleReadyPress(p);
-            if (InputManager.Instance.GetBackDown(playerID))
+            // --- ALREADY ASSIGNED PLAYERS ---
+            for (int p = 0; p < currentAllowedPlayers; p++)
             {
-                HandleBackPress(p);
-                playerBackedOutThisFrame = true;
-            }
+                if (assignedControllers[p] == -1) continue;
 
-            if (InputManager.Instance.IsKeyboardPlayer(playerID))
-            {
-                HandleCustomizationInputKeyboard(p);
-            }
-            else
-            {
-                HandleCustomizationInputGamepad(p);
+                int playerID = p + 1;
+
+                if (InputManager.Instance.GetConfirmDown(playerID)) HandleReadyPress(p);
+                if (InputManager.Instance.GetBackDown(playerID))
+                {
+                    HandleBackPress(p);
+                    playerBackedOutThisFrame = true;
+                }
+
+                if (InputManager.Instance.IsKeyboardPlayer(playerID))
+                {
+                    HandleCustomizationInputKeyboard(p);
+                }
+                else
+                {
+                    HandleCustomizationInputGamepad(p);
+                }
             }
         }
 
