@@ -53,10 +53,20 @@ public class PlayerJoinController : MonoBehaviour
     public Sprite loadingScreenSprite;
     public float timeToWaitForThrow = 1.5f;
 
+    [Header("Curtain Transition Settings (Start Game)")]
+    public Animator curtainAnimator; // Just one master animator!
+    public string curtainTriggerName = "Close";
+    public float curtainCloseDuration = 1.0f;
+
     [Header("Back Navigation Settings (Press B)")]
     public string backSceneName = "MainMenu";
     public float timeToWaitForBackAnim = 1.0f;
     public Animator[] objectsToAnimateOnBack;
+
+    [Header("Paper Transition Settings")]
+    public Animator paperTransitionAnimator;
+    public GameObject fakeMainMenuBackground;
+    public float paperAnimationDuration = 1.0f;
 
     void Start()
     {
@@ -622,16 +632,6 @@ public class PlayerJoinController : MonoBehaviour
         if (GameManager.Instance != null) GameManager.Instance.controllerAssignments[player] = -1;
     }
 
-    /*void CheckStartCondition()
-    {
-        if (countdownStarted) return;
-        int readyCount = 0;
-        for (int i = 0; i < currentAllowedPlayers; i++) if (isReady[i]) readyCount++;
-
-        if (readyCount > 2 && readyCount == GetAssignedPlayerCount())
-            StartCoroutine(StartCountdown());
-    }*/
-
     void CheckStartCondition()
     {
         if (countdownStarted) return;
@@ -673,11 +673,47 @@ public class PlayerJoinController : MonoBehaviour
         canInteract = false;
         HideAllPlayerUI();
 
+        // 1. Play the Box Outro animation
         if (objectsToAnimateOnBack != null)
+        {
             foreach (Animator anim in objectsToAnimateOnBack)
-                if (anim != null) anim.SetTrigger("Outro");
+            {
+                // Added a check to ensure the object is active before animating to prevent crashes
+                if (anim != null && anim.gameObject.activeInHierarchy)
+                {
+                    anim.SetTrigger("Outro");
+                }
+            }
+        }
 
+        // Wait for the box to slide away
         yield return new WaitForSeconds(timeToWaitForBackAnim);
+
+        // 2. Turn on the Fake Main Menu background image
+        if (fakeMainMenuBackground != null)
+        {
+            fakeMainMenuBackground.SetActive(true);
+        }
+
+        // 3. Play the Reverse Paper Animation
+        if (paperTransitionAnimator != null)
+        {
+            // Ensure paper is fully visible before playing
+            Image paperImg = paperTransitionAnimator.GetComponent<Image>();
+            if (paperImg != null)
+            {
+                Color c = paperImg.color;
+                c.a = 1f;
+                paperImg.color = c;
+            }
+
+            paperTransitionAnimator.SetTrigger("PaperReverseTrigger");
+
+            // Wait for paper to finish uncrumpling
+            yield return new WaitForSeconds(paperAnimationDuration);
+        }
+
+        // 4. Load the Main Menu
         SceneManager.LoadScene(backSceneName);
     }
 
@@ -701,14 +737,28 @@ public class PlayerJoinController : MonoBehaviour
             if (hoverSound != null) sfxSource.PlayOneShot(hoverSound);
         }
 
+        // 1. Throw the box out of the scene
         if (boxAnimator != null) boxAnimator.SetTrigger("ThrowRight");
 
+        // Wait for the box to get off screen
         yield return new WaitForSeconds(timeToWaitForThrow);
 
+        // Optional: Swap background behind the curtains
         if (backgroundImage != null && loadingScreenSprite != null)
             backgroundImage.sprite = loadingScreenSprite;
 
-        yield return new WaitForSeconds(0.5f);
+        // 2. Trigger the master curtain animation!
+        if (curtainAnimator != null)
+        {
+            // Optional: If you had the curtains turned off to hide them, turn them on now
+            curtainAnimator.gameObject.SetActive(true);
+            curtainAnimator.SetTrigger(curtainTriggerName);
+        }
+
+        // Wait for the unified curtain animation to finish
+        yield return new WaitForSeconds(curtainCloseDuration);
+
+        // 3. Load the actual game
         StartGame();
     }
 
@@ -754,8 +804,6 @@ public class PlayerJoinController : MonoBehaviour
         SceneManager.LoadScene(RoundManager.Instance.currRound.sceneName);
     }
 
-    //int GetAssignedPlayerCount() { int c = 0; foreach (int a in assignedControllers) if (a != -1) c++; return c; }
-
     int GetAssignedPlayerCount()
     {
         int count = 0;
@@ -768,7 +816,6 @@ public class PlayerJoinController : MonoBehaviour
 
         return count;
     }
-    //int GetReadyCount() { int c = 0; foreach (bool r in isReady) if (r) c++; return c; }
 
     int GetReadyCount()
     {
@@ -782,6 +829,7 @@ public class PlayerJoinController : MonoBehaviour
 
         return count;
     }
+
     int GetPlayerIndexFromController(int cIdx) { for (int i = 0; i < assignedControllers.Length; i++) if (assignedControllers[i] == cIdx) return i; return -1; }
 
     public bool IsColorTaken(int colorIndex, int requestingPlayer)
