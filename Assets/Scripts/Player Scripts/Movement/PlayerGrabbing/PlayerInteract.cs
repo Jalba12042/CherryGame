@@ -607,6 +607,167 @@ public class PlayerInteract : MonoBehaviour
 
     private void UpdateGrabbedPullAnimation()
     {
+        if (animator == null)
+            return;
+
+        // ==========================================
+        // NO GRABBERS
+        // ==========================================
+
+        if (grabbingPlayers.Count == 0)
+        {
+            animator.SetFloat("PullX", 0f);
+            animator.SetFloat("PullY", 0f);
+
+            animator.SetBool("isDoubleGrabbed", false);
+
+            return;
+        }
+
+        // ==========================================
+        // ONE GRABBER
+        // ==========================================
+
+        if (grabbingPlayers.Count == 1)
+        {
+            animator.SetBool("isDoubleGrabbed", false);
+
+            PlayerInteract grabber = grabbingPlayers[0];
+
+            if (grabber == null)
+                return;
+
+            Vector3 direction =
+                grabber.transform.position - transform.position;
+
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude < 0.01f)
+                return;
+
+            direction.Normalize();
+
+            Vector3 localDirection =
+                transform.InverseTransformDirection(direction);
+
+            float pullX = localDirection.x;
+            float pullY = -localDirection.z;
+
+            animator.SetFloat("PullX", pullX);
+            animator.SetFloat("PullY", pullY);
+
+            return;
+        }
+
+        // ==========================================
+        // TWO GRABBERS
+        // ==========================================
+
+        animator.SetBool("isDoubleGrabbed", true);
+
+        PlayerInteract grabber1 = grabbingPlayers[0];
+        PlayerInteract grabber2 = grabbingPlayers[1];
+
+        if (grabber1 == null || grabber2 == null)
+            return;
+
+        Vector3 dir1 =
+            grabber1.transform.position - transform.position;
+
+        Vector3 dir2 =
+            grabber2.transform.position - transform.position;
+
+        dir1.y = 0f;
+        dir2.y = 0f;
+
+        if (dir1.sqrMagnitude < 0.01f ||
+            dir2.sqrMagnitude < 0.01f)
+            return;
+
+        dir1.Normalize();
+        dir2.Normalize();
+
+        Vector3 local1 =
+            transform.InverseTransformDirection(dir1);
+
+        Vector3 local2 =
+            transform.InverseTransformDirection(dir2);
+
+        // Determine whether each grabber is primarily
+        // LEFT, RIGHT, FRONT, or BACK.
+        bool grabber1Front =
+            -local1.z > Mathf.Abs(local1.x);
+
+        bool grabber1Back =
+            local1.z > Mathf.Abs(local1.x);
+
+        bool grabber2Front =
+            -local2.z > Mathf.Abs(local2.x);
+
+        bool grabber2Back =
+            local2.z > Mathf.Abs(local2.x);
+
+        // ==========================================
+        // BOTH SIDES
+        // ==========================================
+
+        bool oneLeft =
+            local1.x < 0f || local2.x < 0f;
+
+        bool oneRight =
+            local1.x > 0f || local2.x > 0f;
+
+        if (oneLeft && oneRight &&
+            !grabber1Front && !grabber1Back &&
+            !grabber2Front && !grabber2Back)
+        {
+            animator.SetFloat("DoublePull", 0f);
+            return;
+        }
+
+        // ==========================================
+        // BOTH FRONT
+        // ==========================================
+
+        if (grabber1Front && grabber2Front)
+        {
+            animator.SetFloat("DoublePull", 1f);
+            return;
+        }
+
+        // ==========================================
+        // BOTH BACK
+        // ==========================================
+
+        if (grabber1Back && grabber2Back)
+        {
+            animator.SetFloat("DoublePull", 2f);
+            return;
+        }
+
+        // ==========================================
+        // MIXED DIRECTIONS
+        // ==========================================
+
+        // For now, use the closest major direction.
+        // We'll expand this after the basic combinations
+        // are working.
+        if (grabber1Front || grabber2Front)
+        {
+            animator.SetFloat("DoublePull", 1f);
+        }
+        else if (grabber1Back || grabber2Back)
+        {
+            animator.SetFloat("DoublePull", 2f);
+        }
+        else
+        {
+            animator.SetFloat("DoublePull", 0f);
+        }
+    }
+
+    /*private void UpdateGrabbedPullAnimation()
+    {
         // This player isn't being grabbed.
         if (grabbingPlayers.Count == 0)
         {
@@ -666,7 +827,7 @@ public class PlayerInteract : MonoBehaviour
             "isPullingRight",
             hasRightGrabber && !hasLeftGrabber
         );
-    }
+    }*/
 
     /*private void UpdateGrabbedPlayers()
     {
@@ -921,10 +1082,6 @@ public class PlayerInteract : MonoBehaviour
         if (animator != null)
         {
             animator.SetBool("isGrabbed", false);
-
-            animator.SetBool("isPullingLeft", false);
-            animator.SetBool("isPullingRight", false);
-            animator.SetBool("isPullingBoth", false);
         }
     }
 
@@ -1090,38 +1247,6 @@ public class PlayerInteract : MonoBehaviour
         nearbyPlayer = null;
     }
 
-    private void FaceGrabbedPlayer()
-    {
-        PlayerInteract interact =
-            GetComponent<PlayerInteract>();
-
-        if (interact == null ||
-            !interact.IsGrabbingSomeone)
-            return;
-
-
-        Vector3 direction =
-            interact.GetGrabbedPlayerPosition() -
-            transform.position;
-
-
-        direction.y = 0f;
-
-
-        if (direction.sqrMagnitude < 0.01f)
-            return;
-
-
-        Quaternion targetRotation =
-            Quaternion.LookRotation(direction);
-
-
-        transform.rotation =
-            Quaternion.Slerp(
-                transform.rotation,
-                targetRotation,
-                10f * Time.deltaTime);
-    }
 
     public Vector3 GetGrabbedPlayerPosition()
     {
