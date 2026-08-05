@@ -11,11 +11,11 @@ GameObject:
   - component: {fileID: 9079406525044198298}
   - component: {fileID: 1987407356768842277}
   - component: {fileID: 7930752093823443970}
-  - component: {fileID: 1450482564655729614}
   - component: {fileID: 3506027072065958697}
   - component: {fileID: 5109746089737168982}
   - component: {fileID: 8420017761703997826}
-  m_Layer: 0
+  - component: {fileID: 7515607720156015521}
+  m_Layer: 6
   m_Name: Seashell3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -91,28 +91,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &1450482564655729614
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9064563436139644639}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 8264854147688433887, guid: ec5055cb3d76c0149bdba546a666556a, type: 3}
 --- !u!54 &3506027072065958697
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -177,3 +155,24 @@ MonoBehaviour:
   useProjectileThrow: 0
   ignoreBasketPull: 0
   pointValue: 1
+--- !u!65 &7515607720156015521
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9064563436139644639}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.013692509, y: 0.017511263, z: 0.0048737586}
+  m_Center: {x: 0.00603988, y: -0.00000094232576, z: 0.0008834913}

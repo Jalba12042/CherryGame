@@ -14,8 +14,8 @@ GameObject:
   - component: {fileID: 1006653607107925995}
   - component: {fileID: 3853583947656950431}
   - component: {fileID: 2871859660098247162}
-  - component: {fileID: 7501643097086284167}
-  m_Layer: 0
+  - component: {fileID: 3779628571173159622}
+  m_Layer: 6
   m_Name: Seashell1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -155,8 +155,8 @@ MonoBehaviour:
   useProjectileThrow: 0
   ignoreBasketPull: 0
   pointValue: 1
---- !u!64 &7501643097086284167
-MeshCollider:
+--- !u!65 &3779628571173159622
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -173,7 +173,6 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: -1
-  m_Mesh: {fileID: 8874647845098605231, guid: ec5055cb3d76c0149bdba546a666556a, type: 3}
+  serializedVersion: 3
+  m_Size: {x: 0.049470376, y: 0.030959453, z: 0.028843934}
+  m_Center: {x: 0.0147248935, y: -0.005506745, z: 0.0020791895}
