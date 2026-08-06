@@ -39,6 +39,11 @@ public class PlayerInteract : MonoBehaviour
     [SerializeField] private float lockedGrabStrength = 30f;
     [SerializeField] private float lockedGrabDamping = 10f;
 
+    private PlayerInteract leftArmGrabber;
+    private PlayerInteract rightArmGrabber;
+    private int leftArmLayer;
+    private int rightArmLayer;
+
     private class GrabData
     {
         public PlayerInteract target;
@@ -128,6 +133,14 @@ public class PlayerInteract : MonoBehaviour
         powerupHandler = GetComponent<PlayerPowerupHandler>();
         projectileScript = GetComponent<Projectile>();
         animator = GetComponent<Animator>();
+
+        leftArmLayer = animator.GetLayerIndex("LeftArmOverride");
+        rightArmLayer = animator.GetLayerIndex("RightArmOverride");
+
+        // Start disabled
+        animator.SetLayerWeight(leftArmLayer, 0f);
+        animator.SetLayerWeight(rightArmLayer, 0f);
+
         myCollider = GetComponent<Collider>();
         snowballThrow = GetComponent<SnowballThrow>();
     }
@@ -605,6 +618,55 @@ public class PlayerInteract : MonoBehaviour
         }
     }
 
+    private void UpdateArmOwnership()
+    {
+        leftArmGrabber = null;
+        rightArmGrabber = null;
+
+        foreach (PlayerInteract grabber in grabbingPlayers)
+        {
+            if (grabber == null)
+                continue;
+
+            Vector3 direction =
+                grabber.transform.position - transform.position;
+
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude < 0.01f)
+                continue;
+
+            direction.Normalize();
+
+            Vector3 local =
+                transform.InverseTransformDirection(direction);
+
+            // LEFT SIDE
+            if (local.x < 0f)
+            {
+                if (leftArmGrabber == null)
+                {
+                    leftArmGrabber = grabber;
+                }
+            }
+
+            // RIGHT SIDE
+            else
+            {
+                if (rightArmGrabber == null)
+                {
+                    rightArmGrabber = grabber;
+                }
+            }
+        }
+
+        // If one side has nobody, let the other grabber take over.
+        if (leftArmGrabber == null)
+            leftArmGrabber = rightArmGrabber;
+
+        if (rightArmGrabber == null)
+            rightArmGrabber = leftArmGrabber;
+    }
     private void UpdateGrabbedPullAnimation()
     {
         if (animator == null)
@@ -619,7 +681,15 @@ public class PlayerInteract : MonoBehaviour
             animator.SetFloat("PullX", 0f);
             animator.SetFloat("PullY", 0f);
 
+            animator.SetFloat("LeftPullX", 0f);
+            animator.SetFloat("LeftPullY", 0f);
+            animator.SetFloat("RightPullX", 0f);
+            animator.SetFloat("RightPullY", 0f);
+
             animator.SetBool("isDoubleGrabbed", false);
+
+            animator.SetLayerWeight(leftArmLayer, 0f);
+            animator.SetLayerWeight(rightArmLayer, 0f);
 
             return;
         }
@@ -631,6 +701,15 @@ public class PlayerInteract : MonoBehaviour
         if (grabbingPlayers.Count == 1)
         {
             animator.SetBool("isDoubleGrabbed", false);
+
+            animator.SetLayerWeight(leftArmLayer, 0f);
+            animator.SetLayerWeight(rightArmLayer, 0f);
+
+            // Clear the arm override blend trees.
+            animator.SetFloat("LeftPullX", 0f);
+            animator.SetFloat("LeftPullY", 0f);
+            animator.SetFloat("RightPullX", 0f);
+            animator.SetFloat("RightPullY", 0f);
 
             PlayerInteract grabber = grabbingPlayers[0];
 
@@ -650,11 +729,8 @@ public class PlayerInteract : MonoBehaviour
             Vector3 localDirection =
                 transform.InverseTransformDirection(direction);
 
-            float pullX = localDirection.x;
-            float pullY = -localDirection.z;
-
-            animator.SetFloat("PullX", pullX);
-            animator.SetFloat("PullY", pullY);
+            animator.SetFloat("PullX", localDirection.x);
+            animator.SetFloat("PullY", -localDirection.z);
 
             return;
         }
@@ -665,17 +741,19 @@ public class PlayerInteract : MonoBehaviour
 
         animator.SetBool("isDoubleGrabbed", true);
 
-        PlayerInteract grabber1 = grabbingPlayers[0];
-        PlayerInteract grabber2 = grabbingPlayers[1];
+        UpdateArmOwnership();
 
-        if (grabber1 == null || grabber2 == null)
+        animator.SetLayerWeight(leftArmLayer, 1f);
+        animator.SetLayerWeight(rightArmLayer, 1f);
+
+        if (leftArmGrabber == null || rightArmGrabber == null)
             return;
 
         Vector3 dir1 =
-            grabber1.transform.position - transform.position;
+    leftArmGrabber.transform.position - transform.position;
 
         Vector3 dir2 =
-            grabber2.transform.position - transform.position;
+            rightArmGrabber.transform.position - transform.position;
 
         dir1.y = 0f;
         dir2.y = 0f;
@@ -693,77 +771,28 @@ public class PlayerInteract : MonoBehaviour
         Vector3 local2 =
             transform.InverseTransformDirection(dir2);
 
-        // Determine whether each grabber is primarily
-        // LEFT, RIGHT, FRONT, or BACK.
-        bool grabber1Front =
-            -local1.z > Mathf.Abs(local1.x);
+        // Turn off the original full-body blend tree.
+        animator.SetFloat("PullX", 0f);
+        animator.SetFloat("PullY", 0f);
 
-        bool grabber1Back =
-            local1.z > Mathf.Abs(local1.x);
+        // Decide which grabber controls which arm.
+        Vector3 leftArm =
+    transform.InverseTransformDirection(
+        (leftArmGrabber.transform.position - transform.position).normalized
+    );
 
-        bool grabber2Front =
-            -local2.z > Mathf.Abs(local2.x);
+        Vector3 rightArm =
+            transform.InverseTransformDirection(
+                (rightArmGrabber.transform.position - transform.position).normalized
+            );
 
-        bool grabber2Back =
-            local2.z > Mathf.Abs(local2.x);
+        // Feed the left arm blend tree.
+        animator.SetFloat("LeftPullX", leftArm.x);
+        animator.SetFloat("LeftPullY", -leftArm.z);
 
-        // ==========================================
-        // BOTH SIDES
-        // ==========================================
-
-        bool oneLeft =
-            local1.x < 0f || local2.x < 0f;
-
-        bool oneRight =
-            local1.x > 0f || local2.x > 0f;
-
-        if (oneLeft && oneRight &&
-            !grabber1Front && !grabber1Back &&
-            !grabber2Front && !grabber2Back)
-        {
-            animator.SetFloat("DoublePull", 0f);
-            return;
-        }
-
-        // ==========================================
-        // BOTH FRONT
-        // ==========================================
-
-        if (grabber1Front && grabber2Front)
-        {
-            animator.SetFloat("DoublePull", 1f);
-            return;
-        }
-
-        // ==========================================
-        // BOTH BACK
-        // ==========================================
-
-        if (grabber1Back && grabber2Back)
-        {
-            animator.SetFloat("DoublePull", 2f);
-            return;
-        }
-
-        // ==========================================
-        // MIXED DIRECTIONS
-        // ==========================================
-
-        // For now, use the closest major direction.
-        // We'll expand this after the basic combinations
-        // are working.
-        if (grabber1Front || grabber2Front)
-        {
-            animator.SetFloat("DoublePull", 1f);
-        }
-        else if (grabber1Back || grabber2Back)
-        {
-            animator.SetFloat("DoublePull", 2f);
-        }
-        else
-        {
-            animator.SetFloat("DoublePull", 0f);
-        }
+        // Feed the right arm blend tree.
+        animator.SetFloat("RightPullX", rightArm.x);
+        animator.SetFloat("RightPullY", -rightArm.z);
     }
 
     /*private void UpdateGrabbedPullAnimation()
