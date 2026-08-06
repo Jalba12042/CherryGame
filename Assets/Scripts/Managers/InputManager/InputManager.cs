@@ -17,7 +17,6 @@ public class InputManager : MonoBehaviour
             if (Gamepad.all.Count > 0)
                 return InputMode.Gamepad;
 
-            // THE FIX: If no controllers are plugged in, default to Keyboard instead of Arcade!
             return InputMode.Keyboard;
         }
     }
@@ -39,7 +38,6 @@ public class InputManager : MonoBehaviour
     void OnEnable() { InputSystem.onDeviceChange += OnDeviceChange; }
     void OnDisable() { InputSystem.onDeviceChange -= OnDeviceChange; }
 
-    // --- FRIEND'S DISCONNECT/RECONNECT FIX ---
     private void OnDeviceChange(InputDevice device, InputDeviceChange change)
     {
         if (device is not Gamepad gamepad)
@@ -76,20 +74,15 @@ public class InputManager : MonoBehaviour
         }
     }
 
-    // --- UNIFIED ASSIGNMENT LOGIC ---
     public void AssignGamepad(int playerID, Gamepad pad)
     {
-        if (playerID < 1 || playerID > 4)
-            return;
-
+        if (playerID < 1 || playerID > 4) return;
         int idx = playerID - 1;
 
         assignedGamepads[idx] = pad;
         assignedKeyboard[idx] = false;
         hasExplicitAssignment[idx] = true;
         playerDisconnected[idx] = false;
-
-        Debug.Log($"InputManager: Player {playerID} assigned to {pad.displayName} (Device ID: {pad.deviceId})");
     }
 
     public void AssignKeyboard(int playerID)
@@ -105,9 +98,7 @@ public class InputManager : MonoBehaviour
 
     public void UnassignGamepad(int playerID)
     {
-        if (playerID < 1 || playerID > 4)
-            return;
-
+        if (playerID < 1 || playerID > 4) return;
         int idx = playerID - 1;
 
         assignedGamepads[idx] = null;
@@ -118,13 +109,10 @@ public class InputManager : MonoBehaviour
 
     public bool IsPlayerDisconnected(int playerID)
     {
-        if (playerID < 1 || playerID > 4)
-            return false;
-
+        if (playerID < 1 || playerID > 4) return false;
         return playerDisconnected[playerID - 1];
     }
 
-    // --- KEYBOARD CHECKS RESTORED ---
     public bool IsKeyboardPlayer(int playerID)
     {
         if (playerID < 1 || playerID > 4) return false;
@@ -135,8 +123,6 @@ public class InputManager : MonoBehaviour
     {
         if (playerID < 1 || playerID > 4) return false;
         int idx = playerID - 1;
-
-        // REMOVED ARCADE LOCKOUT SO KEYBOARDS CAN ALWAYS PLAY
         return assignedKeyboard[idx] || assignedGamepads[idx] != null;
     }
 
@@ -159,9 +145,7 @@ public class InputManager : MonoBehaviour
     public Vector2 GetMove(int playerID)
     {
         if (!IsAssigned(playerID)) return Vector2.zero;
-
         if (IsKeyboardPlayer(playerID)) return GetKeyboardMoveVector();
-
         return GetPad(playerID)?.leftStick.ReadValue() ?? Vector2.zero;
     }
 
@@ -175,20 +159,18 @@ public class InputManager : MonoBehaviour
         return dir.normalized;
     }
 
-    // -- Buttons (pressed this frame) -----------------------------
+    // -- Gameplay Buttons (pressed this frame) -----------------------------
 
     public bool GetGrabDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-
-        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.Q);
+        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.E); // Mapped to E
         return GetPad(playerID)?.rightTrigger.wasPressedThisFrame ?? false;
     }
 
     public bool GetThrowDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-
         if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.T);
         return GetPad(playerID)?.leftTrigger.wasPressedThisFrame ?? false;
     }
@@ -196,15 +178,13 @@ public class InputManager : MonoBehaviour
     public bool GetDashDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-
-        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.LeftShift);
+        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.LeftShift); // Mapped to Shift
         return GetPad(playerID)?.buttonWest.wasPressedThisFrame ?? false;
     }
 
     public bool GetJumpDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-
         if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.Space);
         return GetPad(playerID)?.buttonSouth.wasPressedThisFrame ?? false;
     }
@@ -212,33 +192,29 @@ public class InputManager : MonoBehaviour
     public bool GetScreamDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-
-        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.R);
+        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.R); // Mapped to R
         return GetPad(playerID)?.buttonEast.wasPressedThisFrame ?? false;
     }
 
     public bool GetEscapeDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-
-        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.Escape);
+        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.F); // Mapped to F for escaping
         return GetPad(playerID)?.buttonNorth.wasPressedThisFrame ?? false;
     }
 
-    // -- Buttons (held) -------------------------------------------
+    // -- Gameplay Buttons (held) -------------------------------------------
 
     public bool GetButton1Held(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-
-        if (IsKeyboardPlayer(playerID)) return Input.GetKey(KeyCode.Q);
+        if (IsKeyboardPlayer(playerID)) return Input.GetKey(KeyCode.E); // Mapped to E for Holding Grab
         return GetPad(playerID)?.rightTrigger.isPressed ?? false;
     }
 
     public bool GetButton2Held(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-
         if (IsKeyboardPlayer(playerID)) return Input.GetKey(KeyCode.T);
         return GetPad(playerID)?.leftTrigger.isPressed ?? false;
     }
@@ -246,7 +222,6 @@ public class InputManager : MonoBehaviour
     public bool GetButton3Held(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-
         if (IsKeyboardPlayer(playerID)) return Input.GetKey(KeyCode.LeftShift);
         return GetPad(playerID)?.buttonWest.isPressed ?? false;
     }
@@ -256,27 +231,20 @@ public class InputManager : MonoBehaviour
     public bool GetConfirmDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-
-        if (IsKeyboardPlayer(playerID))
-            return Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space);
-
+        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space);
         return GetPad(playerID)?.buttonSouth.wasPressedThisFrame ?? false;
     }
 
     public bool GetBackDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-
-        if (IsKeyboardPlayer(playerID))
-            return Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.E);
-
+        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.E);
         return GetPad(playerID)?.buttonEast.wasPressedThisFrame ?? false;
     }
 
     public bool GetPauseDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-
         if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.Escape);
         return GetPad(playerID)?.startButton.wasPressedThisFrame ?? false;
     }
@@ -325,7 +293,6 @@ public class InputManager : MonoBehaviour
     {
         int idx = playerID - 1;
         if (idx < 0 || idx >= assignedGamepads.Length) return null;
-
         return assignedGamepads[idx];
     }
 
