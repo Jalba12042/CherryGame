@@ -237,11 +237,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!95 &136247117 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 3627766841603682236, guid: 63e18606f33b74f4f9d54c06bea45739, type: 3}
-  m_PrefabInstance: {fileID: 5831605058926235341}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &155724645
 GameObject:
   m_ObjectHideFlags: 0
@@ -973,6 +968,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 742412726}
   m_CullTransparentMesh: 1
+--- !u!95 &817031077 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 2826828640129425007, guid: 63e18606f33b74f4f9d54c06bea45739, type: 3}
+  m_PrefabInstance: {fileID: 5831605058926235341}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &864570927
 GameObject:
   m_ObjectHideFlags: 0
@@ -1032,7 +1032,7 @@ MonoBehaviour:
   highlightImage: {fileID: 21300000, guid: 287a59eebc85b4540b5b47d14e9db8c8, type: 3}
   isQuitButton: 0
   quitDelay: 0.5
-  sceneName: MultiplayerScene
+  sceneName: 
   exitOrchestrator: {fileID: 0}
 --- !u!114 &864570930
 MonoBehaviour:
@@ -1077,7 +1077,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 864570931}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 2147308734}
+        m_TargetAssemblyTypeName: MenuExitOrchestrator, Assembly-CSharp
+        m_MethodName: ExitToMultiplayer
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: MultiplayerScene
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &864570931
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1790,6 +1802,11 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!95 &1135774662 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 9087883242087386154, guid: 63e18606f33b74f4f9d54c06bea45739, type: 3}
+  m_PrefabInstance: {fileID: 5831605058926235341}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1169658706
 GameObject:
   m_ObjectHideFlags: 0
@@ -2252,7 +2269,7 @@ GameObject:
   - component: {fileID: 1402856054}
   - component: {fileID: 1402856053}
   m_Layer: 5
-  m_Name: PaperBG
+  m_Name: SkyBG
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2272,10 +2289,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 5510297}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.10772705, y: 0}
-  m_SizeDelta: {x: 2.4846, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 1920, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1402856053
 MonoBehaviour:
@@ -2297,7 +2314,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 979cfbcb6f3368c4388e32009eb045e8, type: 3}
+  m_Sprite: {fileID: 21300000, guid: bd9fe169824feed44a13c483a50a4a21, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2315,6 +2332,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1402856051}
   m_CullTransparentMesh: 1
+--- !u!95 &1555558222 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 5728735199821738980, guid: 63e18606f33b74f4f9d54c06bea45739, type: 3}
+  m_PrefabInstance: {fileID: 5831605058926235341}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1592473012
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3048,10 +3070,18 @@ MonoBehaviour:
   - {fileID: 450849134}
   - {fileID: 1881252391}
   exitTrigger: Exit
-  exitDuration: 0.9
   menuControllerToDisable: {fileID: 0}
-  paperTransitionAnimator: {fileID: 136247117}
-  paperAnimationDuration: 1.2
+  paperTransitionAnimator: {fileID: 1555558222}
+  paperTriggerName: PaperOpen
+  delayBeforePaperStarts: 1
+  paperCoverDuration: 1.2
+  beachWipeAnimator: {fileID: 817031077}
+  wipeTriggerName: SlideWipe
+  delayBeforeBeachStarts: 1
+  beachCoverDuration: 1.958
+  snowWipeAnimator: {fileID: 1135774662}
+  delayBeforeSnowStarts: 1
+  snowCoverDuration: 1.96
 --- !u!114 &2147308735
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -14,12 +14,12 @@ public class MenuSelectable : MonoBehaviour
     public bool isQuitButton = false;
     public float quitDelay = 0.5f;
 
-    [Header("Scene To Load (Leave empty if Quit Button)")]
+    [Header("Scene To Load (Leave empty to use On Click list)")]
     public string sceneName;
 
     [Header("Optional: play exit animation before loading")]
     [Tooltip("Drag the object holding your MenuExitOrchestrator here!")]
-    public MenuExitOrchestrator exitOrchestrator; // <-- This is the key!
+    public MenuExitOrchestrator exitOrchestrator;
 
     private Image img;
     private bool locked;
@@ -43,6 +43,17 @@ public class MenuSelectable : MonoBehaviour
     {
         if (locked) return;
 
+        var btn = GetComponent<Button>();
+
+        // SMART FIX: If SceneName is empty, but we have items in the OnClick list, run them instead!
+        if (string.IsNullOrEmpty(sceneName) && btn != null && btn.onClick.GetPersistentEventCount() > 0)
+        {
+            locked = true;
+            btn.interactable = false;
+            btn.onClick.Invoke();
+            return;
+        }
+
         if (!isQuitButton && string.IsNullOrEmpty(sceneName))
         {
             Debug.LogWarning($"[MenuSelectable] No scene assigned on {name}");
@@ -51,7 +62,6 @@ public class MenuSelectable : MonoBehaviour
 
         locked = true;
 
-        var btn = GetComponent<Button>();
         if (btn) btn.interactable = false;
 
         if (isQuitButton)
@@ -60,14 +70,12 @@ public class MenuSelectable : MonoBehaviour
             return;
         }
 
-        // Trigger the Orchestrator (which now handles the menu sliding AND the paper wipe)
         if (exitOrchestrator != null)
         {
             exitOrchestrator.ExitThenLoad(sceneName);
         }
         else
         {
-            // Failsafe
             SceneManager.LoadScene(sceneName);
         }
     }

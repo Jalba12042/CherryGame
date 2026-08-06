@@ -38,6 +38,11 @@ public class GameWinScript : MonoBehaviour
     [Tooltip("How many seconds to wait between each puppet popping up")]
     public float timeBetweenReveals = 4f;
 
+    [Header("Crowd Audio Polish")]
+    public AudioSource crowdAudioSource;
+    public AudioClip cheerSound;
+    public AudioClip booSound;
+
     void Start()
     {
         // Hide UI and all puppets at the start
@@ -103,6 +108,9 @@ public class GameWinScript : MonoBehaviour
                 }
                 if (anim4th != null) anim4th.Play("PuppetSad_4thPlace");
                 if (winText != null) { winText.text = "LAST PLACE..."; winText.gameObject.SetActive(true); }
+
+                // BOO THE LOSER
+                if (crowdAudioSource != null && booSound != null) crowdAudioSource.PlayOneShot(booSound);
             }
             else
             {
@@ -113,6 +121,9 @@ public class GameWinScript : MonoBehaviour
                 }
                 if (anim4th != null) anim4th.Play("PuppetSlideUp_4thPlace");
                 if (winText != null) { winText.text = "4TH PLACE!"; winText.gameObject.SetActive(true); }
+
+                // CHEER!
+                if (crowdAudioSource != null && cheerSound != null) crowdAudioSource.PlayOneShot(cheerSound);
             }
 
             yield return new WaitForSeconds(timeBetweenReveals);
@@ -134,6 +145,9 @@ public class GameWinScript : MonoBehaviour
                 }
                 if (anim3rd != null) anim3rd.Play("PuppetSad_3rdPlace");
                 if (winText != null) { winText.text = "LAST PLACE..."; winText.gameObject.SetActive(true); }
+
+                // BOO THE LOSER
+                if (crowdAudioSource != null && booSound != null) crowdAudioSource.PlayOneShot(booSound);
             }
             else // 3rd place in a 4-player game
             {
@@ -144,6 +158,9 @@ public class GameWinScript : MonoBehaviour
                 }
                 if (anim3rd != null) anim3rd.Play("PuppetSlideUp_3rdPlace");
                 if (winText != null) { winText.text = "3RD PLACE!"; winText.gameObject.SetActive(true); }
+
+                // CHEER!
+                if (crowdAudioSource != null && cheerSound != null) crowdAudioSource.PlayOneShot(cheerSound);
             }
 
             yield return new WaitForSeconds(timeBetweenReveals);
@@ -165,6 +182,9 @@ public class GameWinScript : MonoBehaviour
                 }
                 if (anim2nd != null) anim2nd.Play("PuppetSad_2ndPlace");
                 if (winText != null) { winText.text = "LAST PLACE..."; winText.gameObject.SetActive(true); }
+
+                // BOO THE LOSER
+                if (crowdAudioSource != null && booSound != null) crowdAudioSource.PlayOneShot(booSound);
             }
             else // 2nd place in a 3 or 4-player game
             {
@@ -175,6 +195,9 @@ public class GameWinScript : MonoBehaviour
                 }
                 if (anim2nd != null) anim2nd.Play("PuppetSlideUp_2ndPlace");
                 if (winText != null) { winText.text = "2ND PLACE!"; winText.gameObject.SetActive(true); }
+
+                // CHEER!
+                if (crowdAudioSource != null && cheerSound != null) crowdAudioSource.PlayOneShot(cheerSound);
             }
 
             yield return new WaitForSeconds(timeBetweenReveals);
@@ -194,6 +217,9 @@ public class GameWinScript : MonoBehaviour
 
             Animator anim1st = firstPlacePuppet.GetComponent<Animator>();
             if (anim1st != null) anim1st.Play("PuppetSlideUp_1stPlace");
+
+            // CHEER FOR THE WINNER!
+            if (crowdAudioSource != null && cheerSound != null) crowdAudioSource.PlayOneShot(cheerSound);
         }
 
         // 10. Update text to 1st Place
