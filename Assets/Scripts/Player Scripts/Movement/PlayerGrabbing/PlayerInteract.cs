@@ -672,127 +672,133 @@ public class PlayerInteract : MonoBehaviour
         if (animator == null)
             return;
 
-        // ==========================================
-        // NO GRABBERS
-        // ==========================================
 
+        // Nobody grabbing us
         if (grabbingPlayers.Count == 0)
         {
-            animator.SetFloat("PullX", 0f);
-            animator.SetFloat("PullY", 0f);
+            animator.SetLayerWeight(leftArmLayer, 0f);
+            animator.SetLayerWeight(rightArmLayer, 0f);
 
             animator.SetFloat("LeftPullX", 0f);
             animator.SetFloat("LeftPullY", 0f);
+
             animator.SetFloat("RightPullX", 0f);
             animator.SetFloat("RightPullY", 0f);
-
-            animator.SetBool("isDoubleGrabbed", false);
-
-            animator.SetLayerWeight(leftArmLayer, 0f);
-            animator.SetLayerWeight(rightArmLayer, 0f);
 
             return;
         }
 
-        // ==========================================
+
+        UpdateArmOwnership();
+
+
+        // ===================================
         // ONE GRABBER
-        // ==========================================
+        // ===================================
 
         if (grabbingPlayers.Count == 1)
         {
-            animator.SetBool("isDoubleGrabbed", false);
-
-            animator.SetLayerWeight(leftArmLayer, 0f);
-            animator.SetLayerWeight(rightArmLayer, 0f);
-
-            // Clear the arm override blend trees.
-            animator.SetFloat("LeftPullX", 0f);
-            animator.SetFloat("LeftPullY", 0f);
-            animator.SetFloat("RightPullX", 0f);
-            animator.SetFloat("RightPullY", 0f);
-
             PlayerInteract grabber = grabbingPlayers[0];
 
             if (grabber == null)
                 return;
+
 
             Vector3 direction =
                 grabber.transform.position - transform.position;
 
             direction.y = 0f;
 
-            if (direction.sqrMagnitude < 0.01f)
-                return;
+            Vector3 local =
+                transform.InverseTransformDirection(direction.normalized);
 
-            direction.Normalize();
 
-            Vector3 localDirection =
-                transform.InverseTransformDirection(direction);
+            // Decide which arm
+            if (local.x < 0)
+            {
+                // LEFT ARM
+                animator.SetLayerWeight(leftArmLayer, 1f);
+                animator.SetLayerWeight(rightArmLayer, 0f);
 
-            animator.SetFloat("PullX", localDirection.x);
-            animator.SetFloat("PullY", -localDirection.z);
+                animator.SetFloat("LeftPullX", local.x);
+                animator.SetFloat("LeftPullY", -local.z);
+            }
+            else
+            {
+                // RIGHT ARM
+                animator.SetLayerWeight(rightArmLayer, 1f);
+                animator.SetLayerWeight(leftArmLayer, 0f);
+
+                animator.SetFloat("RightPullX", local.x);
+                animator.SetFloat("RightPullY", -local.z);
+            }
+
 
             return;
         }
 
-        // ==========================================
+
+        // ===================================
         // TWO GRABBERS
-        // ==========================================
+        // ===================================
 
-        animator.SetBool("isDoubleGrabbed", true);
+        if (grabbingPlayers.Count >= 2)
+        {
+            animator.SetLayerWeight(leftArmLayer, 1f);
+            animator.SetLayerWeight(rightArmLayer, 1f);
 
-        UpdateArmOwnership();
 
-        animator.SetLayerWeight(leftArmLayer, 1f);
-        animator.SetLayerWeight(rightArmLayer, 1f);
+            if (leftArmGrabber != null)
+            {
+                Vector3 leftDirection =
+                    leftArmGrabber.transform.position -
+                    transform.position;
 
-        if (leftArmGrabber == null || rightArmGrabber == null)
-            return;
+                leftDirection.y = 0f;
 
-        Vector3 dir1 =
-    leftArmGrabber.transform.position - transform.position;
+                Vector3 leftLocal =
+                    transform.InverseTransformDirection(
+                        leftDirection.normalized
+                    );
 
-        Vector3 dir2 =
-            rightArmGrabber.transform.position - transform.position;
 
-        dir1.y = 0f;
-        dir2.y = 0f;
+                animator.SetFloat(
+                    "LeftPullX",
+                    leftLocal.x
+                );
 
-        if (dir1.sqrMagnitude < 0.01f ||
-            dir2.sqrMagnitude < 0.01f)
-            return;
+                animator.SetFloat(
+                    "LeftPullY",
+                    -leftLocal.z
+                );
+            }
 
-        dir1.Normalize();
-        dir2.Normalize();
 
-        Vector3 local1 =
-            transform.InverseTransformDirection(dir1);
+            if (rightArmGrabber != null)
+            {
+                Vector3 rightDirection =
+                    rightArmGrabber.transform.position -
+                    transform.position;
 
-        Vector3 local2 =
-            transform.InverseTransformDirection(dir2);
+                rightDirection.y = 0f;
 
-        // Turn off the original full-body blend tree.
-        animator.SetFloat("PullX", 0f);
-        animator.SetFloat("PullY", 0f);
+                Vector3 rightLocal =
+                    transform.InverseTransformDirection(
+                        rightDirection.normalized
+                    );
 
-        // Decide which grabber controls which arm.
-        Vector3 leftArm =
-    transform.InverseTransformDirection(
-        (leftArmGrabber.transform.position - transform.position).normalized
-    );
 
-        Vector3 rightArm =
-            transform.InverseTransformDirection(
-                (rightArmGrabber.transform.position - transform.position).normalized
-            );
+                animator.SetFloat(
+                    "RightPullX",
+                    rightLocal.x
+                );
 
-        // Feed the left arm blend tree.
-        animator.SetFloat("LeftPullX", leftArm.x);
-        animator.SetFloat("LeftPullY", -leftArm.z);
-
-        // Feed the right arm blend tree.
-        animator.SetFloat("RightPullX", rightArm.x);
-        animator.SetFloat("RightPullY", -rightArm.z);
+                animator.SetFloat(
+                    "RightPullY",
+                    -rightLocal.z
+                );
+            }
+        }
     }
 
     /*private void UpdateGrabbedPullAnimation()
