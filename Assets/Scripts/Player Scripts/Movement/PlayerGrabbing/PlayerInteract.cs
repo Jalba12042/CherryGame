@@ -315,10 +315,7 @@ public class PlayerInteract : MonoBehaviour
     {
         UpdateGrabbedPlayers();
 
-        if (IsBeingGrabbed)
-        {
-            UpdateGrabbedPullAnimation();
-        }
+        UpdateGrabbedPullAnimation();
     }
 
     private void OnInteractPressed()
