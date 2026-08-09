@@ -4,33 +4,26 @@ using System.Collections;
 
 public class MultiplayerBackTransition : MonoBehaviour
 {
-    [Header("Eraser Transition")]
-    public Animator eraserAnimator; // The RandomSlidingWipe(Easer) object
+    public Animator eraserAnimator;
     public string eraserTrigger = "SlideWipe";
-    public float wipeAnimationDuration = 1.0f;
+    public float wipeAnimationDuration = 1f;
+    public string sceneToLoad = "Main Menu";
 
-    [Header("Scene To Load")]
-    public string mainMenuSceneName = "MainMenu";
-
-    // Call this from your "Back" button's OnClick event
-    public void GoBackToMainMenu()
+    // We will call this function from your buttons and your Menu Controller!
+    public void PlayBackTransition()
     {
-        StartCoroutine(BackRoutine());
+        StartCoroutine(TransitionRoutine());
     }
 
-    private IEnumerator BackRoutine()
+    private IEnumerator TransitionRoutine()
     {
         if (eraserAnimator != null)
         {
-            // Turn on the eraser and trigger it to wipe the screen
             eraserAnimator.gameObject.SetActive(true);
+            yield return null; // Wait 1 frame for Animator to wake up
             eraserAnimator.SetTrigger(eraserTrigger);
+            yield return new WaitForSeconds(wipeAnimationDuration);
         }
-
-        // Wait for the eraser to cover the screen
-        yield return new WaitForSeconds(wipeAnimationDuration);
-
-        // Load the Main Menu
-        SceneManager.LoadScene(mainMenuSceneName);
+        SceneManager.LoadScene(sceneToLoad);
     }
 }
