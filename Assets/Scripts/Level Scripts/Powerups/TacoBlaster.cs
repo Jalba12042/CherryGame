@@ -108,10 +108,10 @@ public class TacoBlaster : Powerup
         }
 
         // Hide the actual Taco Blaster model
-        foreach (Renderer r in GetComponentsInChildren<Renderer>())
+        /*foreach (Renderer r in GetComponentsInChildren<Renderer>())
         {
             r.enabled = false;
-        }
+        }*/
 
         // Wait for the shoot animation to finish
         yield return new WaitForSeconds(shootAnimationDuration);
