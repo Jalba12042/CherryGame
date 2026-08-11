@@ -11,8 +11,12 @@ public class UFO : MonoBehaviour
     public GameObject targetPlayer;
     public Playermovement playerMove;
     public PlayerKill playerKill;
-    public CollisionBroadcaster playerBroadcaster;
     private Rigidbody targetRb;
+
+    [Header("Touch Transfer")]
+    [SerializeField] private float touchTransferRadius = 1.5f;
+    [SerializeField] private float touchTransferCooldown = 1.5f;
+    private float touchCooldownUntil = 0f;
 
     private UFOState currentState;
 
@@ -58,19 +62,6 @@ public class UFO : MonoBehaviour
         }
     }
 
-    void OnDisable()
-    {
-        if (playerBroadcaster != null) playerBroadcaster.OnCollisionEntered -= HandleCollision;
-    }
-
-    void HandleCollision(Collision collision)
-    {
-        if (collision.gameObject.tag == "Player")
-        {
-            SetTarget(collision.gameObject);
-        }
-    }
-
     private void Update()
     {
         if (!RoundManager.Instance.currRoundActive)
@@ -102,6 +93,8 @@ public class UFO : MonoBehaviour
             }
         }
 
+        CheckForTouchTransfer();
+
         switch (currentState)
         {
             case UFOState.Approaching: HandleApproach(); break;
@@ -124,14 +117,50 @@ public class UFO : MonoBehaviour
         if (alivePlayers.Count == 0) return false;
 
         SetTarget(alivePlayers[Random.Range(0, alivePlayers.Count)]);
-        ChangeState(UFOState.Approaching);
         return true;
     }
 
-    private void SetTarget(GameObject newTarget)
+    // A touch hands off tracking without resetting stateTimer, so the current target can't stall
+    // the abduction forever by staying near a crowd — proximity is symmetric either way.
+    private void CheckForTouchTransfer()
     {
-        if (playerBroadcaster != null) playerBroadcaster.OnCollisionEntered -= HandleCollision;
+        if (targetPlayer == null) return;
 
+        // Without this, a transfer to the closest player immediately qualifies as a transfer back
+        // (distance is symmetric), so two players standing near each other cause the target to
+        // flip-flop every single frame instead of settling on one handoff.
+        if (Time.time < touchCooldownUntil) return;
+
+        float closestDist = float.MaxValue;
+        GameObject closest = null;
+
+        foreach (GameObject p in players)
+        {
+            if (p == null || p == targetPlayer) continue;
+
+            PlayerKill pk = p.GetComponentInChildren<PlayerKill>();
+            if (pk == null || pk.currDead) continue;
+
+            float dist = Vector3.Distance(targetPlayer.transform.position, p.transform.position);
+            if (dist < closestDist)
+            {
+                closestDist = dist;
+                closest = p;
+            }
+        }
+
+        if (closest != null && closestDist <= touchTransferRadius)
+        {
+            SetTarget(closest, resetState: false);
+            touchCooldownUntil = Time.time + touchTransferCooldown;
+        }
+    }
+
+    // resetState true = a fresh abduction attempt (initial spawn / target died) — restarts the whole
+    // approach sequence. resetState false = a touch mid-flight just hands tracking to someone else
+    // without touching stateTimer, so the abduction can't be stalled by repeatedly getting touched.
+    private void SetTarget(GameObject newTarget, bool resetState = true)
+    {
         // Release whoever we were carrying/tracking so a mid-lift retarget doesn't leave them frozen
         if (playerMove != null) playerMove.canMove = true;
         if (targetRb != null) targetRb.isKinematic = false;
@@ -139,10 +168,18 @@ public class UFO : MonoBehaviour
         targetPlayer = newTarget;
         playerMove = targetPlayer.GetComponentInChildren<Playermovement>();
         playerKill = targetPlayer.GetComponentInChildren<PlayerKill>();
-        playerBroadcaster = targetPlayer.GetComponentInChildren<CollisionBroadcaster>();
         targetRb = targetPlayer.GetComponentInChildren<Rigidbody>();
 
-        if (playerBroadcaster != null) playerBroadcaster.OnCollisionEntered += HandleCollision;
+        if (resetState)
+        {
+            ChangeState(UFOState.Approaching);
+        }
+        else if (currentState == UFOState.Abducting && targetRb != null)
+        {
+            // Still mid-lift after the handoff — make sure the new target gets the same
+            // kinematic treatment the old one had, instead of staying fully dynamic.
+            targetRb.isKinematic = true;
+        }
     }
 
     private void HandleApproach()
