@@ -44,6 +44,8 @@ public class Playermovement : MonoBehaviour
     [SerializeField] private AudioSource footstepSource;
     [SerializeField] private AudioClip grassClip;
     [SerializeField] private AudioClip brickClip;
+    [SerializeField] private AudioClip sandClip;
+    [SerializeField] private AudioClip snowClip;
 
     [Header("Jump Audio")]
     [SerializeField] private AudioSource jumpSource;
@@ -117,7 +119,6 @@ public class Playermovement : MonoBehaviour
             dashSource.volume = .25f;
         }
 
-        // Guard against prefab data missing new dash fields
         if (dashForce <= 0f) dashForce = 15f;
         if (dashDuration <= 0f) dashDuration = 0.3f;
         if (dashCooldown <= 0f) dashCooldown = 1f;
@@ -129,7 +130,11 @@ public class Playermovement : MonoBehaviour
     {
         HandleDashPhysics();
 
-        if (!canMove || isKnockedBack) return;
+        if (!canMove || isKnockedBack)
+        {
+            if (footstepSource != null && footstepSource.isPlaying) footstepSource.Stop();
+            return;
+        }
 
         Vector2 rawInput = InputManager.Instance.GetMove(playerID);
         moveInput = controlsReversed ? -rawInput : rawInput;
@@ -167,7 +172,6 @@ public class Playermovement : MonoBehaviour
 
     private void Update()
     {
-        // --- THE AUTO-JUMP FIX: Ignore all input while the game is paused! ---
         if (Time.timeScale == 0f) return;
 
         HandleDashInput();
@@ -177,6 +181,8 @@ public class Playermovement : MonoBehaviour
             DoJump();
             animator.SetTrigger("Jump");
             isJumping = true;
+
+            if (footstepSource != null && footstepSource.isPlaying) footstepSource.Stop();
         }
 
         HandleRotation();
@@ -186,89 +192,21 @@ public class Playermovement : MonoBehaviour
     {
         isAiming = projectileScript != null && projectileScript.IsAiming();
 
-
-        // =====================================================
-        // GRABBING SOMEONE
-        // =====================================================
-
-        if (playerInteract != null &&
-            playerInteract.IsGrabbingSomeone)
+        if (playerInteract != null && playerInteract.IsGrabbingSomeone)
         {
-            Vector3 grabbedPosition =
-                playerInteract.GetGrabbedPlayerPosition();
-
-            Vector3 direction =
-                grabbedPosition - transform.position;
-
-            // Ignore vertical difference
+            Vector3 grabbedPosition = playerInteract.GetGrabbedPlayerPosition();
+            Vector3 direction = grabbedPosition - transform.position;
             direction.y = 0f;
 
             if (direction.sqrMagnitude > 0.01f)
             {
-                Quaternion targetRotation =
-                    Quaternion.LookRotation(direction, Vector3.up);
-
-                transform.rotation =
-                    Quaternion.Slerp(
-                        transform.rotation,
-                        targetRotation,
-                        Time.deltaTime * rotationSpeed);
+                Quaternion targetRotation = Quaternion.LookRotation(direction, Vector3.up);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
             }
-
-            // IMPORTANT:
-            // Do NOT rotate based on joystick while grabbing.
             return;
         }
 
-
-        // =====================================================
-        // NORMAL ROTATION
-        // =====================================================
-
         Vector2 input = moveInput;
-
-        Transform cam = Camera.main.transform;
-
-        Vector3 camForward =
-            Vector3.Scale(
-                cam.forward,
-                new Vector3(1, 0, 1))
-            .normalized;
-
-        Vector3 camRight =
-            Vector3.Scale(
-                cam.right,
-                new Vector3(1, 0, 1))
-            .normalized;
-
-
-        if (input.sqrMagnitude > 0.01f)
-        {
-            Vector3 targetDir =
-                (camForward * input.y +
-                 camRight * input.x)
-                .normalized;
-
-            float speed =
-                isAiming
-                    ? rotationSpeed * aimRotationMultiplier
-                    : rotationSpeed;
-
-            transform.rotation =
-                Quaternion.Slerp(
-                    transform.rotation,
-                    Quaternion.LookRotation(
-                        targetDir,
-                        Vector3.up),
-                    Time.deltaTime * speed);
-        }
-    }
-
-    /*private void HandleRotation()
-    {
-        Vector2 input = moveInput;
-        isAiming = projectileScript != null && projectileScript.IsAiming();
-
         Transform cam = Camera.main.transform;
         Vector3 camForward = Vector3.Scale(cam.forward, new Vector3(1, 0, 1)).normalized;
         Vector3 camRight = Vector3.Scale(cam.right, new Vector3(1, 0, 1)).normalized;
@@ -277,10 +215,9 @@ public class Playermovement : MonoBehaviour
         {
             Vector3 targetDir = (camForward * input.y + camRight * input.x).normalized;
             float speed = isAiming ? rotationSpeed * aimRotationMultiplier : rotationSpeed;
-            transform.rotation = Quaternion.Slerp(transform.rotation,
-                Quaternion.LookRotation(targetDir, Vector3.up), Time.deltaTime * speed);
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetDir, Vector3.up), Time.deltaTime * speed);
         }
-    }*/
+    }
 
     public void DoJump()
     {
@@ -293,7 +230,10 @@ public class Playermovement : MonoBehaviour
 
     private void HandleFootsteps()
     {
-        if (!gc.isGrounded || rb.linearVelocity.magnitude < 0.1f)
+        if (footstepSource == null) return;
+
+        // Stop the sound if we are standing still, falling, or dashing
+        if (!gc.isGrounded || rb.linearVelocity.magnitude < 0.1f || isDashing)
         {
             if (footstepSource.isPlaying) footstepSource.Stop();
             return;
@@ -301,18 +241,33 @@ public class Playermovement : MonoBehaviour
 
         if (Physics.Raycast(gc.origin, Vector3.down, out RaycastHit hit, 2f))
         {
-            string newSurface = hit.collider.tag;
-            if (newSurface != currentSurface)
+            string hitTag = hit.collider.tag;
+            string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name.ToLower();
+
+            AudioClip targetClip = grassClip; // Default to Park Grass
+
+            // 1. Scene Name Override (Automatically covers the whole map!)
+            if (sceneName.Contains("beachtest")) targetClip = sandClip;
+            else if (sceneName.Contains("mountain")) targetClip = snowClip;
+
+            // 2. Tag Override (Just in case you specifically tag a brick path in the park)
+            if (hitTag == "Brick") targetClip = brickClip;
+            else if (hitTag == "Grass") targetClip = grassClip;
+            else if (hitTag == "Sand") targetClip = sandClip;
+            else if (hitTag == "Snow") targetClip = snowClip;
+
+            // If the surface or scene requires a different clip, swap it
+            if (footstepSource.clip != targetClip)
             {
-                if (newSurface == "Brick") footstepSource.clip = brickClip;
-                else if (newSurface == "Grass") footstepSource.clip = grassClip;
-                currentSurface = newSurface;
+                footstepSource.clip = targetClip;
                 if (footstepSource.isPlaying) footstepSource.Stop();
-                footstepSource.Play();
+                if (targetClip != null) footstepSource.Play();
             }
         }
 
-        if (!footstepSource.isPlaying) footstepSource.Play();
+        // Keep playing if it stopped (and we are still moving)
+        if (!footstepSource.isPlaying && footstepSource.clip != null)
+            footstepSource.Play();
     }
 
     public void ApplyKnockback(Vector3 direction, float force, float duration)
@@ -392,7 +347,7 @@ public class Playermovement : MonoBehaviour
             }
             else
             {
-                dashSource.pitch = initialPitch; // normal dash sound plays at normal pitch immediately
+                dashSource.pitch = initialPitch;
                 if (dashSound != null) dashSource.PlayOneShot(dashSound);
             }
         }

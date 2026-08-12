@@ -314,6 +314,7 @@ MonoBehaviour:
   isQuitButton: 0
   quitDelay: 0.5
   sceneName: ControllerLayoutScreen
+  useMultiplayerTransition: 0
   exitOrchestrator: {fileID: 910669660}
 --- !u!114 &79524864
 MonoBehaviour:
@@ -1059,6 +1060,7 @@ MonoBehaviour:
   isQuitButton: 1
   quitDelay: 1
   sceneName: 
+  useMultiplayerTransition: 0
   exitOrchestrator: {fileID: 910669660}
 --- !u!114 &801369157
 MonoBehaviour:
@@ -1265,6 +1267,7 @@ MonoBehaviour:
   - {fileID: 1821938493}
   - {fileID: 79524863}
   - {fileID: 801369156}
+  backTransition: {fileID: 0}
   navigateSound: {fileID: 8300000, guid: a81c90d61989f9944a00320a38b399ef, type: 3}
   selectSound: {fileID: 8300000, guid: a81c90d61989f9944a00320a38b399ef, type: 3}
   backSound: {fileID: 8300000, guid: a81c90d61989f9944a00320a38b399ef, type: 3}
@@ -1394,9 +1397,11 @@ MonoBehaviour:
   exitTrigger: Exit
   menuControllerToDisable: {fileID: 0}
   paperTransitionAnimator: {fileID: 639476797}
+  paperTriggerName: PaperOpen
   delayBeforePaperStarts: 1
   paperCoverDuration: 1.2
   beachWipeAnimator: {fileID: 639476796}
+  wipeTriggerName: SlideWipe
   delayBeforeBeachStarts: 1
   beachCoverDuration: 1.958
   snowWipeAnimator: {fileID: 639476795}
@@ -2269,6 +2274,7 @@ MonoBehaviour:
   isQuitButton: 0
   quitDelay: 0.5
   sceneName: MultiplayerScene
+  useMultiplayerTransition: 1
   exitOrchestrator: {fileID: 910669660}
 --- !u!114 &1821938494
 MonoBehaviour:
@@ -2313,7 +2319,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1821938495}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 0}
+        m_TargetAssemblyTypeName: 
+        m_MethodName: 
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1821938495
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2666,6 +2684,7 @@ MonoBehaviour:
   isQuitButton: 0
   quitDelay: 0.5
   sceneName: ControllerConnectScene
+  useMultiplayerTransition: 0
   exitOrchestrator: {fileID: 910669660}
 --- !u!114 &2114477506
 MonoBehaviour:

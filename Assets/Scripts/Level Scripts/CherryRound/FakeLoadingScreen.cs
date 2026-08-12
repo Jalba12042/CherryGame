@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
 
 public class FakeLoadingScreen : MonoBehaviour
 {
@@ -13,6 +14,9 @@ public class FakeLoadingScreen : MonoBehaviour
     public string[] tips;
     public float tipInterval = 2f;
     public TMP_Text levelTitleText;
+
+    [Header("--- THEATER CURTAINS ---")]
+    public Animator curtainAnimator;
 
     [Header("Ready Up UI")]
     public Image[] playerReadyIcons;
@@ -50,12 +54,11 @@ public class FakeLoadingScreen : MonoBehaviour
     public Sprite mountainSnowballSprite;
     public Sprite mountainRunningSprite;
     public Sprite mountainSittingSprite;
-    public Vector3 mountainItemScale = new Vector3(1f, 1f, 1f); // Lower this to shrink the snowballs!
+    public Vector3 mountainItemScale = new Vector3(1f, 1f, 1f);
     public Vector3 mountainRunScale = new Vector3(1f, 1f, 1f);
     public Vector3 mountainSitScale = new Vector3(0.6f, 0.6f, 1f);
     // ==========================================
 
-    // Internal tracking for whatever map we are currently on
     private Sprite activeRunSprite;
     private Sprite activeSitSprite;
     private Vector3 activeRunScale;
@@ -74,6 +77,12 @@ public class FakeLoadingScreen : MonoBehaviour
 
     private void Start()
     {
+        // OPEN THE CURTAINS INSTANTLY
+        if (curtainAnimator != null)
+        {
+            curtainAnimator.SetTrigger("OpenCurtains");
+        }
+
         ApplyMapTheme();
 
         foreach (var player in FindObjectsByType<Playermovement>(FindObjectsSortMode.None))
@@ -93,7 +102,6 @@ public class FakeLoadingScreen : MonoBehaviour
             tipsText.text = tips[0];
         }
 
-        // Apply the correct Run Sprite and Run Scale when loading starts
         if (playerIcon != null && activeRunSprite != null)
         {
             playerIcon.sprite = activeRunSprite;
@@ -129,7 +137,6 @@ public class FakeLoadingScreen : MonoBehaviour
     {
         string sceneName = SceneManager.GetActiveScene().name;
 
-        // Set Defaults (Park)
         Sprite currentItemSprite = parkCherrySprite;
         Vector3 currentItemScale = parkItemScale;
 
@@ -165,7 +172,6 @@ public class FakeLoadingScreen : MonoBehaviour
             if (levelTitleText != null) levelTitleText.text = "Level Loading: Park";
         }
 
-        // Swap the image AND the scale for all 18 objects
         if (cherries != null)
         {
             foreach (GameObject item in cherries)
@@ -225,7 +231,6 @@ public class FakeLoadingScreen : MonoBehaviour
                 loadingComplete = true;
                 pressAButtonPrompt.SetActive(true);
 
-                // Apply the correct Sit Sprite and Sit Scale when loading ends
                 if (playerIcon != null && activeSitSprite != null)
                 {
                     playerIcon.sprite = activeSitSprite;

@@ -164,7 +164,7 @@ public class InputManager : MonoBehaviour
     public bool GetGrabDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.E); // Mapped to E
+        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.E);
         return GetPad(playerID)?.rightTrigger.wasPressedThisFrame ?? false;
     }
 
@@ -178,7 +178,7 @@ public class InputManager : MonoBehaviour
     public bool GetDashDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.LeftShift); // Mapped to Shift
+        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.LeftShift);
         return GetPad(playerID)?.buttonWest.wasPressedThisFrame ?? false;
     }
 
@@ -192,15 +192,45 @@ public class InputManager : MonoBehaviour
     public bool GetScreamDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.R); // Mapped to R
+        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.R);
         return GetPad(playerID)?.buttonEast.wasPressedThisFrame ?? false;
     }
 
     public bool GetEscapeDown(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.F); // Mapped to F for escaping
+        if (IsKeyboardPlayer(playerID)) return Input.GetKeyDown(KeyCode.F);
         return GetPad(playerID)?.buttonNorth.wasPressedThisFrame ?? false;
+    }
+
+    // --- NEW: PLAYER INDICATOR CHECK ---
+    public bool GetIndicatorDown(int playerID)
+    {
+        // 1. Check Keyboard (If officially assigned, or if fallback testing as P1)
+        if (IsKeyboardPlayer(playerID) || (!IsAssigned(playerID) && playerID == 1))
+        {
+            if (Input.GetKeyDown(KeyCode.Tab)) return true;
+        }
+
+        // 2. Check Gamepad
+        Gamepad pad = GetPad(playerID);
+
+        // Fallback for testing directly in the scene without assigning controllers
+        if (pad == null && !IsAssigned(playerID) && Gamepad.all.Count >= playerID)
+        {
+            pad = Gamepad.all[playerID - 1];
+        }
+
+        // Check D-Pad
+        if (pad != null)
+        {
+            return pad.dpad.up.wasPressedThisFrame ||
+                   pad.dpad.down.wasPressedThisFrame ||
+                   pad.dpad.left.wasPressedThisFrame ||
+                   pad.dpad.right.wasPressedThisFrame;
+        }
+
+        return false;
     }
 
     // -- Gameplay Buttons (held) -------------------------------------------
@@ -208,7 +238,7 @@ public class InputManager : MonoBehaviour
     public bool GetButton1Held(int playerID)
     {
         if (!IsAssigned(playerID)) return false;
-        if (IsKeyboardPlayer(playerID)) return Input.GetKey(KeyCode.E); // Mapped to E for Holding Grab
+        if (IsKeyboardPlayer(playerID)) return Input.GetKey(KeyCode.E);
         return GetPad(playerID)?.rightTrigger.isPressed ?? false;
     }
 
