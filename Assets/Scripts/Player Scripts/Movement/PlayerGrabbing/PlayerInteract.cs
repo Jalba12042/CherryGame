@@ -1,5 +1,5 @@
-using Assets.DuckType.Jiggle;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,23 +10,54 @@ public class PlayerInteract : MonoBehaviour
 {
     // ===== GRAB =====
     [Header("Grab Settings")]
-    public Transform pickupTarget;
     public float pickupRange = 2f;
-    public float grabCooldownTime = 1f;
+
+    [Tooltip("How fast the grabbed player moves while being grabbed by one player.")]
+    [Range(0f, 1f)]
+    public float grabbedSpeedMultiplier = 0.35f;
+
+    [Tooltip("How long a grabber cannot grab the same player after that player escapes.")]
     public float escapeCooldownTime = 1f;
 
-    [Header("Throw (Player)")]
-    [SerializeField] private float throwForceForward = 25f;
-    [SerializeField] private float throwForceUp = 12f;
+    [Tooltip("How long a normal grab cooldown lasts after releasing someone.")]
+    public float grabCooldownTime = 1f;
+
+    [Header("Grab Point")]
+    [SerializeField] private Transform grabPoint;
+
+    [Header("Grab Connection")]
+    [SerializeField] private float grabConnectionDistance = 0.8f;
+
+    [SerializeField] private float grabConnectionStrength = 25f;
+
+    [SerializeField] private float grabConnectionDamping = 8f;
+
+    [SerializeField] private float grabberPriority = 1.25f;
+
+    [Header("Locked Grab Side")]
+    [SerializeField] private float lockedGrabOffset = 0.8f;
+    [SerializeField] private float lockedGrabStrength = 30f;
+    [SerializeField] private float lockedGrabDamping = 10f;
+
+    private PlayerInteract leftArmGrabber;
+    private PlayerInteract rightArmGrabber;
+    private int leftArmLayer;
+    private int rightArmLayer;
+
+    private class GrabData
+    {
+        public PlayerInteract target;
+        public Vector3 localGrabOffset;
+        public string lockedSide;
+    }
+
+    private readonly List<GrabData> grabData = new List<GrabData>();
+
 
     [Header("Grab Audio")]
     [SerializeField] private AudioSource grabSource;
     [SerializeField] private AudioClip grabClip;
     [SerializeField] private AudioClip grabDropClip;
-
-    [Header("Stun UI")]
-    public GameObject stunCanvas;
-    public TMPro.TMP_Text stunTimerText;
 
     [Header("Face Animator")]
     [SerializeField] private Animator faceAnimator;
@@ -42,25 +73,37 @@ public class PlayerInteract : MonoBehaviour
     [SerializeField] private AudioClip cherryDropClip;
 
     // ===== GRABBED STATE (was PlayerGrabbed) =====
-    [HideInInspector] public bool isGrabbed = false;
-    [HideInInspector] public PlayerInteract grabber;
+    // Players THIS player is currently grabbing
+    private readonly List<PlayerInteract> grabbedPlayers = new List<PlayerInteract>();
+
+    // Players currently grabbing THIS player
+    private readonly List<PlayerInteract> grabbingPlayers = new List<PlayerInteract>();
+
+    // Players this player currently cannot grab because of an escape cooldown
+    private readonly Dictionary<PlayerInteract, Coroutine> escapeCooldowns =
+        new Dictionary<PlayerInteract, Coroutine>();
+
+    private readonly Dictionary<PlayerInteract, Vector3> grabDirections =
+    new Dictionary<PlayerInteract, Vector3>();
+
 
     // ===== PRIVATE =====
     private Playermovement player;
     private Projectile projectileScript;
     private SnowballThrow snowballThrow;
     private Animator animator;
-    private Jiggle[] jiggleParts;
     private PlayerPowerupHandler powerupHandler;
     private Collider myCollider;
 
     private bool canGrab = true;
-    private bool grabEscapeCooldown = false;
-    private GameObject grabbedPlayer;
-    private Rigidbody grabbedRigidbody;
-    private Collider grabbedCollider;
+
+    public bool IsBeingGrabbed => grabbingPlayers.Count > 0;
+
+    public bool IsGrabbingSomeone => grabbedPlayers.Count > 0;
+
+    public int NumberOfGrabbers => grabbingPlayers.Count;
+
     private GameObject nearbyPlayer;
-    private bool ltWasHeld = false;
 
     // SNOWBALL STUFF
     private SnowballPile nearbySnowPile;
@@ -68,12 +111,9 @@ public class PlayerInteract : MonoBehaviour
 
     private int snowballsRemaining = 0;
 
-
-    private bool rtHeld = false;
-    private float rtHoldTime = 0f;
     private bool rtWasDown = false;
+    private float rtHoldTime = 0f;
     private bool ignoreNextRelease = false;
-
 
     [SerializeField]
     private float throwHoldThreshold = 0.2f;
@@ -93,12 +133,16 @@ public class PlayerInteract : MonoBehaviour
         powerupHandler = GetComponent<PlayerPowerupHandler>();
         projectileScript = GetComponent<Projectile>();
         animator = GetComponent<Animator>();
-        myCollider = GetComponent<Collider>();
-        jiggleParts = GetComponentsInChildren<Jiggle>();
-        snowballThrow = GetComponent<SnowballThrow>();
 
-        if (stunCanvas != null)
-            stunCanvas.SetActive(false);
+        leftArmLayer = animator.GetLayerIndex("LeftArmOverride");
+        rightArmLayer = animator.GetLayerIndex("RightArmOverride");
+
+        // Start disabled
+        animator.SetLayerWeight(leftArmLayer, 0f);
+        animator.SetLayerWeight(rightArmLayer, 0f);
+
+        myCollider = GetComponent<Collider>();
+        snowballThrow = GetComponent<SnowballThrow>();
     }
 
     void Update()
@@ -106,17 +150,8 @@ public class PlayerInteract : MonoBehaviour
         if (cherryPickupCooldown > 0f)
             cherryPickupCooldown -= Time.deltaTime;
 
-        if (grabbedPlayer != null && pickupTarget != null)
-        {
-            grabbedPlayer.transform.position = pickupTarget.position;
-            grabbedPlayer.transform.rotation = pickupTarget.rotation;
-        }
-
-        if (grabEscapeCooldown) return;
-
-        /*bool rtAvailable = powerupHandler == null || !powerupHandler.rtConsumedThisFrame;
-        if (InputManager.Instance.GetGrabDown(player.playerID) && rtAvailable)
-            OnInteractPressed();*/
+        if (!canGrab)
+            return;
 
         bool rt = InputManager.Instance.GetButton1Held(player.playerID);
 
@@ -126,13 +161,36 @@ public class PlayerInteract : MonoBehaviour
         // PICKUP / GRAB IMMEDIATELY ON PRESS
         if (rtPressed)
         {
-            if (heldPickup == null && grabbedPlayer == null)
+            // Only pick up/grab if we are currently empty-handed
+            if (heldPickup == null)
             {
                 OnInteractPressed();
 
+                // Only use the pickup release protection if
+                // we actually picked up an item.
+                if (heldPickup != null)
+                {
+                    ignoreNextRelease = true;
+                }
+            }
+
+            rtHoldTime = 0f;
+        }
+
+        /*if (rtPressed)
+        {
+            // Only pick up/grab if we are currently empty-handed
+            if (heldPickup == null)
+            {
+                OnInteractPressed();
+
+                // Prevent the release of this same button press
+                // from immediately dropping the newly picked-up item.
                 ignoreNextRelease = true;
             }
-        }
+
+            rtHoldTime = 0f;
+        }*/
 
         // TRACK HOLD TIME
         if (rt)
@@ -143,6 +201,29 @@ public class PlayerInteract : MonoBehaviour
         // HANDLE RELEASE
         if (rtReleased)
         {
+            // =====================================================
+            // PLAYER GRAB RELEASE
+            // =====================================================
+
+            // If we are grabbing a player, releasing RT releases them.
+            // This happens before pickup logic so it does not interfere
+            // with cherries/snowballs.
+            if (IsGrabbingSomeone)
+            {
+                ReleaseAllGrabbedPlayers();
+
+                rtHoldTime = 0f;
+                rtWasDown = rt;
+                return;
+            }
+
+
+            // =====================================================
+            // LEVEL PICKUP LOGIC
+            // =====================================================
+
+            // This is the release of the RT press that picked up
+            // the item. Keep the existing protection.
             if (ignoreNextRelease)
             {
                 ignoreNextRelease = false;
@@ -153,63 +234,92 @@ public class PlayerInteract : MonoBehaviour
 
             bool wasHold = rtHoldTime >= throwHoldThreshold;
 
-            if (wasHold)
+            if (!wasHold)
             {
-                if (grabbedPlayer != null)
+                // Tap while already holding a pickup = drop it
+                if (heldPickup != null)
                 {
-                    ThrowGrabbedPlayer();
-                }
-            }
-            else
-            {
-                if (heldPickup != null || grabbedPlayer != null)
-                {
-                    OnInteractPressed();
+                    LevelPickup pickup =
+                        heldPickup.GetComponent<LevelPickup>();
+
+                    if (pickup != null && pickup.useProjectileThrow)
+                    {
+                        // Cherry
+                        if (!projectileScript.IsAiming())
+                        {
+                            CancelAimAndDrop();
+                        }
+                    }
+                    else
+                    {
+                        // Snowball
+                        snowballThrow.ThrowSnowball();
+                    }
                 }
             }
 
+            // If this was a hold, Projectile handles the throw.
             rtHoldTime = 0f;
         }
 
-        rtWasDown = rt;
 
-        /*bool rt = InputManager.Instance.GetButton1Held(player.playerID);
 
-        if (rt)
+        /*if (rtReleased)
         {
-            rtHeld = true;
-            rtHoldTime += Time.deltaTime;
-        }
-        else if (rtHeld)
-        {
+            // This is the release of the RT press that picked up the item.
+            // Ignore it so the item does not instantly drop.
+            if (ignoreNextRelease)
+            {
+                ignoreNextRelease = false;
+                rtHoldTime = 0f;
+                rtWasDown = rt;
+                return;
+            }
+
             bool wasHold = rtHoldTime >= throwHoldThreshold;
 
-            if (wasHold)
+            if (!wasHold)
             {
-                if (grabbedPlayer != null)
+                // Tap while already holding a pickup = drop it
+                if (heldPickup != null)
                 {
-                    ThrowGrabbedPlayer();
+                    LevelPickup pickup =
+                        heldPickup.GetComponent<LevelPickup>();
+
+                    if (pickup != null && pickup.useProjectileThrow)
+                    {
+                        // Cherry
+                        if (!projectileScript.IsAiming())
+                        {
+                            CancelAimAndDrop();
+                        }
+                    }
+                    else
+                    {
+                        // Snowball
+                        snowballThrow.ThrowSnowball();
+                    }
                 }
             }
-            else
-            {
-                OnInteractPressed();
-            }
 
-            rtHeld = false;
+            // IMPORTANT:
+            // If this was a hold, do nothing here.
+            // Projectile handles the actual throw when RT is released.
             rtHoldTime = 0f;
-        }*/
+    }*/
+
+        rtWasDown = rt;
+    }
+
+    private void FixedUpdate()
+    {
+        UpdateGrabbedPlayers();
+
+        UpdateGrabbedPullAnimation();
     }
 
     private void OnInteractPressed()
     {
-
-        if (grabbedPlayer != null)
-        {
-            ReleaseGrab();
-            return;
-        }
-
         if (nearbySnowPile != null && snowballsRemaining == 0)
         {
             GiveSnowballs();
@@ -238,206 +348,950 @@ public class PlayerInteract : MonoBehaviour
         HandlePickup();
     }
 
-    // ===== GRAB =====
-
+    // =================================== START OF PLAYER GRABBING ==========================
     public bool TryGrab()
     {
-        if (!canGrab || grabbedPlayer != null || isGrabbed) return false;
+        if (!canGrab)
+            return false;
 
-        if (nearbyPlayer == null || Vector3.Distance(transform.position, nearbyPlayer.transform.position) > pickupRange)
+        nearbyPlayer = FindClosestPlayer();
+
+        if (nearbyPlayer == null)
+            return false;
+
+        PlayerInteract targetInteract =
+            nearbyPlayer.GetComponent<PlayerInteract>();
+
+        if (targetInteract == null)
+            return false;
+
+        // Cannot grab yourself
+        if (targetInteract == this)
+            return false;
+
+        // Cannot grab someone who is on cooldown specifically from you
+        if (escapeCooldowns.ContainsKey(targetInteract))
+            return false;
+
+        PlayerEffects pe =
+            nearbyPlayer.GetComponent<PlayerEffects>();
+
+        if (pe != null && pe.isBig)
+            return false;
+        
+        //Adds this player as a grabber
+        if (grabbedPlayers.Contains(targetInteract))
+            return false;
+
+
+        grabbedPlayers.Add(targetInteract);
+
+        targetInteract.AddGrabber(this);
+
+        // Remember exactly which side we grabbed them from.
+        Vector3 grabDirection =
+            transform.position - targetInteract.transform.position;
+
+        grabDirection.y = 0f;
+
+        if (grabDirection.sqrMagnitude > 0.01f)
         {
-            nearbyPlayer = null;
-            Collider[] hits = Physics.OverlapSphere(transform.position, pickupRange);
-            float closest = float.MaxValue;
-            foreach (var hit in hits)
+            // Convert the grabber's position into the grabbed player's
+            // local space so we know which side they are on.
+            Vector3 localDirection =
+                targetInteract.transform.InverseTransformDirection(
+                    grabDirection.normalized
+                );
+
+            string lockedSide;
+
+            if (Mathf.Abs(localDirection.x) > Mathf.Abs(localDirection.z))
             {
-                Playermovement pm = hit.GetComponent<Playermovement>() ?? hit.GetComponentInParent<Playermovement>();
-                if (pm == null || pm.playerIndex == player.playerIndex) continue;
-                float dist = Vector3.Distance(transform.position, pm.transform.position);
-                if (dist < closest) { closest = dist; nearbyPlayer = pm.gameObject; }
+                lockedSide = localDirection.x > 0f ? "RIGHT" : "LEFT";
             }
+            else
+            {
+                lockedSide = localDirection.z > 0f ? "BACK" : "FRONT";
+            }
+
+            Debug.Log("Player is grabbing " + lockedSide + " side");
+
+            GrabData data = new GrabData();
+
+            data.target = targetInteract;
+            data.lockedSide = lockedSide;
+
+            // Store the grabber's position relative to the grabbed player's rotation.
+            data.localGrabOffset =
+                localDirection * lockedGrabOffset;
+
+            grabData.Add(data);
         }
 
-        if (nearbyPlayer == null) return false;
 
-        PlayerEffects pe = nearbyPlayer.GetComponent<PlayerEffects>();
-        if (pe != null && pe.isBig) return false;
+        if (animator != null)
+            animator.SetBool("isGrabbing", true);
 
-        PlayerInteract targetInteract = nearbyPlayer.GetComponent<PlayerInteract>();
-        if (targetInteract != null && targetInteract.isGrabbed) return false;
-
-        grabbedPlayer = nearbyPlayer;
-        animator.SetBool("isGrabbing", true);
-
+        
         if (grabSource != null && grabClip != null)
         {
             grabSource.pitch = Random.Range(0.95f, 1.05f);
             grabSource.PlayOneShot(grabClip);
         }
 
-        grabbedRigidbody = grabbedPlayer.GetComponent<Rigidbody>();
-        if (grabbedRigidbody != null) grabbedRigidbody.isKinematic = true;
-
-        grabbedCollider = grabbedPlayer.GetComponent<Collider>();
-        if (grabbedCollider != null) Physics.IgnoreCollision(myCollider, grabbedCollider, true);
-
-        Playermovement grabbedMovement = grabbedPlayer.GetComponent<Playermovement>();
-        if (grabbedMovement != null) grabbedMovement.canMove = false;
-
-        if (targetInteract != null)
-        {
-            targetInteract.isGrabbed = true;
-            targetInteract.grabber = this;
-        }
-
-        Animator grabbedAnimator = grabbedPlayer.GetComponent<Animator>();
-        if (grabbedAnimator != null) grabbedAnimator.SetBool("isGrabbed", true);
-
-        PlayerEscapeUI escapeUI = grabbedPlayer.GetComponent<PlayerEscapeUI>();
-        if (escapeUI != null) escapeUI.StartBeingGrabbed(this);
-
-        SetJiggle(false);
         return true;
     }
 
-    public void ReleaseGrab()
+    private void UpdateGrabbedPlayers()
     {
-        if (grabbedPlayer == null) return;
+        if (grabData.Count > 0)
+        {
+            GrabData debugData = grabData[0];
+
+            if (debugData != null && debugData.target != null)
+            {
+                Vector3 currentDirection =
+                    transform.position - debugData.target.transform.position;
+
+                currentDirection.y = 0f;
+
+                if (currentDirection.sqrMagnitude > 0.01f)
+                {
+                    Vector3 localCurrentDirection =
+                        debugData.target.transform.InverseTransformDirection(
+                            currentDirection.normalized
+                        );
+
+                    string currentSide;
+
+                    if (Mathf.Abs(localCurrentDirection.x) >
+                        Mathf.Abs(localCurrentDirection.z))
+                    {
+                        currentSide =
+                            localCurrentDirection.x > 0f
+                            ? "RIGHT"
+                            : "LEFT";
+                    }
+                    else
+                    {
+                        currentSide =
+                            localCurrentDirection.z > 0f
+                            ? "FRONT"
+                            : "BACK";
+                    }
+
+                    Debug.Log(
+                        "Locked side: " +
+                        debugData.lockedSide +
+                        " | Current side: " +
+                        currentSide
+                    );
+                }
+            }
+        }
+
+
+        if (grabData.Count == 0)
+            return;
+
+        foreach (GrabData data in grabData)
+        {
+            if (data == null || data.target == null)
+                continue;
+
+            PlayerInteract grabbedPlayer = data.target;
+
+            Rigidbody grabberRigidbody =
+                GetComponent<Rigidbody>();
+
+            Rigidbody grabbedRigidbody =
+                grabbedPlayer.GetComponent<Rigidbody>();
+
+            if (grabberRigidbody == null ||
+                grabbedRigidbody == null)
+                continue;
+
+
+            // =====================================================
+            // FIND WHERE THE GRABBER SHOULD BE
+            // =====================================================
+
+            Vector3 desiredOffset =
+                grabbedPlayer.transform.TransformDirection(
+                    data.localGrabOffset
+                );
+
+            desiredOffset.y = 0f;
+
+            Vector3 desiredPosition =
+                grabbedPlayer.transform.position +
+                desiredOffset;
+
+
+            // =====================================================
+            // HOW FAR IS THE GRABBER FROM ITS LOCKED POSITION?
+            // =====================================================
+
+            Vector3 positionError =
+                desiredPosition -
+                transform.position;
+
+            positionError.y = 0f;
+
+
+            // =====================================================
+            // RELATIVE VELOCITY
+            // =====================================================
+
+            Vector3 grabberVelocity =
+                grabberRigidbody.linearVelocity;
+
+            Vector3 grabbedVelocity =
+                grabbedRigidbody.linearVelocity;
+
+            grabberVelocity.y = 0f;
+            grabbedVelocity.y = 0f;
+
+            Vector3 relativeVelocity =
+                grabbedVelocity -
+                grabberVelocity;
+
+
+            // =====================================================
+            // SPRING + DAMPING
+            // =====================================================
+
+            float separatingVelocity =
+                Vector3.Dot(
+                    relativeVelocity,
+                    positionError.normalized
+                );
+
+
+            float springForce =
+                positionError.magnitude *
+                lockedGrabStrength;
+
+
+            float dampingForce =
+                separatingVelocity *
+                lockedGrabDamping;
+
+
+            float totalForce =
+                springForce +
+                dampingForce;
+
+
+            Vector3 force;
+
+            if (positionError.sqrMagnitude > 0.0001f)
+            {
+                force =
+                    positionError.normalized *
+                    totalForce;
+            }
+            else
+            {
+                force = Vector3.zero;
+            }
+
+
+            // =====================================================
+            // BOTH PLAYERS PARTICIPATE IN THE CONNECTION
+            // =====================================================
+
+            // Grabber gets pulled toward the locked position.
+            grabberRigidbody.AddForce(
+                force,
+                ForceMode.Acceleration
+            );
+
+            // Grabbed player gets pulled along with the grabber.
+            grabbedRigidbody.AddForce(
+                -force * grabberPriority,
+                ForceMode.Acceleration
+            );
+        }
+    }
+
+    private void UpdateArmOwnership()
+    {
+        leftArmGrabber = null;
+        rightArmGrabber = null;
+
+        foreach (PlayerInteract grabber in grabbingPlayers)
+        {
+            if (grabber == null)
+                continue;
+
+            Vector3 direction =
+                grabber.transform.position - transform.position;
+
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude < 0.01f)
+                continue;
+
+            direction.Normalize();
+
+            Vector3 local =
+                transform.InverseTransformDirection(direction);
+
+            // LEFT SIDE
+            if (local.x < 0f)
+            {
+                if (leftArmGrabber == null)
+                {
+                    leftArmGrabber = grabber;
+                }
+            }
+
+            // RIGHT SIDE
+            else
+            {
+                if (rightArmGrabber == null)
+                {
+                    rightArmGrabber = grabber;
+                }
+            }
+        }
+
+        // If one side has nobody, let the other grabber take over.
+        if (leftArmGrabber == null)
+            leftArmGrabber = rightArmGrabber;
+
+        if (rightArmGrabber == null)
+            rightArmGrabber = leftArmGrabber;
+    }
+    private void UpdateGrabbedPullAnimation()
+    {
+        if (animator == null)
+            return;
+
+
+        // Nobody grabbing us
+        if (grabbingPlayers.Count == 0)
+        {
+            animator.SetLayerWeight(leftArmLayer, 0f);
+            animator.SetLayerWeight(rightArmLayer, 0f);
+
+            animator.SetFloat("LeftPullX", 0f);
+            animator.SetFloat("LeftPullY", 0f);
+
+            animator.SetFloat("RightPullX", 0f);
+            animator.SetFloat("RightPullY", 0f);
+
+            return;
+        }
+
+
+        UpdateArmOwnership();
+
+
+        // ===================================
+        // ONE GRABBER
+        // ===================================
+
+        if (grabbingPlayers.Count == 1)
+        {
+            PlayerInteract grabber = grabbingPlayers[0];
+
+            if (grabber == null)
+                return;
+
+
+            Vector3 direction =
+                grabber.transform.position - transform.position;
+
+            direction.y = 0f;
+
+            Vector3 local =
+                transform.InverseTransformDirection(direction.normalized);
+
+
+            // Decide which arm
+            if (local.x < 0)
+            {
+                // LEFT ARM
+                animator.SetLayerWeight(leftArmLayer, 1f);
+                animator.SetLayerWeight(rightArmLayer, 0f);
+
+                animator.SetFloat("LeftPullX", local.x);
+                animator.SetFloat("LeftPullY", -local.z);
+            }
+            else
+            {
+                // RIGHT ARM
+                animator.SetLayerWeight(rightArmLayer, 1f);
+                animator.SetLayerWeight(leftArmLayer, 0f);
+
+                animator.SetFloat("RightPullX", local.x);
+                animator.SetFloat("RightPullY", -local.z);
+            }
+
+
+            return;
+        }
+
+
+        // ===================================
+        // TWO GRABBERS
+        // ===================================
+
+        if (grabbingPlayers.Count >= 2)
+        {
+            animator.SetLayerWeight(leftArmLayer, 1f);
+            animator.SetLayerWeight(rightArmLayer, 1f);
+
+
+            if (leftArmGrabber != null)
+            {
+                Vector3 leftDirection =
+                    leftArmGrabber.transform.position -
+                    transform.position;
+
+                leftDirection.y = 0f;
+
+                Vector3 leftLocal =
+                    transform.InverseTransformDirection(
+                        leftDirection.normalized
+                    );
+
+
+                animator.SetFloat(
+                    "LeftPullX",
+                    leftLocal.x
+                );
+
+                animator.SetFloat(
+                    "LeftPullY",
+                    -leftLocal.z
+                );
+            }
+
+
+            if (rightArmGrabber != null)
+            {
+                Vector3 rightDirection =
+                    rightArmGrabber.transform.position -
+                    transform.position;
+
+                rightDirection.y = 0f;
+
+                Vector3 rightLocal =
+                    transform.InverseTransformDirection(
+                        rightDirection.normalized
+                    );
+
+
+                animator.SetFloat(
+                    "RightPullX",
+                    rightLocal.x
+                );
+
+                animator.SetFloat(
+                    "RightPullY",
+                    -rightLocal.z
+                );
+            }
+        }
+    }
+
+    /*private void UpdateGrabbedPullAnimation()
+    {
+        // This player isn't being grabbed.
+        if (grabbingPlayers.Count == 0)
+        {
+            animator.SetBool("isPullingLeft", false);
+            animator.SetBool("isPullingRight", false);
+            animator.SetBool("isPullingBoth", false);
+            return;
+        }
+
+        bool hasLeftGrabber = false;
+        bool hasRightGrabber = false;
+
+        foreach (PlayerInteract grabber in grabbingPlayers)
+        {
+            if (grabber == null)
+                continue;
+
+            Vector3 direction =
+                grabber.transform.position - transform.position;
+
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude < 0.01f)
+                continue;
+
+            // Convert grabber position into THIS player's local space.
+            Vector3 localDirection =
+                transform.InverseTransformDirection(
+                    direction.normalized
+                );
+
+            // Ignore front/back for these animations.
+            if (Mathf.Abs(localDirection.x) >
+                Mathf.Abs(localDirection.z))
+            {
+                if (localDirection.x > 0f)
+                    hasRightGrabber = true;
+                else
+                    hasLeftGrabber = true;
+            }
+        }
+
+        // LEFT + RIGHT
+        animator.SetBool(
+            "isPullingBoth",
+            hasLeftGrabber && hasRightGrabber
+        );
+
+        // LEFT only
+        animator.SetBool(
+            "isPullingLeft",
+            hasLeftGrabber && !hasRightGrabber
+        );
+
+        // RIGHT only
+        animator.SetBool(
+            "isPullingRight",
+            hasRightGrabber && !hasLeftGrabber
+        );
+    }*/
+
+    /*private void UpdateGrabbedPlayers()
+    {
+        if (grabbedPlayers.Count == 0)
+            return;
+
+        foreach (PlayerInteract grabbedPlayer in grabbedPlayers)
+        {
+            if (grabbedPlayer == null)
+                continue;
+
+            Rigidbody grabberRigidbody =
+                GetComponent<Rigidbody>();
+
+            Rigidbody grabbedRigidbody =
+                grabbedPlayer.GetComponent<Rigidbody>();
+
+            if (grabberRigidbody == null ||
+                grabbedRigidbody == null)
+                continue;
+
+
+            //Gets connection direction
+            Vector3 connection =
+                grabbedPlayer.transform.position -
+                transform.position;
+
+            connection.y = 0f;
+
+            float distance =
+                connection.magnitude;
+
+            if (distance <= 0.01f)
+                continue;
+
+            Vector3 direction =
+                connection.normalized;
+
+            //Determines ideal distance for both players
+            float distanceError =
+                distance -
+                grabConnectionDistance;
+  
+            
+            //Gets both players horizontal vertices
+            Vector3 grabberVelocity =
+                grabberRigidbody.linearVelocity;
+
+            Vector3 grabbedVelocity =
+                grabbedRigidbody.linearVelocity;
+
+            grabberVelocity.y = 0f;
+            grabbedVelocity.y = 0f;
+
+
+            Vector3 relativeVelocity =
+                grabbedVelocity -
+                grabberVelocity;
+
+
+            // How quickly they are moving away from each other
+            float separatingVelocity =
+                Vector3.Dot(
+                    relativeVelocity,
+                    direction);
+
+            //Spring Force
+            float springForce =
+                distanceError *
+                grabConnectionStrength;
+
+            //Damping
+            float dampingForce =
+                separatingVelocity *
+                grabConnectionDamping;
+
+
+            float totalForce =
+                springForce +
+                dampingForce;
+
+
+          
+            //Applies force to both players
+            Vector3 force =
+                direction *
+                totalForce;
+
+
+            // Grabbed player is pulled toward grabber
+            grabbedRigidbody.AddForce(
+                -force,
+                ForceMode.Acceleration);
+
+
+            // Grabber is pulled toward grabbed player
+            grabberRigidbody.AddForce(
+                force *
+                grabberPriority,
+                ForceMode.Acceleration);
+        }
+    }*/
+
+    private GameObject FindClosestPlayer()
+    {
+        Collider[] hits =
+            Physics.OverlapSphere(transform.position, pickupRange);
+
+        GameObject closestPlayer = null;
+        float closestDistance = float.MaxValue;
+
+        foreach (Collider hit in hits)
+        {
+            Playermovement pm =
+                hit.GetComponent<Playermovement>() ??
+                hit.GetComponentInParent<Playermovement>();
+
+            if (pm == null)
+                continue;
+
+            if (pm.playerIndex == player.playerIndex)
+                continue;
+
+            PlayerInteract targetInteract =
+                pm.GetComponent<PlayerInteract>();
+
+            if (targetInteract == null)
+                continue;
+
+            // Do not grab a player who is currently on cooldown from us
+            if (escapeCooldowns.ContainsKey(targetInteract))
+                continue;
+
+            float distance =
+                Vector3.Distance(transform.position, pm.transform.position);
+
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closestPlayer = pm.gameObject;
+            }
+        }
+
+        return closestPlayer;
+    }
+
+
+    //Is called on player being grabbed
+    public void AddGrabber(PlayerInteract grabber)
+    {
+        if (grabber == null)
+            return;
+
+        if (grabbingPlayers.Contains(grabber))
+            return;
+
+        grabbingPlayers.Add(grabber);
+        
+        //Applies Slowdown
+        if (grabbingPlayers.Count == 1)
+        {
+            StartCoroutine(ApplyGrabSlowdown());
+
+
+            // Start escape UI
+            PlayerEscapeUI escapeUI =
+                GetComponent<PlayerEscapeUI>();
+
+            if (escapeUI != null)
+                escapeUI.StartBeingGrabbed();
+        }
+
+        
+        //Grabbed animation
+        if (animator != null)
+            animator.SetBool("isGrabbed", true);
+    }
+
+
+    public void RemoveGrabber(PlayerInteract grabber)
+    {
+        if (grabber == null)
+            return;
+
+        grabbingPlayers.Remove(grabber);
+
+
+        
+        //if no one is grabbing anyone
+        if (grabbingPlayers.Count == 0)
+        {
+            StopBeingGrabbed();
+
+            PlayerEscapeUI escapeUI =
+                GetComponent<PlayerEscapeUI>();
+
+            if (escapeUI != null)
+                escapeUI.StopBeingGrabbed();
+        }
+    }
+
+
+    //Grabbed player is slow after being released/Escaping
+    private IEnumerator ApplyGrabSlowdown()
+    {
+        float originalSpeed = player.moveSpeed;
+
+        while (grabbingPlayers.Count > 0)
+        {
+            int grabberCount = grabbingPlayers.Count;
+
+
+            // One grabber = slowed
+            if (grabberCount == 1)
+            {
+                player.moveSpeed =
+                    originalSpeed * grabbedSpeedMultiplier;
+            }
+
+
+            // Two or more grabbers = cannot move
+            else
+            {
+                player.moveSpeed = 0f;
+            }
+
+            yield return null;
+        }
+
+        // Gradually restore speed over 3 seconds
+        float startingSpeed = player.moveSpeed;
+        float elapsed = 0f;
+
+        while (elapsed < 3f)
+        {
+            elapsed += Time.deltaTime;
+
+            float t = elapsed / 3f;
+
+            player.moveSpeed =
+                Mathf.Lerp(startingSpeed, originalSpeed, t);
+
+            yield return null;
+        }
+
+        player.moveSpeed = originalSpeed;
+    }
+
+
+    private void StopBeingGrabbed()
+    {
+        if (animator != null)
+        {
+            animator.SetBool("isGrabbed", false);
+        }
+    }
+
+    public void ReleaseGrabbedPlayer(PlayerInteract target)
+    {
+        if (target == null)
+            return;
+
+        if (!grabbedPlayers.Contains(target))
+            return;
+
+        grabbedPlayers.Remove(target);
+
+        grabData.RemoveAll(data => data.target == target);
+
+        target.RemoveGrabber(this);
+
+
+        if (grabbedPlayers.Count == 0)
+        {
+            if (animator != null)
+                animator.SetBool("isGrabbing", false);
+        }
+
 
         if (grabSource != null && grabDropClip != null)
         {
-            grabSource.pitch = Random.Range(0.9f, 1.0f);
+            grabSource.pitch = Random.Range(0.9f, 1f);
             grabSource.PlayOneShot(grabDropClip);
         }
-
-        if (grabbedRigidbody != null) grabbedRigidbody.isKinematic = false;
-        if (grabbedCollider != null) Physics.IgnoreCollision(myCollider, grabbedCollider, false);
-
-        Playermovement pm = grabbedPlayer.GetComponent<Playermovement>();
-        if (pm != null) pm.canMove = true;
-
-        PlayerEscapeUI escapeUI = grabbedPlayer.GetComponent<PlayerEscapeUI>();
-        if (escapeUI != null) escapeUI.StopBeingGrabbed();
-
-        PlayerInteract grabbedInteract = grabbedPlayer.GetComponent<PlayerInteract>();
-        if (grabbedInteract != null)
-        {
-            grabbedInteract.isGrabbed = false;
-            grabbedInteract.grabber = null;
-            grabbedInteract.enabled = true;
-        }
-
-        Animator grabbedAnimator = grabbedPlayer.GetComponent<Animator>();
-        if (grabbedAnimator != null) grabbedAnimator.SetBool("isGrabbed", false);
-
-        if (animator != null) animator.SetBool("isGrabbing", false);
-
-        SetJiggle(true);
-        grabbedPlayer = null;
-        grabbedRigidbody = null;
-        grabbedCollider = null;
 
         StartCoroutine(GrabCooldown());
     }
 
-    private void ThrowGrabbedPlayer()
+
+    // Release all grabbing players
+    public void ReleaseAllGrabbedPlayers()
     {
-        if (grabbedPlayer == null || grabbedRigidbody == null) return;
+        List<PlayerInteract> playersToRelease =
+            new List<PlayerInteract>(grabbedPlayers);
 
-        GameObject thrownPlayer = grabbedPlayer;
-        Rigidbody thrownRb = grabbedRigidbody;
-        PlayerInteract thrownInteract = grabbedPlayer.GetComponent<PlayerInteract>();
-        Playermovement thrownPm = grabbedPlayer.GetComponent<Playermovement>();
-
-        ReleaseGrab();
-
-        if (animator != null) animator.SetBool("isPickingUp", false);
-
-        Animator thrownAnimator = thrownPlayer.GetComponent<Animator>();
-        if (thrownAnimator != null) thrownAnimator.SetBool("isGrabbed", false);
-
-        thrownRb.isKinematic = false;
-        thrownRb.linearVelocity = Vector3.zero;
-        thrownRb.AddForce(transform.forward * throwForceForward + Vector3.up * throwForceUp, ForceMode.Impulse);
-
-        if (thrownPm != null && thrownInteract != null)
-            StartCoroutine(thrownInteract.StunRoutine(3f));
-
-        if (thrownInteract != null) thrownInteract.enabled = true;
+        foreach (PlayerInteract target in playersToRelease)
+        {
+            ReleaseGrabbedPlayer(target);
+        }
     }
 
-    public IEnumerator StunRoutine(float duration)
+    //Escaped player releases from everyone
+    public void EscapeFromAllGrabbers()
     {
-        player.canMove = false;
-        animator.SetBool("isStunned", true);
+        List<PlayerInteract> grabbers =
+            new List<PlayerInteract>(grabbingPlayers);
 
-        RandomFaceChanger rfc = GetComponentInChildren<RandomFaceChanger>();
-        if (rfc != null) rfc.PauseFaces();
-        if (faceAnimator != null) faceAnimator.SetBool("isStunned", true);
-        if (stunCanvas != null) stunCanvas.SetActive(true);
-
-        float remaining = duration;
-        while (remaining > 0f)
+        foreach (PlayerInteract grabber in grabbers)
         {
-            if (stunTimerText != null)
-                stunTimerText.text = Mathf.Ceil(remaining).ToString();
-            yield return new WaitForSeconds(1f);
-            remaining -= 1f;
+            if (grabber != null)
+            {
+                // Prevent this specific grabber from grabbing this
+                // player again for the escape cooldown duration.
+                grabber.StartEscapeCooldownFor(this);
+
+                // Remove this player from the grabber's list.
+                grabber.RemoveGrabbedPlayerWithoutCooldown(this);
+            }
         }
 
-        if (faceAnimator != null) faceAnimator.SetBool("isStunned", false);
-        if (rfc != null) rfc.ResumeFaces();
-        if (stunCanvas != null) stunCanvas.SetActive(false);
+        grabbingPlayers.Clear();
 
-        player.canMove = true;
-        animator.SetBool("isStunned", false);
+        StopBeingGrabbed();
+
+        PlayerEscapeUI escapeUI =
+            GetComponent<PlayerEscapeUI>();
+
+        if (escapeUI != null)
+            escapeUI.StopBeingGrabbed();
+    }
+
+
+    //Removes player without normal grab cooldown
+    public void RemoveGrabbedPlayerWithoutCooldown(PlayerInteract target)
+    {
+        if (target == null)
+            return;
+
+        if (!grabbedPlayers.Contains(target))
+            return;
+
+        grabbedPlayers.Remove(target);
+
+        grabData.RemoveAll(data => data.target == target);
+
+
+        if (grabbedPlayers.Count == 0)
+        {
+            if (animator != null)
+                animator.SetBool("isGrabbing", false);
+        }
+
+
+        if (grabSource != null && grabDropClip != null)
+        {
+            grabSource.pitch = Random.Range(0.9f, 1f);
+            grabSource.PlayOneShot(grabDropClip);
+        }
+    }
+
+    public void StartEscapeCooldownFor(PlayerInteract target)
+    {
+        if (target == null)
+            return;
+
+        if (escapeCooldowns.ContainsKey(target))
+        {
+            StopCoroutine(escapeCooldowns[target]);
+            escapeCooldowns.Remove(target);
+        }
+
+        Coroutine cooldown =
+            StartCoroutine(EscapeCooldownRoutine(target));
+
+        escapeCooldowns.Add(target, cooldown);
+    }
+
+    private IEnumerator EscapeCooldownRoutine(PlayerInteract target)
+    {
+        yield return new WaitForSeconds(escapeCooldownTime);
+
+        if (escapeCooldowns.ContainsKey(target))
+            escapeCooldowns.Remove(target);
     }
 
     public IEnumerator GrabCooldown()
     {
         canGrab = false;
+
         yield return new WaitForSeconds(grabCooldownTime);
+
         canGrab = true;
     }
+
 
     public void ForceRelease()
     {
-        ReleaseGrab();
-        StartCoroutine(EscapeGrabCooldown());
+        ReleaseAllGrabbedPlayers();
+
+        EscapeFromAllGrabbers();
     }
 
-    // Replaces PlayerGrabbed.ReleaseGrabbedPlayer()
-    public void ReleaseIfGrabbed()
-    {
-        if (!isGrabbed || grabber == null) return;
-        grabber.ReleaseGrab();
-        isGrabbed = false;
-    }
 
     public void ForceReleaseAll()
     {
-        if (grabbedPlayer != null) ReleaseGrab();
-        if (isGrabbed) ReleaseIfGrabbed();
+        ForceRelease();
     }
+
 
     public void ResetGrabState()
     {
-        isGrabbed = false;
-        grabber = null;
-        grabEscapeCooldown = false;
+        ReleaseAllGrabbedPlayers();
+
+        EscapeFromAllGrabbers();
+
         canGrab = true;
         nearbyPlayer = null;
-        if (grabbedPlayer != null) ReleaseGrab();
     }
 
-    private IEnumerator EscapeGrabCooldown()
+
+    public Vector3 GetGrabbedPlayerPosition()
     {
-        grabEscapeCooldown = true;
-        yield return new WaitForSeconds(escapeCooldownTime);
-        grabEscapeCooldown = false;
+        if (grabbedPlayers.Count == 0)
+            return transform.position;
+
+        return grabbedPlayers[0].transform.position;
     }
 
-    // ===== CHERRY =====
+
+    // ===================================== END OF PLAYER GRAB ============================================
+
+    // ======================================== ITEM PICKUP ================================================
 
     private void HandlePickup()
     {
@@ -471,8 +1325,6 @@ public class PlayerInteract : MonoBehaviour
             pickupSource.pitch = Random.Range(0.95f, 1.05f);
             pickupSource.PlayOneShot(pickupClip);
         }
-
-        SetJiggle(false);
 
         Rigidbody rbCherry = heldPickup.GetComponent<Rigidbody>();
         if (rbCherry != null) rbCherry.isKinematic = true;
@@ -525,7 +1377,6 @@ public class PlayerInteract : MonoBehaviour
         if (rbCherry != null) rbCherry.isKinematic = false;
 
         SetCherryCollision(true);
-        SetJiggle(true);
 
         if (animator != null) animator.SetBool("isPickingUp", false);
 
@@ -668,12 +1519,5 @@ public class PlayerInteract : MonoBehaviour
         foreach (var p in playerCols)
             foreach (var c in cherryCols)
                 Physics.IgnoreCollision(p, c, !enabled);
-    }
-
-    private void SetJiggle(bool enabled)
-    {
-        if (jiggleParts == null) return;
-        foreach (var jiggle in jiggleParts)
-            if (jiggle != null) jiggle.enabled = enabled;
     }
 }

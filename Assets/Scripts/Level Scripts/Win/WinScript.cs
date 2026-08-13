@@ -4,39 +4,27 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.InputSystem;
 
 public class WinScript : MonoBehaviour
 {
     public static List<int> winningPlayers = new List<int>();
 
-    [Header("UI Elements")]
-    public TextMeshProUGUI winnerText;
+    [Header("Scene Settings")]
     public string shopSceneName = "Shop";
+    public float autoTransitionDelay = 8f; // <-- The 8-second Gang Beasts style wait!
 
     [Header("Scoreboard Flow")]
     public GameObject scoreboardClipboard;
     public ScoreboardUI scoreboardUI;
 
-    [Header("Ready Up UI")]
-    public GameObject pressAButtonPrompt;
-    public Image[] playerReadyIcons;
-    public GameObject[] playerReadyBackgrounds;
-    public Sprite[] colorIcons;
-
     [Header("Name Mapping")]
     public string[] availableNames;
+    public Sprite[] colorIcons;
 
     [Header("Outro Animations")]
     public Animator clipboardAnimator;
-    public Animator toShopTextAnimator;
-    public Animator buttonAAnimator;
     public Animator[] headIconAnimators;
     public float waitBeforeNextScene = 1.5f;
-
-    private bool[] playerReady = new bool[4];
-    private int readyCount = 0;
-    private bool isScoreboardVisible = false;
 
     void Start()
     {
@@ -55,25 +43,6 @@ public class WinScript : MonoBehaviour
             }
         }
 
-        // Set Winner Text
-        if (isTie)
-        {
-            if (winnerText != null) winnerText.text = "IT'S A TIE!";
-        }
-        else
-        {
-            string winName = "PLAYER " + (winnerID + 1);
-            if (GameManager.Instance != null && GameManager.Instance.playerCustomizations.Count > winnerID)
-            {
-                var data = GameManager.Instance.playerCustomizations[winnerID];
-                if (availableNames != null && data.nameIndex >= 0 && data.nameIndex < availableNames.Length)
-                {
-                    winName = availableNames[data.nameIndex];
-                }
-            }
-            if (winnerText != null) winnerText.text = winName + " WINS!";
-        }
-
         // Show the Scoreboard
         if (scoreboardClipboard != null)
         {
@@ -81,96 +50,29 @@ public class WinScript : MonoBehaviour
             if (scoreboardUI != null) scoreboardUI.UpdateScoreboard();
         }
 
-        // Setup the Ready Up UI
-        if (pressAButtonPrompt != null) pressAButtonPrompt.SetActive(true);
-
-        int totalPlayers = GameManager.Instance != null ? GameManager.Instance.playerCount : 4;
-
-        for (int i = 0; i < 4; i++)
-        {
-            bool isPlaying = i < totalPlayers;
-
-            if (playerReadyBackgrounds != null && i < playerReadyBackgrounds.Length && playerReadyBackgrounds[i] != null)
-            {
-                playerReadyBackgrounds[i].SetActive(isPlaying);
-            }
-
-            if (playerReadyIcons != null && i < playerReadyIcons.Length && playerReadyIcons[i] != null)
-            {
-                playerReadyIcons[i].gameObject.SetActive(false);
-            }
-            playerReady[i] = false;
-        }
-
-        readyCount = 0;
-        isScoreboardVisible = true;
+        // Start the auto-transition timer immediately!
+        StartCoroutine(AutoTransitionTimer());
     }
 
-    private void Update()
+    private IEnumerator AutoTransitionTimer()
     {
-        if (!isScoreboardVisible || GameManager.Instance == null) return;
+        // Wait for 8 seconds (let players trash talk and look at the scores)
+        yield return new WaitForSeconds(autoTransitionDelay);
 
-        int totalPlayers = GameManager.Instance.playerCount;
-
-        for (int i = 0; i < totalPlayers; i++)
-        {
-            if (!playerReady[i] && InputManager.Instance.GetConfirmDown(i + 1))
-                ReadyUpPlayer(i);
-        }
-
-        if (readyCount >= totalPlayers && totalPlayers > 0)
-        {
-            isScoreboardVisible = false;
-            StartCoroutine(PlayOutroAndLoadShop());
-        }
-    }
-
-    private void ReadyUpPlayer(int playerIndex)
-    {
-        playerReady[playerIndex] = true;
-        readyCount++;
-
-        if (playerReadyIcons[playerIndex] != null)
-        {
-            playerReadyIcons[playerIndex].gameObject.SetActive(true);
-
-            if (GameManager.Instance.playerCustomizations.Count > playerIndex)
-            {
-                int colorIndex = GameManager.Instance.playerCustomizations[playerIndex].colorIndex;
-                if (colorIndex >= 0 && colorIndex < colorIcons.Length)
-                {
-                    playerReadyIcons[playerIndex].sprite = colorIcons[colorIndex];
-                }
-            }
-        }
+        // Trigger the outro and load the shop
+        StartCoroutine(PlayOutroAndLoadShop());
     }
 
     private IEnumerator PlayOutroAndLoadShop()
     {
-        // --- NEW: TELL THE MUSIC TO FADE OUT ---
+        // --- TELL THE MUSIC TO FADE OUT ---
         if (GameplayMusicManager.Instance != null)
         {
             GameplayMusicManager.Instance.FadeOutToShop(waitBeforeNextScene);
         }
 
-        // 1. Instantly hide the "Ready" icons and backgrounds
-        for (int i = 0; i < 4; i++)
-        {
-            if (playerReadyIcons != null && i < playerReadyIcons.Length && playerReadyIcons[i] != null)
-            {
-                playerReadyIcons[i].gameObject.SetActive(false);
-            }
-
-            if (playerReadyBackgrounds != null && i < playerReadyBackgrounds.Length && playerReadyBackgrounds[i] != null)
-            {
-                playerReadyBackgrounds[i].SetActive(false);
-            }
-        }
-
-        // 2. Play Animators Outro
+        // Play Animators Outro
         if (clipboardAnimator != null) clipboardAnimator.SetTrigger("Outro");
-        if (toShopTextAnimator != null) toShopTextAnimator.SetTrigger("Outro");
-        if (buttonAAnimator != null) buttonAAnimator.SetTrigger("Outro");
 
         if (headIconAnimators != null)
         {
@@ -180,11 +82,10 @@ public class WinScript : MonoBehaviour
             }
         }
 
-        // 3. Wait for animations and music fade
+        // Wait for animations and music fade
         yield return new WaitForSeconds(waitBeforeNextScene);
 
-        // 4. Load Shop
+        // Load Shop
         SceneManager.LoadScene(shopSceneName);
     }
-
 }

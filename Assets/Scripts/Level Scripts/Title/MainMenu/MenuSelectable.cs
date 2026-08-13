@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using System.Collections; // NEW: Needed for Coroutines
+using System.Collections;
 
 [RequireComponent(typeof(Image))]
 public class MenuSelectable : MonoBehaviour
@@ -11,18 +11,18 @@ public class MenuSelectable : MonoBehaviour
     public Sprite highlightImage;
 
     [Header("Action Settings")]
-    public bool isQuitButton = false; // NEW: Check this box ONLY for the Quit sign!
-    public float quitDelay = 0.5f;    // NEW: Gives the button click sound time to play before closing
+    public bool isQuitButton = false;
+    public float quitDelay = 0.5f;
 
-    [Header("Scene To Load (Leave empty if Quit Button)")]
+    [Header("Scene To Load (Leave empty to use On Click list)")]
     public string sceneName;
 
     [Header("Optional: play exit animation before loading")]
-    [Tooltip("If set, scene will load AFTER this orchestrator plays the exit animation.")]
+    [Tooltip("Drag the object holding your MenuExitOrchestrator here!")]
     public MenuExitOrchestrator exitOrchestrator;
 
     private Image img;
-    private bool locked; // prevents double-activations
+    private bool locked;
 
     public RectTransform RectTransform { get; private set; }
 
@@ -43,7 +43,17 @@ public class MenuSelectable : MonoBehaviour
     {
         if (locked) return;
 
-        // Check if it's missing a scene AND it's not a quit button
+        var btn = GetComponent<Button>();
+
+        // SMART FIX: If SceneName is empty, but we have items in the OnClick list, run them instead!
+        if (string.IsNullOrEmpty(sceneName) && btn != null && btn.onClick.GetPersistentEventCount() > 0)
+        {
+            locked = true;
+            btn.interactable = false;
+            btn.onClick.Invoke();
+            return;
+        }
+
         if (!isQuitButton && string.IsNullOrEmpty(sceneName))
         {
             Debug.LogWarning($"[MenuSelectable] No scene assigned on {name}");
@@ -52,17 +62,14 @@ public class MenuSelectable : MonoBehaviour
 
         locked = true;
 
-        var btn = GetComponent<Button>();
-        if (btn) btn.interactable = false; // avoid double presses
+        if (btn) btn.interactable = false;
 
-        // --- NEW: QUIT LOGIC ---
         if (isQuitButton)
         {
             StartCoroutine(QuitSequence());
             return;
         }
 
-        // --- ORIGINAL SCENE LOAD LOGIC ---
         if (exitOrchestrator != null)
         {
             exitOrchestrator.ExitThenLoad(sceneName);
@@ -75,17 +82,12 @@ public class MenuSelectable : MonoBehaviour
 
     private IEnumerator QuitSequence()
     {
-        // Wait a tiny bit so your "Select" sound effect has time to play
         yield return new WaitForSeconds(quitDelay);
-
         Debug.Log("Quit Button Pressed! Shutting down the game...");
-
 #if UNITY_EDITOR
-        // This stops the game if you are testing inside the Unity Editor
         UnityEditor.EditorApplication.isPlaying = false;
 #else
-            // This fully closes the application when it is a built executable
-            Application.Quit();
+        Application.Quit();
 #endif
     }
 }

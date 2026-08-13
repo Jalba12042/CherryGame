@@ -1,109 +1,128 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.InputSystem;
 
 public class PlayerEscapeUI : MonoBehaviour
 {
-    /*[Header("Player Panels")]
-    public GameObject P1;
-    public GameObject P2;
-    public GameObject P3;
-    public GameObject P4;*/
-
     [Header("Escape Settings")]
-    public float mashFillSpeed = 0.2f;   // How much bar fills per press
-    public float escapeThreshold = 1f;   // Fill required to escape
+    public float mashFillSpeed = 0.2f;
 
-    private float fillAmount = 0f;
-    private bool isBeingGrabbed = false;
+    [Tooltip("Base amount of mash required when one player is grabbing you.")]
+    public float escapeThreshold = 1f;
+
+    [Tooltip("How much harder escaping becomes per additional grabber.")]
+    public float escapeDifficultyPerGrabber = 1f;
 
     [Header("Player Info")]
     public int playerIndex = 0;
 
-    // UI references for the current active panel
+    [Header("UI")]
+    public GameObject panelRoot;
+
+    [Header("Dynamic Button Sprites (0 = Normal, 1 = Pressed)")]
+    public Sprite[] xboxSprites = new Sprite[2];
+    public Sprite[] psSprites = new Sprite[2];
+    public Sprite[] keyboardSprites = new Sprite[2];
+
+    [Header("Animation Settings")]
+    public float animationSpeed = 0.15f;
+
     private Image fillBar;
     private TextMeshProUGUI mashText;
-    private Image yButtonIcon;
-    //private GameObject currentPanel;
-    public GameObject panelRoot;  
+    private Image buttonIcon;
 
-    private PlayerInteract grabbedBy;
+    private float fillAmount = 0f;
+    private bool isBeingGrabbed = false;
+    private PlayerInteract playerInteract;
 
-    void Start()
+    // Animation tracking
+    private Sprite[] currentDeviceSprites;
+    private float animTimer = 0f;
+    private int currentSpriteIndex = 0;
+
+    private void Start()
     {
-        // Ensure the panel starts hidden
+        playerInteract = GetComponent<PlayerInteract>();
+
         if (panelRoot != null)
             panelRoot.SetActive(false);
     }
 
-
-    /*void Start()
-    {
-        EscapeUIInfo escapeUI = GameObject.FindWithTag("EscapeUI").GetComponent<EscapeUIInfo>();
-        P1 = escapeUI.P1;
-        P2 = escapeUI.P2;
-        P3 = escapeUI.P3;
-        P4 = escapeUI.P4;
-
-        // Ensure all panels start disabled
-        if (P1 != null) P1.SetActive(false);
-        if (P2 != null) P2.SetActive(false);
-        if (P3 != null) P3.SetActive(false);
-        if (P4 != null) P4.SetActive(false);
-    }*/
-
-    // Called by grabber when player is grabbed
-    // Called by grabber when player is grabbed
-    public void StartBeingGrabbed(PlayerInteract grabber)
+    // =========================================================
+    // START BEING GRABBED
+    // =========================================================
+    public void StartBeingGrabbed()
     {
         isBeingGrabbed = true;
         fillAmount = 0f;
-        grabbedBy = grabber;
 
-        // Enable this player's world-space UI
-        panelRoot.SetActive(true);
+        if (panelRoot != null)
+            panelRoot.SetActive(true);
 
-        // Cache UI
-        fillBar = panelRoot.transform.Find("FillBar")?.GetComponent<Image>();
-        mashText = panelRoot.transform.Find("MashText")?.GetComponent<TextMeshProUGUI>();
-        yButtonIcon = panelRoot.transform.Find("YButton Image")?.GetComponent<Image>();
+        CacheUI();
+        DetermineDeviceSprites();
 
         if (fillBar != null)
             fillBar.fillAmount = 0f;
     }
 
-    /*public void StartBeingGrabbed(PlayerGrab grabber)
+    // =========================================================
+    // CACHE UI
+    // =========================================================
+    private void CacheUI()
     {
-        isBeingGrabbed = true;
-        fillAmount = 0f;
-        grabbedBy = grabber;
+        if (panelRoot == null)
+            return;
 
-        // ✅ Use the grabbed player's own index (not the grabber's)
-        playerIndex = GetComponent<Playermovement>().playerIndex;
+        fillBar = panelRoot.transform.Find("FillBar")?.GetComponent<Image>();
+        mashText = panelRoot.transform.Find("Text (TMP)")?.GetComponent<TextMeshProUGUI>();
 
-        // ✅ Assign the grabbed player's own gamepad
-        if (Gamepad.all.Count > playerIndex)
-            assignedGamepad = Gamepad.all[playerIndex];
+        // Fixed the name to match your Hierarchy screenshot exactly!
+        buttonIcon = panelRoot.transform.Find("YButton")?.GetComponent<Image>();
+    }
 
-        // ✅ Enable the correct panel for the grabbed player
-        currentPanel = GetPanelForIndex(playerIndex);
-        if (currentPanel != null)
+    // =========================================================
+    // DEVICE DETECTION
+    // =========================================================
+    private void DetermineDeviceSprites()
+    {
+        int playerID = playerIndex + 1;
+
+        if (InputManager.Instance.IsKeyboardPlayer(playerID))
         {
-            currentPanel.SetActive(true);
-
-            fillBar = currentPanel.transform.Find("FillBar")?.GetComponent<Image>();
-            mashText = currentPanel.transform.Find("MashText")?.GetComponent<TextMeshProUGUI>();
-            yButtonIcon = currentPanel.transform.Find("YButton Image")?.GetComponent<Image>();
-
-            if (fillBar != null)
-                fillBar.fillAmount = 0f;
+            currentDeviceSprites = keyboardSprites;
+            return;
         }
 
-        Debug.Log($"[EscapeUI] StartBeingGrabbed: Player {playerIndex} (grabbed by Player {grabber.GetComponent<Playermovement>().playerIndex})");
-    }*/
+        Gamepad pad = InputManager.Instance.GetAssignedGamepad(playerID);
+        if (pad != null)
+        {
+            string padName = pad.name.ToLower();
+            // Check if it's a PlayStation controller
+            if (padName.Contains("dualshock") || padName.Contains("dualsense") || padName.Contains("playstation"))
+            {
+                currentDeviceSprites = psSprites;
+            }
+            else
+            {
+                currentDeviceSprites = xboxSprites; // Default to Xbox
+            }
+        }
+        else
+        {
+            currentDeviceSprites = xboxSprites; // Fallback
+        }
 
+        // Reset animation state
+        animTimer = 0f;
+        currentSpriteIndex = 0;
+        UpdateButtonSprite();
+    }
 
-    // Called by grabber when player is released or escapes
+    // =========================================================
+    // STOP BEING GRABBED
+    // =========================================================
     public void StopBeingGrabbed()
     {
         isBeingGrabbed = false;
@@ -112,65 +131,83 @@ public class PlayerEscapeUI : MonoBehaviour
         if (fillBar != null)
             fillBar.fillAmount = 0f;
 
-        panelRoot.SetActive(false);
+        if (panelRoot != null)
+            panelRoot.SetActive(false);
     }
 
-    /*public void StopBeingGrabbed()
-    {
-        isBeingGrabbed = false;
-        fillAmount = 0f;
-
-        // Reset fill bar
-        if (fillBar != null)
-            fillBar.fillAmount = 0f;
-
-        // Disable the active panel
-        if (currentPanel != null)
-            currentPanel.SetActive(false);
-
-        Debug.Log($"[EscapeUI] StopBeingGrabbed: Player {playerIndex}");
-    }*/
-
-    void Update()
+    // =========================================================
+    // UPDATE
+    // =========================================================
+    private void Update()
     {
         if (!isBeingGrabbed)
             return;
 
+        AnimateButtonPrompt();
+
+        if (playerInteract == null)
+            return;
+
+        int grabberCount = playerInteract.NumberOfGrabbers;
+
+        if (grabberCount <= 0)
+        {
+            StopBeingGrabbed();
+            return;
+        }
+
+        // ESCAPE DIFFICULTY
+        float currentEscapeThreshold = escapeThreshold + ((grabberCount - 1) * escapeDifficultyPerGrabber);
+
+        // MASH INPUT
         if (InputManager.Instance.GetEscapeDown(playerIndex + 1))
         {
             fillAmount += mashFillSpeed;
-            fillAmount = Mathf.Clamp(fillAmount, 0f, escapeThreshold);
+            fillAmount = Mathf.Clamp(fillAmount, 0f, currentEscapeThreshold);
 
             if (fillBar != null)
-                fillBar.fillAmount = fillAmount / escapeThreshold;
+            {
+                fillBar.fillAmount = fillAmount / currentEscapeThreshold;
+            }
 
-            if (fillAmount >= escapeThreshold)
+            if (fillAmount >= currentEscapeThreshold)
+            {
                 Escape();
+            }
         }
     }
 
+    // =========================================================
+    // ANIMATE BUTTON
+    // =========================================================
+    private void AnimateButtonPrompt()
+    {
+        if (currentDeviceSprites == null || currentDeviceSprites.Length < 2) return;
+
+        animTimer += Time.deltaTime;
+        if (animTimer >= animationSpeed)
+        {
+            animTimer = 0f;
+            currentSpriteIndex = (currentSpriteIndex == 0) ? 1 : 0;
+            UpdateButtonSprite();
+        }
+    }
+
+    private void UpdateButtonSprite()
+    {
+        if (buttonIcon != null && currentDeviceSprites != null && currentDeviceSprites.Length > currentSpriteIndex)
+        {
+            buttonIcon.sprite = currentDeviceSprites[currentSpriteIndex];
+        }
+    }
+
+    // =========================================================
+    // ESCAPE
+    // =========================================================
     private void Escape()
     {
+        if (playerInteract == null) return;
         StopBeingGrabbed();
-
-        if (grabbedBy != null)
-        {
-            grabbedBy.StartCoroutine(grabbedBy.GrabCooldown());
-            grabbedBy.ForceRelease();
-        }
+        playerInteract.EscapeFromAllGrabbers();
     }
-
-
-    // Returns the corresponding panel for a given player index
-    /*private GameObject GetPanelForIndex(int index)
-    {
-        return index switch
-        {
-            0 => P1,
-            1 => P2,
-            2 => P3,
-            3 => P4,
-            _ => null
-        };
-    }*/
 }

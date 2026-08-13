@@ -23,7 +23,7 @@ public class ShopManager : MonoBehaviour
 
     [Header("Timing")]
     [SerializeField] private float shopTimerDurationInSecs;
-    public float shopIntroDuration = 2.0f; // How long the intro animation takes
+    public float shopIntroDuration = 2.0f;
 
     [Header("UI Elements (Images Only!)")]
     [SerializeField] private Image[] itemSlots;
@@ -66,10 +66,8 @@ public class ShopManager : MonoBehaviour
 
     private void Start()
     {
-        // --- THE FIX: Snap time back to 100% normal speed! ---
         Time.timeScale = 1f;
 
-        // --- NEW: Automatically hide the timer when the scene starts ---
         if (timerText != null)
         {
             timerText.gameObject.SetActive(false);
@@ -95,7 +93,6 @@ public class ShopManager : MonoBehaviour
         SetupHighlights();
         UpdateVoteImages();
 
-        // Hide highlights during the intro!
         for (int p = 0; p < 4; p++)
         {
             for (int b = 0; b < numberIconObjects.Length; b++)
@@ -104,16 +101,13 @@ public class ShopManager : MonoBehaviour
             }
         }
 
-        // Start the Intro sequence!
         StartCoroutine(ShopIntroSequence());
     }
 
     private IEnumerator ShopIntroSequence()
     {
-        // 1. Wait for the vending machine animation to finish
         yield return new WaitForSeconds(shopIntroDuration);
 
-        // 2. Unlock players and show their highlights!
         int safePlayerCount = 4;
         if (GameManager.Instance != null) safePlayerCount = Mathf.Min(GameManager.Instance.playerCount, 4);
 
@@ -125,13 +119,11 @@ public class ShopManager : MonoBehaviour
         introFinished = true;
         HighlightKeypad();
 
-        // --- NEW: Turn the timer visually ON right before it starts! ---
         if (timerText != null)
         {
             timerText.gameObject.SetActive(true);
         }
 
-        // 3. Start the actual voting timer
         StartCoroutine(StartShopTimer());
     }
 
@@ -172,170 +164,71 @@ public class ShopManager : MonoBehaviour
     {
         if (!introFinished) return;
         if (GameManager.Instance == null) return;
+        if (InputManager.Instance == null) return;
 
-        if (GameManager.Instance.isOnKeyboard)
+        int safePlayerCount = Mathf.Min(GameManager.Instance.playerCount, 4);
+
+        for (int i = 0; i < safePlayerCount; i++)
         {
-            if (Keyboard.current != null && !lockedIn[0])
+            if (lockedIn[i]) continue;
+
+            int playerID = i + 1;
+
+            // 1. Unified Movement (Works for both Controllers and WASD/Arrow Keys automatically!)
+            Vector2 move = InputManager.Instance.GetMove(playerID);
+
+            if (canMove[i])
             {
-                if (canMove[0])
+                if (move.y > 0.5f) // Up
                 {
-                    if (Keyboard.current.wKey.wasPressedThisFrame || Keyboard.current.upArrowKey.wasPressedThisFrame)
-                    {
-                        if (currentIndexes[0] - 2 >= 0) currentIndexes[0] -= 2;
-                        canMove[0] = false; HighlightKeypad();
-                    }
-                    else if (Keyboard.current.sKey.wasPressedThisFrame || Keyboard.current.downArrowKey.wasPressedThisFrame)
-                    {
-                        if (currentIndexes[0] + 2 < itemSlots.Length) currentIndexes[0] += 2;
-                        canMove[0] = false; HighlightKeypad();
-                    }
-                    else if (Keyboard.current.aKey.wasPressedThisFrame || Keyboard.current.leftArrowKey.wasPressedThisFrame)
-                    {
-                        if (currentIndexes[0] % 2 != 0) currentIndexes[0] -= 1;
-                        canMove[0] = false; HighlightKeypad();
-                    }
-                    else if (Keyboard.current.dKey.wasPressedThisFrame || Keyboard.current.rightArrowKey.wasPressedThisFrame)
-                    {
-                        if (currentIndexes[0] % 2 == 0 && currentIndexes[0] + 1 < itemSlots.Length) currentIndexes[0] += 1;
-                        canMove[0] = false; HighlightKeypad();
-                    }
+                    if (currentIndexes[i] - 2 >= 0) currentIndexes[i] -= 2;
+                    canMove[i] = false; HighlightKeypad();
                 }
-
-                if (!Keyboard.current.wKey.isPressed && !Keyboard.current.sKey.isPressed &&
-                    !Keyboard.current.aKey.isPressed && !Keyboard.current.dKey.isPressed &&
-                    !Keyboard.current.upArrowKey.isPressed && !Keyboard.current.downArrowKey.isPressed &&
-                    !Keyboard.current.leftArrowKey.isPressed && !Keyboard.current.rightArrowKey.isPressed)
+                else if (move.y < -0.5f) // Down
                 {
-                    canMove[0] = true;
+                    if (currentIndexes[i] + 2 < itemSlots.Length) currentIndexes[i] += 2;
+                    canMove[i] = false; HighlightKeypad();
                 }
-
-                if (Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.enterKey.wasPressedThisFrame)
+                else if (move.x < -0.5f) // Left
                 {
-                    SubmitVote(0, currentIndexes[0]);
+                    if (currentIndexes[i] % 2 != 0) currentIndexes[i] -= 1;
+                    canMove[i] = false; HighlightKeypad();
                 }
+                else if (move.x > 0.5f) // Right
+                {
+                    if (currentIndexes[i] % 2 == 0 && currentIndexes[i] + 1 < itemSlots.Length) currentIndexes[i] += 1;
+                    canMove[i] = false; HighlightKeypad();
+                }
+            }
 
+            // Reset movement flag once stick/keys are let go
+            if (Mathf.Abs(move.y) < 0.2f && Mathf.Abs(move.x) < 0.2f)
+            {
+                canMove[i] = true;
+            }
+
+            // 2. Unified Confirm (Spacebar/Enter for Keyboard, A/Cross for Controllers)
+            if (InputManager.Instance.GetConfirmDown(playerID))
+            {
+                SubmitVote(i, currentIndexes[i]);
+            }
+
+            // 3. Keep the 1-4 number keys working just for the keyboard player as a shortcut
+            if (InputManager.Instance.IsKeyboardPlayer(playerID) && Keyboard.current != null)
+            {
                 int kVote = -1;
-                if (Keyboard.current.digit1Key.wasPressedThisFrame) kVote = 0;
-                if (Keyboard.current.digit2Key.wasPressedThisFrame) kVote = 1;
-                if (Keyboard.current.digit3Key.wasPressedThisFrame) kVote = 2;
-                if (Keyboard.current.digit4Key.wasPressedThisFrame) kVote = 3;
+                if (Keyboard.current.digit1Key.wasPressedThisFrame || Keyboard.current.numpad1Key.wasPressedThisFrame) kVote = 0;
+                if (Keyboard.current.digit2Key.wasPressedThisFrame || Keyboard.current.numpad2Key.wasPressedThisFrame) kVote = 1;
+                if (Keyboard.current.digit3Key.wasPressedThisFrame || Keyboard.current.numpad3Key.wasPressedThisFrame) kVote = 2;
+                if (Keyboard.current.digit4Key.wasPressedThisFrame || Keyboard.current.numpad4Key.wasPressedThisFrame) kVote = 3;
 
                 if (kVote != -1 && kVote < isSoldOut.Length && !isSoldOut[kVote])
                 {
-                    currentIndexes[0] = kVote;
+                    currentIndexes[i] = kVote;
                     HighlightKeypad();
-                    SubmitVote(0, kVote);
+                    SubmitVote(i, kVote);
                 }
             }
-        }
-        else
-        {
-            int safePlayerCount = Mathf.Min(GameManager.Instance.playerCount, 4);
-
-            for (int i = 0; i < safePlayerCount; i++)
-            {
-                if (lockedIn[i]) continue;
-
-                int deviceId = GameManager.Instance.controllerAssignments[i];
-                if (deviceId == -1) continue;
-
-                Gamepad pad = null;
-
-                foreach (var gp in Gamepad.all)
-                {
-                    if (gp.deviceId == deviceId)
-                    {
-                        pad = gp;
-                        break;
-                    }
-                }
-
-                if (pad == null) continue;
-
-                Vector2 move = pad.leftStick.ReadValue();
-
-                if (canMove[i])
-                {
-                    if (move.y > 0.5f)
-                    {
-                        if (currentIndexes[i] - 2 >= 0) currentIndexes[i] -= 2;
-                        canMove[i] = false; HighlightKeypad();
-                    }
-                    else if (move.y < -0.5f)
-                    {
-                        if (currentIndexes[i] + 2 < itemSlots.Length) currentIndexes[i] += 2;
-                        canMove[i] = false; HighlightKeypad();
-                    }
-                    else if (move.x < -0.5f)
-                    {
-                        if (currentIndexes[i] % 2 != 0) currentIndexes[i] -= 1;
-                        canMove[i] = false; HighlightKeypad();
-                    }
-                    else if (move.x > 0.5f)
-                    {
-                        if (currentIndexes[i] % 2 == 0 && currentIndexes[i] + 1 < itemSlots.Length)
-                            currentIndexes[i] += 1;
-
-                        canMove[i] = false;
-                        HighlightKeypad();
-                    }
-                }
-
-                if (Mathf.Abs(move.y) < 0.2f && Mathf.Abs(move.x) < 0.2f)
-                    canMove[i] = true;
-
-                if (pad.buttonSouth.wasPressedThisFrame)
-                {
-                    SubmitVote(i, currentIndexes[i]);
-                }
-            }
-
-            /*for (int i = 0; i < safePlayerCount; i++)
-            {
-                if (lockedIn[i]) continue;
-
-                if (GameManager.Instance.controllerAssignments == null) continue;
-                if (i >= GameManager.Instance.controllerAssignments.Length) continue;
-
-                int controllerIndex = GameManager.Instance.controllerAssignments[i];
-                if (controllerIndex < 0 || controllerIndex >= Gamepad.all.Count) continue;
-
-                var gamepad = Gamepad.all[controllerIndex];
-                if (gamepad == null) continue;
-
-                Vector2 move = gamepad.leftStick.ReadValue();
-
-                if (canMove[i])
-                {
-                    if (move.y > 0.5f)
-                    {
-                        if (currentIndexes[i] - 2 >= 0) currentIndexes[i] -= 2;
-                        canMove[i] = false; HighlightKeypad();
-                    }
-                    else if (move.y < -0.5f)
-                    {
-                        if (currentIndexes[i] + 2 < itemSlots.Length) currentIndexes[i] += 2;
-                        canMove[i] = false; HighlightKeypad();
-                    }
-                    else if (move.x < -0.5f)
-                    {
-                        if (currentIndexes[i] % 2 != 0) currentIndexes[i] -= 1;
-                        canMove[i] = false; HighlightKeypad();
-                    }
-                    else if (move.x > 0.5f)
-                    {
-                        if (currentIndexes[i] % 2 == 0 && currentIndexes[i] + 1 < itemSlots.Length) currentIndexes[i] += 1;
-                        canMove[i] = false; HighlightKeypad();
-                    }
-                }
-
-                if (Mathf.Abs(move.y) < 0.2f && Mathf.Abs(move.x) < 0.2f) canMove[i] = true;
-
-                if (gamepad.buttonSouth.wasPressedThisFrame)
-                {
-                    SubmitVote(i, currentIndexes[i]);
-                }
-            }*/
         }
     }
 

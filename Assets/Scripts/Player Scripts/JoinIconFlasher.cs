@@ -6,43 +6,79 @@ using System.Collections;
 public class JoinIconFlasher : MonoBehaviour
 {
     [Header("The Icons")]
-    public Sprite xboxIcon;         // Drag your hand-drawn A button here
-    public Sprite playstationIcon;  // Drag your hand-drawn X button here
+    public Sprite xboxIcon;
+    public Sprite playstationIcon;
+    public Sprite keyboardIcon;
 
     [Header("Timing")]
-    public float flashInterval = 3f; // How many seconds before it swaps
+    public float flashInterval = 3f;
 
     private Image buttonImage;
 
     void Awake()
     {
-        // Grabs the Image component attached to this exact object
         buttonImage = GetComponent<Image>();
     }
 
     void OnEnable()
     {
-        // Starts the flashing loop every time the Join panel appears
         StartCoroutine(FlashIconRoutine());
     }
 
     private IEnumerator FlashIconRoutine()
     {
-        bool showXbox = true;
+        int iconState = 0;
 
         while (true)
         {
-            if (buttonImage != null && xboxIcon != null && playstationIcon != null)
+            // --- THE FIX: Check if anyone is already using the keyboard ---
+            bool isKeyboardTaken = false;
+            if (InputManager.Instance != null)
             {
-                // Swap the picture
-                buttonImage.sprite = showXbox ? xboxIcon : playstationIcon;
+                for (int i = 1; i <= 4; i++)
+                {
+                    if (InputManager.Instance.IsKeyboardPlayer(i))
+                    {
+                        isKeyboardTaken = true;
+                        break;
+                    }
+                }
             }
 
-            // Flip the toggle for next time
-            showXbox = !showXbox;
+            // If it's the keyboard's turn to flash (2), but it's already taken, skip straight back to Xbox (0)!
+            if (iconState == 2 && isKeyboardTaken)
+            {
+                iconState = 0;
+            }
+            // --------------------------------------------------------------
+
+            if (buttonImage != null)
+            {
+                if (iconState == 0 && xboxIcon != null)
+                {
+                    buttonImage.sprite = xboxIcon;
+                }
+                else if (iconState == 1 && playstationIcon != null)
+                {
+                    buttonImage.sprite = playstationIcon;
+                }
+                else if (iconState == 2 && keyboardIcon != null)
+                {
+                    buttonImage.sprite = keyboardIcon;
+                }
+            }
 
             // Wait 3 seconds
             yield return new WaitForSeconds(flashInterval);
+
+            // Move to the next icon for the next loop
+            iconState++;
+
+            // If we've gone past the keyboard (2), reset back to Xbox (0)
+            if (iconState > 2)
+            {
+                iconState = 0;
+            }
         }
     }
 }

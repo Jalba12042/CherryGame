@@ -92,11 +92,14 @@ public class Playermovement : MonoBehaviour
     public Vector3 initialSpawnPosition;
     private string currentSurface = "";
 
+    private PlayerInteract playerInteract;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
         gc = GetComponent<GroundCheck>();
+        playerInteract = GetComponent<PlayerInteract>();
 
         if (projectileScript == null)
             projectileScript = GetComponent<Projectile>();
@@ -181,6 +184,88 @@ public class Playermovement : MonoBehaviour
 
     private void HandleRotation()
     {
+        isAiming = projectileScript != null && projectileScript.IsAiming();
+
+
+        // =====================================================
+        // GRABBING SOMEONE
+        // =====================================================
+
+        if (playerInteract != null &&
+            playerInteract.IsGrabbingSomeone)
+        {
+            Vector3 grabbedPosition =
+                playerInteract.GetGrabbedPlayerPosition();
+
+            Vector3 direction =
+                grabbedPosition - transform.position;
+
+            // Ignore vertical difference
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude > 0.01f)
+            {
+                Quaternion targetRotation =
+                    Quaternion.LookRotation(direction, Vector3.up);
+
+                transform.rotation =
+                    Quaternion.Slerp(
+                        transform.rotation,
+                        targetRotation,
+                        Time.deltaTime * rotationSpeed);
+            }
+
+            // IMPORTANT:
+            // Do NOT rotate based on joystick while grabbing.
+            return;
+        }
+
+
+        // =====================================================
+        // NORMAL ROTATION
+        // =====================================================
+
+        Vector2 input = moveInput;
+
+        Transform cam = Camera.main.transform;
+
+        Vector3 camForward =
+            Vector3.Scale(
+                cam.forward,
+                new Vector3(1, 0, 1))
+            .normalized;
+
+        Vector3 camRight =
+            Vector3.Scale(
+                cam.right,
+                new Vector3(1, 0, 1))
+            .normalized;
+
+
+        if (input.sqrMagnitude > 0.01f)
+        {
+            Vector3 targetDir =
+                (camForward * input.y +
+                 camRight * input.x)
+                .normalized;
+
+            float speed =
+                isAiming
+                    ? rotationSpeed * aimRotationMultiplier
+                    : rotationSpeed;
+
+            transform.rotation =
+                Quaternion.Slerp(
+                    transform.rotation,
+                    Quaternion.LookRotation(
+                        targetDir,
+                        Vector3.up),
+                    Time.deltaTime * speed);
+        }
+    }
+
+    /*private void HandleRotation()
+    {
         Vector2 input = moveInput;
         isAiming = projectileScript != null && projectileScript.IsAiming();
 
@@ -195,7 +280,7 @@ public class Playermovement : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation,
                 Quaternion.LookRotation(targetDir, Vector3.up), Time.deltaTime * speed);
         }
-    }
+    }*/
 
     public void DoJump()
     {

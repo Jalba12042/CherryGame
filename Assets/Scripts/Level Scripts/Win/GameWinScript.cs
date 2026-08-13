@@ -1,239 +1,182 @@
-using System.Collections.Generic;
-using TMPro;
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 public class GameWinScript : MonoBehaviour
 {
-    public TMP_Text winnerText;
-    public Button[] menuButtons;
-    private int currentIndex = 0;
-
-    private bool canMove = true;
-    private float deadzone = 0.5f;
-
-    [SerializeField] private string localSceneName;
-
-    public static List<int> winningPlayers = new List<int>();
-
-    [Header("Name Mapping")]
-    public string[] availableNames;
-
-    [Header("Award Show Stage")]
+    [Header("UI & Stage")]
     public Animator stageAnimator;
+    public TMP_Text winText;
+
+    [Header("--- DEMO Marquee Sign (Single Object) ---")]
+    [Tooltip("Drag your 1stplaceSigns object here")]
+    public Animator marqueeAnimator;
+    [Tooltip("Drag the Image component from 1stplaceSigns here")]
+    public Image marqueeImage;
+    [Tooltip("How long to wait after the puppet pops up before playing the Outro")]
+    public float postRevealWaitTime = 3f;
+
+    [Header("Marquee Sprites (To swap on the single board)")]
+    public Sprite sign1stPlace;
+    public Sprite sign2ndPlace;
+    public Sprite sign3rdPlace;
+    public Sprite sign4thPlace;
+
+    [Header("1st Place Setup")]
+    public GameObject firstPlacePuppet;
+    public Sprite[] colorSprites1stPlace;
+
+    [Header("2nd Place Setup")]
+    public GameObject secondPlacePuppet;
+    public Sprite[] colorSprites2ndPlace;
+
+    [Header("3rd Place Setup")]
+    public GameObject thirdPlacePuppet;
+    public Sprite[] colorSprites3rdPlace;
+
+    [Header("4th Place Setup")]
+    public GameObject fourthPlacePuppet;
+    public Sprite[] colorSprites4thPlace;
+
+    [Header("Last Place (Sad) Setup")]
+    public Sprite[] colorSpritesLastPlace;
 
     [Header("Audio Polish")]
-    public AudioSource sfxSource;
-    public AudioClip celebrateSound;
-    public float musicFadeDuration = 2f;
+    public AudioSource drumrollAudio;
+    public float drumrollWaitTime = 2f;
 
-    [Header("Award Show Music")]
-    public AudioSource introMusicSource; // <--- NEW: Dedicated source for the intro song
-    public float introMusicFadeSpeed = 1.5f; // <--- NEW: How fast it fades in and out
+    [Header("Crowd Audio Polish")]
+    public AudioSource crowdAudioSource;
+    public AudioClip cheerSound;
+    public AudioClip booSound;
 
     void Start()
     {
-        Time.timeScale = 1f;
+        if (winText != null) winText.gameObject.SetActive(false);
+        if (firstPlacePuppet != null) firstPlacePuppet.SetActive(false);
+        if (secondPlacePuppet != null) secondPlacePuppet.SetActive(false);
+        if (thirdPlacePuppet != null) thirdPlacePuppet.SetActive(false);
+        if (fourthPlacePuppet != null) fourthPlacePuppet.SetActive(false);
 
-        if (GameplayMusicManager.Instance != null)
-        {
-            GameplayMusicManager.Instance.FadeOutToShop(musicFadeDuration);
-        }
+        // Ensure the single sign starts turned off
+        if (marqueeAnimator != null) marqueeAnimator.gameObject.SetActive(false);
 
-        if (winnerText != null) winnerText.gameObject.SetActive(false);
-
-        StartCoroutine(AwardShowSequence());
+        StartCoroutine(AwardSequence());
     }
 
-    private IEnumerator AwardShowSequence()
+    private IEnumerator AwardSequence()
     {
-        // 1. Wait a brief second for the scene to settle
         yield return new WaitForSeconds(1f);
+        if (stageAnimator != null) stageAnimator.Play("CurtainsIntro");
+        yield return new WaitForSeconds(5f);
 
-        // 2. Play the Award Show Intro Music INSTANTLY (No slow fade-in!)
-        if (introMusicSource != null)
+        // Sort players
+        List<int> sortedPlayers = new List<int>();
+        int pCount = 0;
+        if (GameManager.Instance != null)
         {
-            introMusicSource.volume = 1f; // Hit full volume immediately
-            introMusicSource.Play();
+            pCount = GameManager.Instance.playerCount;
+            for (int i = 0; i < pCount; i++) sortedPlayers.Add(i);
+            sortedPlayers.Sort((p1, p2) => GameManager.Instance.playerTotalScores[p2].CompareTo(GameManager.Instance.playerTotalScores[p1]));
         }
 
-        // 3. Tell the curtain to open!
-        if (stageAnimator != null)
+        int winnerID = sortedPlayers.Count > 0 ? sortedPlayers[0] : 0;
+        int secondPlaceID = sortedPlayers.Count > 1 ? sortedPlayers[1] : 0;
+        int thirdPlaceID = sortedPlayers.Count > 2 ? sortedPlayers[2] : 0;
+        int fourthPlaceID = sortedPlayers.Count > 3 ? sortedPlayers[3] : 0;
+
+        // Reveal 4th Place
+        if (pCount >= 4)
         {
-            stageAnimator.Play("CurtainReveal");
+            yield return StartCoroutine(RevealRoutine(sign4thPlace, fourthPlacePuppet, fourthPlaceID, pCount == 4));
         }
 
-        // 4. Play the Cheer/Celebrate Sound effect
-        if (sfxSource != null && celebrateSound != null)
+        // Reveal 3rd Place
+        if (pCount >= 3)
         {
-            sfxSource.PlayOneShot(celebrateSound);
+            yield return StartCoroutine(RevealRoutine(sign3rdPlace, thirdPlacePuppet, thirdPlaceID, pCount == 3));
         }
 
-        // 5. Wait for the curtains to finish opening
-        yield return new WaitForSeconds(1.5f);
-
-        // 6. Let the Intro Music bump for a few seconds while players look at the stage!
-        yield return new WaitForSeconds(3.5f);
-
-        // 7. Fade OUT the Intro Music to build tension before the envelopes
-        if (introMusicSource != null)
+        // Reveal 2nd Place
+        if (pCount >= 2)
         {
-            StartCoroutine(FadeAudio(introMusicSource, 0f, introMusicFadeSpeed));
+            yield return StartCoroutine(RevealRoutine(sign2ndPlace, secondPlacePuppet, secondPlaceID, pCount == 2));
         }
 
-        // 8. Wait for the music to fade out, plus one second of silence
-        yield return new WaitForSeconds(introMusicFadeSpeed + 1f);
-
-        // 9. Now calculate and reveal the winner! 
-        RevealWinner();
+        // Reveal 1st Place
+        yield return StartCoroutine(RevealRoutine(sign1stPlace, firstPlacePuppet, winnerID, false, true));
     }
 
-    // ==========================================
-    // --- THE SMOOTH AUDIO FADER TOOL ---
-    // ==========================================
-    private IEnumerator FadeAudio(AudioSource audioSource, float targetVolume, float duration)
+    private IEnumerator RevealRoutine(Sprite signSprite, GameObject puppetObj, int playerID, bool isSadLoser, bool isWinner = false)
     {
-        float currentTime = 0;
-        float startVolume = audioSource.volume;
+        // 1. Swap the image to the correct placement and turn the sign ON (Plays Intro automatically)
+        if (marqueeImage != null) marqueeImage.sprite = signSprite;
+        if (marqueeAnimator != null) marqueeAnimator.gameObject.SetActive(true);
 
-        while (currentTime < duration)
+        // 2. Play Drumroll and wait in suspense (Sign is looping in Idle)
+        if (drumrollAudio != null) drumrollAudio.Play();
+        yield return new WaitForSeconds(drumrollWaitTime);
+
+        // 3. THE REVEAL: Pop up the puppet!
+        if (puppetObj != null)
         {
-            currentTime += Time.deltaTime;
-            audioSource.volume = Mathf.Lerp(startVolume, targetVolume, currentTime / duration);
-            yield return null;
-        }
+            puppetObj.SetActive(true);
+            Image puppetImg = puppetObj.GetComponent<Image>();
+            Animator puppetAnim = puppetObj.GetComponent<Animator>();
 
-        audioSource.volume = targetVolume;
-
-        // If we faded it to 0, stop playing the track completely to save memory
-        if (targetVolume == 0f)
-        {
-            audioSource.Stop();
-        }
-    }
-
-    private void RevealWinner()
-    {
-        if (winningPlayers == null || winningPlayers.Count == 0)
-        {
-            winningPlayers = new List<int> { 0 };
-        }
-
-        bool isTie = winningPlayers.Count > 1;
-
-        if (isTie)
-        {
-            string winnersString = "";
-            for (int i = 0; i < winningPlayers.Count; i++)
+            // Assign proper color
+            if (puppetImg != null && GameManager.Instance != null)
             {
-                int pID = winningPlayers[i];
-                string pName = "Player " + (pID + 1);
+                int colorIndex = GameManager.Instance.playerCustomizations[playerID].colorIndex;
+                Sprite[] targetArray;
 
-                if (GameManager.Instance != null && GameManager.Instance.playerCustomizations.Count > pID)
+                if (isWinner) targetArray = colorSprites1stPlace;
+                else if (isSadLoser) targetArray = colorSpritesLastPlace;
+                else
                 {
-                    int nameIdx = GameManager.Instance.playerCustomizations[pID].nameIndex;
-                    if (availableNames != null && nameIdx >= 0 && nameIdx < availableNames.Length)
-                    {
-                        pName = availableNames[nameIdx];
-                    }
+                    if (puppetObj == secondPlacePuppet) targetArray = colorSprites2ndPlace;
+                    else if (puppetObj == thirdPlacePuppet) targetArray = colorSprites3rdPlace;
+                    else targetArray = colorSprites4thPlace;
                 }
 
-                winnersString += pName;
-                if (i == winningPlayers.Count - 2) winnersString += " & ";
-                else if (i < winningPlayers.Count - 1) winnersString += ", ";
+                if (colorIndex < targetArray.Length) puppetImg.sprite = targetArray[colorIndex];
             }
-            winnersString += " TIED!";
 
-            if (winnerText != null)
+            // Play correct animation and sound
+            if (isSadLoser)
             {
-                winnerText.text = winnersString.ToUpper();
-                winnerText.gameObject.SetActive(true);
+                if (puppetAnim != null) puppetAnim.Play(puppetObj == secondPlacePuppet ? "PuppetSad_2ndPlace" : puppetObj == thirdPlacePuppet ? "PuppetSad_3rdPlace" : "PuppetSad_4thPlace");
+                if (crowdAudioSource != null && booSound != null) crowdAudioSource.PlayOneShot(booSound);
+            }
+            else
+            {
+                if (puppetAnim != null) puppetAnim.Play(isWinner ? "PuppetSlideUp_1stPlace" : puppetObj == secondPlacePuppet ? "PuppetSlideUp_2ndPlace" : puppetObj == thirdPlacePuppet ? "PuppetSlideUp_3rdPlace" : "PuppetSlideUp_4thPlace");
+                if (crowdAudioSource != null && cheerSound != null) crowdAudioSource.PlayOneShot(cheerSound);
             }
         }
-        else
+
+        // Update the Win Text
+        if (winText != null)
         {
-            int winnerID = winningPlayers[0];
-            string winName = "PLAYER " + (winnerID + 1);
-
-            if (GameManager.Instance != null && GameManager.Instance.playerCustomizations.Count > winnerID)
-            {
-                var data = GameManager.Instance.playerCustomizations[winnerID];
-                if (availableNames != null && data.nameIndex >= 0 && data.nameIndex < availableNames.Length)
-                {
-                    winName = availableNames[data.nameIndex];
-                }
-            }
-
-            if (winnerText != null)
-            {
-                winnerText.text = winName.ToUpper() + " WINS THE GAME!";
-                winnerText.gameObject.SetActive(true);
-            }
+            if (isWinner) winText.text = "1ST PLACE!";
+            else if (isSadLoser) winText.text = "LAST PLACE...";
+            else winText.text = puppetObj == secondPlacePuppet ? "2ND PLACE!" : puppetObj == thirdPlacePuppet ? "3RD PLACE!" : "4TH PLACE!";
+            winText.gameObject.SetActive(true);
         }
 
-        HighlightButton();
-    }
+        // 4. Bask in the glory/shame before putting the sign away
+        yield return new WaitForSeconds(postRevealWaitTime);
 
-    void Update()
-    {
-        if (menuButtons == null || menuButtons.Length == 0) return;
-
-        // BULLETPROOF FIX 1: Make sure the InputManager actually exists before asking it for controls
-        if (InputManager.Instance == null) return;
-
-        Vector2 move = InputManager.Instance.GetMove(1);
-
-        if (canMove)
+        // 5. Trigger Outro on the sign
+        if (marqueeAnimator != null)
         {
-            if (move.y > deadzone)
-            {
-                currentIndex = Mathf.Max(0, currentIndex - 1);
-                HighlightButton();
-                canMove = false;
-            }
-            else if (move.y < -deadzone)
-            {
-                currentIndex = Mathf.Min(menuButtons.Length - 1, currentIndex + 1);
-                HighlightButton();
-                canMove = false;
-            }
+            marqueeAnimator.SetTrigger("PlayOutro");
+            // Wait a second for the outro animation to physically slide off screen
+            yield return new WaitForSeconds(1f);
+            // Turn it off so it resets for the next player
+            marqueeAnimator.gameObject.SetActive(false);
         }
-
-        if (Mathf.Abs(move.y) < 0.2f) canMove = true;
-
-        if (InputManager.Instance.GetConfirmDown(1))
-        {
-            // Make sure the button isn't missing before trying to click it
-            if (menuButtons[currentIndex] != null)
-            {
-                menuButtons[currentIndex].onClick.Invoke();
-            }
-        }
-    }
-
-    void HighlightButton()
-    {
-        if (menuButtons == null) return;
-
-        for (int i = 0; i < menuButtons.Length; i++)
-        {
-            // BULLETPROOF FIX 2: Skip any empty slots in the Inspector so the game doesn't crash
-            if (menuButtons[i] == null) continue;
-
-            ColorBlock colors = menuButtons[i].colors;
-            colors.normalColor = (i == currentIndex) ? Color.yellow : Color.white;
-            menuButtons[i].colors = colors;
-        }
-    }
-
-    public void GoToLocal()
-    {
-        if (GameplayMusicManager.Instance != null)
-        {
-            Destroy(GameplayMusicManager.Instance.gameObject);
-        }
-        SceneManager.LoadScene(localSceneName);
     }
 }

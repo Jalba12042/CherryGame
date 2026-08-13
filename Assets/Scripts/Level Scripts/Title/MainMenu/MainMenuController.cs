@@ -4,16 +4,20 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(AudioSource))] // Ensures the object has an AudioSource
+[RequireComponent(typeof(AudioSource))]
 public class MainMenuController : MonoBehaviour
 {
-    [Header("Menu Buttons (Local, Multiplayer in this order)")]
-    public MenuSelectable[] buttons;   // <<� make sure this says MenuSelectable[]
+    [Header("Menu Buttons")]
+    public MenuSelectable[] buttons;
+
+    [Header("Transition Link")]
+    [Tooltip("Drag MultiplayerMan here so the B button works!")]
+    public MultiplayerBackTransition backTransition; // <-- NEW VARIABLE!
 
     [Header("UI Sound Effects")]
-    public AudioClip navigateSound; // Left/Right Stick or D-Pad
-    public AudioClip selectSound;   // A Button (South)
-    public AudioClip backSound;     // B Button (East)
+    public AudioClip navigateSound;
+    public AudioClip selectSound;
+    public AudioClip backSound;
 
     private AudioSource audioSource;
     private int currentIndex = 0;
@@ -22,17 +26,14 @@ public class MainMenuController : MonoBehaviour
 
     void Awake()
     {
-        // Optional: auto-find if you don�t want to drag
         if (buttons == null || buttons.Length == 0)
         {
             buttons = FindObjectsByType<MenuSelectable>(FindObjectsSortMode.None)
                       .OrderBy(b => b.transform.GetSiblingIndex())
                       .ToArray();
         }
-
-        // Get the AudioSource to play our clips
         audioSource = GetComponent<AudioSource>();
-        audioSource.playOnAwake = false; // Prevent a random sound at start
+        audioSource.playOnAwake = false;
     }
 
     void Start() => HighlightCurrent();
@@ -64,18 +65,20 @@ public class MainMenuController : MonoBehaviour
         if (InputManager.Instance.GetMenuBackDown())
         {
             PlaySound(backSound);
+
+            // THE FIX: Actually play the transition when B/Escape is pressed!
+            if (backTransition != null)
+            {
+                backTransition.PlayBackTransition();
+            }
         }
 
         HandleMouse();
     }
 
-    // Direct mouse hit-test instead of Unity's EventSystem/GraphicRaycaster pipeline —
-    // the scene's InputSystemUIInputModule points at a stale package-sample actions asset
-    // instead of the project's own, so IPointerEnterHandler/IPointerClickHandler are unreliable here.
     void HandleMouse()
     {
         if (Mouse.current == null) return;
-
         Vector2 mousePos = Mouse.current.position.ReadValue();
         for (int i = 0; i < buttons.Length; i++)
         {
@@ -90,7 +93,6 @@ public class MainMenuController : MonoBehaviour
         }
     }
 
-    // Moves the highlighted cursor to index (keyboard/gamepad nav, or a mouse hover)
     public void SelectIndex(int index)
     {
         if (buttons == null || index < 0 || index >= buttons.Length || index == currentIndex) return;
@@ -99,7 +101,6 @@ public class MainMenuController : MonoBehaviour
         PlaySound(navigateSound);
     }
 
-    // Activates index directly (keyboard/gamepad confirm, or a mouse click)
     public void ConfirmIndex(int index)
     {
         if (buttons == null || index < 0 || index >= buttons.Length) return;
@@ -115,12 +116,9 @@ public class MainMenuController : MonoBehaviour
             buttons[i].Highlight(i == currentIndex);
     }
 
-    // Helper method to play sounds safely
     private void PlaySound(AudioClip clip)
     {
         if (clip != null && audioSource != null)
-        {
             audioSource.PlayOneShot(clip);
-        }
     }
 }
