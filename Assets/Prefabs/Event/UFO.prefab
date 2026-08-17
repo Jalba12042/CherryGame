@@ -1111,7 +1111,7 @@ MonoBehaviour:
   targetPlayer: {fileID: 0}
   playerMove: {fileID: 0}
   playerKill: {fileID: 0}
-  playerBroadcaster: {fileID: 0}
+  touchTransferRadius: 10
   hoverHeight: 30
   moveSpeed: 20
   hoverDuration: 3
@@ -1123,6 +1123,8 @@ MonoBehaviour:
   hoverSound: {fileID: 8300000, guid: a43316937f9c88c4cbe222cd856303bb, type: 3}
   abductSound: {fileID: 8300000, guid: f53d2730fba3891409ae68d3b41ff997, type: 3}
   beam: {fileID: 2863287876164413864}
+  beamFlashStartInterval: 0.5
+  beamFlashEndInterval: 0.05
 --- !u!82 &1570084061629968851
 AudioSource:
   m_ObjectHideFlags: 0

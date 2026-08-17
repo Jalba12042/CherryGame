@@ -26,7 +26,7 @@ public class PlayerKill : MonoBehaviour
     {
         pm = GetComponent<Playermovement>();
         ps = GetComponentInChildren<Scream>();
-        playerRenderers = GetComponentsInChildren<Renderer>();
+        playerRenderers = GetComponentsInChildren<Renderer>(true);
     }
 
     private void Start()
