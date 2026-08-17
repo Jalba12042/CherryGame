@@ -46,6 +46,20 @@ public class ShopManager : MonoBehaviour
     public Image[] item3VoteSlots;
     public Image[] item4VoteSlots;
 
+    [Header("Quarter Animations")]
+    [Tooltip("Drag QuarterP1 into slot 0, QuarterP2 into slot 1, etc.")]
+    public GameObject[] playerQuarters;
+
+    [Header("Curtain & Box Transition Settings")]
+    public Animator curtainAnimator;
+    public string curtainTriggerName = "Close";
+    public float curtainCloseDuration = 1.1f;
+    [Tooltip("Drag your Box UI object here!")]
+    public Animator boxAnimator;
+    public string boxOutroStateName = "BoxOutro";
+    [Tooltip("How long to wait for the box to leave before switching scenes")]
+    public float boxOutroDuration = 1.0f; // <-- NEW VARIABLE!
+
     [Header("Player Color Database")]
     public ShopColorData[] availableColors;
 
@@ -71,6 +85,14 @@ public class ShopManager : MonoBehaviour
         if (timerText != null)
         {
             timerText.gameObject.SetActive(false);
+        }
+
+        if (playerQuarters != null)
+        {
+            foreach (GameObject quarter in playerQuarters)
+            {
+                if (quarter != null) quarter.SetActive(false);
+            }
         }
 
         setupItems();
@@ -174,7 +196,6 @@ public class ShopManager : MonoBehaviour
 
             int playerID = i + 1;
 
-            // 1. Unified Movement (Works for both Controllers and WASD/Arrow Keys automatically!)
             Vector2 move = InputManager.Instance.GetMove(playerID);
 
             if (canMove[i])
@@ -201,19 +222,16 @@ public class ShopManager : MonoBehaviour
                 }
             }
 
-            // Reset movement flag once stick/keys are let go
             if (Mathf.Abs(move.y) < 0.2f && Mathf.Abs(move.x) < 0.2f)
             {
                 canMove[i] = true;
             }
 
-            // 2. Unified Confirm (Spacebar/Enter for Keyboard, A/Cross for Controllers)
             if (InputManager.Instance.GetConfirmDown(playerID))
             {
                 SubmitVote(i, currentIndexes[i]);
             }
 
-            // 3. Keep the 1-4 number keys working just for the keyboard player as a shortcut
             if (InputManager.Instance.IsKeyboardPlayer(playerID) && Keyboard.current != null)
             {
                 int kVote = -1;
@@ -243,6 +261,11 @@ public class ShopManager : MonoBehaviour
             if (coinSlotAnimator != null)
             {
                 coinSlotAnimator.SetTrigger("CoinInserted");
+            }
+
+            if (playerQuarters != null && pIndex < playerQuarters.Length && playerQuarters[pIndex] != null)
+            {
+                playerQuarters[pIndex].SetActive(true);
             }
 
             int oldVote = playerVotes[pIndex];
@@ -483,6 +506,25 @@ public class ShopManager : MonoBehaviour
             {
                 RoundManager.Instance.powerUpsInRotation.Add(addedPowerUp.powerup);
             }
+        }
+
+        // --- FIXED CURTAIN & BOX TIMING ---
+
+        // 1. Trigger the curtains to close FIRST
+        if (curtainAnimator != null)
+        {
+            curtainAnimator.gameObject.SetActive(true);
+            curtainAnimator.SetTrigger(curtainTriggerName);
+            // This forces the script to wait until the curtain animation finishes!
+            yield return new WaitForSeconds(curtainCloseDuration);
+        }
+
+        // 2. AFTER the curtains close, tell the box to leave
+        if (boxAnimator != null)
+        {
+            boxAnimator.Play(boxOutroStateName);
+            // Wait for the box to animate away before the scene loads
+            yield return new WaitForSeconds(boxOutroDuration);
         }
 
         if (RoundManager.Instance != null)

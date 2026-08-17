@@ -1,18 +1,18 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI; // <-- Added so we can use UI Images!
+using UnityEngine.UI;
 using System.Collections;
 
 public class PlayerIndicator : MonoBehaviour
 {
     [Header("Settings")]
-    [Tooltip("0 = P1, 1 = P2, 2 = P3, 3 = P4")]
+    [Tooltip("Leave this alone! The script automatically finds the right player now.")]
     public int playerIndex = 0;
     public float displayDuration = 2.5f;
 
     [Header("References")]
-    [Tooltip("Drag your IndicatorGraphic (UI Image) here.")]
-    public Image indicatorImage; // <-- Changed to Image!
+    [Tooltip("Drag your PlayerIcon (UI Image) here.")]
+    public Image indicatorImage;
 
     [Header("Sprites (Order by Color Index from Customization)")]
     public Sprite[] p1Sprites;
@@ -22,20 +22,32 @@ public class PlayerIndicator : MonoBehaviour
 
     private Coroutine hideCoroutine;
     private int myColorIndex = 0;
+    private bool isInitialized = false;
 
     void Start()
     {
-        // Start completely invisible
+        // Start completely invisible 
         if (indicatorImage != null)
-            indicatorImage.enabled = false;
+            indicatorImage.gameObject.SetActive(false);
+    }
 
-        // Automatically fetch this player's color from the GameManager
+    void InitializePlayer()
+    {
+        // 1. Ask the movement script which player this actually is!
+        Playermovement movementScript = GetComponent<Playermovement>();
+        if (movementScript != null)
+        {
+            playerIndex = movementScript.playerIndex;
+        }
+
+        // 2. Fetch this specific player's color from the GameManager
         if (GameManager.Instance != null && GameManager.Instance.playerCustomizations.Count > playerIndex)
         {
             myColorIndex = GameManager.Instance.playerCustomizations[playerIndex].colorIndex;
         }
 
         SetMySprite();
+        isInitialized = true;
     }
 
     void SetMySprite()
@@ -49,7 +61,6 @@ public class PlayerIndicator : MonoBehaviour
         else if (playerIndex == 2) selectedArray = p3Sprites;
         else if (playerIndex == 3) selectedArray = p4Sprites;
 
-        // Assign the correct sprite based on the player's color choice
         if (selectedArray != null && myColorIndex >= 0 && myColorIndex < selectedArray.Length)
         {
             indicatorImage.sprite = selectedArray[myColorIndex];
@@ -58,32 +69,61 @@ public class PlayerIndicator : MonoBehaviour
 
     void Update()
     {
-        if (InputManager.Instance == null) return;
+        // Wait until the spawner tells us who we are before assigning colors
+        if (!isInitialized)
+        {
+            InitializePlayer();
+        }
 
         int playerID = playerIndex + 1;
         bool pressed = false;
 
-        // Check Keyboard (Tab key)
-        if (InputManager.Instance.IsKeyboardPlayer(playerID))
+        // ==========================================
+        // 1. KEYBOARD CHECK
+        // ==========================================
+        bool isOnKeyboard = false;
+
+        if (InputManager.Instance != null && InputManager.Instance.IsKeyboardPlayer(playerID))
         {
-            if (Input.GetKeyDown(KeyCode.Tab)) pressed = true;
+            isOnKeyboard = true;
         }
-        else
+        else if (playerID == 1 && (InputManager.Instance == null || !InputManager.Instance.IsAssigned(1)))
         {
-            // Check Gamepad (Any D-Pad direction)
-            Gamepad pad = InputManager.Instance.GetAssignedGamepad(playerID);
-            if (pad != null)
+            isOnKeyboard = true;
+        }
+
+        if (isOnKeyboard && Input.GetKeyDown(KeyCode.Tab))
+        {
+            pressed = true;
+        }
+
+        // ==========================================
+        // 2. GAMEPAD CHECK
+        // ==========================================
+        Gamepad myPad = null;
+
+        if (InputManager.Instance != null)
+        {
+            myPad = InputManager.Instance.GetAssignedGamepad(playerID);
+        }
+
+        if (myPad == null && Gamepad.all.Count >= playerID)
+        {
+            myPad = Gamepad.all[playerIndex];
+        }
+
+        if (myPad != null)
+        {
+            if (myPad.dpad.up.wasPressedThisFrame || myPad.dpad.down.wasPressedThisFrame ||
+                myPad.dpad.left.wasPressedThisFrame || myPad.dpad.right.wasPressedThisFrame)
             {
-                if (pad.dpad.up.wasPressedThisFrame ||
-                    pad.dpad.down.wasPressedThisFrame ||
-                    pad.dpad.left.wasPressedThisFrame ||
-                    pad.dpad.right.wasPressedThisFrame)
-                {
-                    pressed = true;
-                }
+                pressed = true;
             }
         }
 
+        // ==========================================
+        // 3. SHOW THE INDICATOR
+        // ==========================================
         if (pressed)
         {
             ShowIndicator();
@@ -94,9 +134,8 @@ public class PlayerIndicator : MonoBehaviour
     {
         if (indicatorImage == null) return;
 
-        indicatorImage.enabled = true;
+        indicatorImage.gameObject.SetActive(true);
 
-        // If they spam the button, reset the timer so it doesn't instantly disappear
         if (hideCoroutine != null) StopCoroutine(hideCoroutine);
         hideCoroutine = StartCoroutine(HideAfterDelay());
     }
@@ -104,6 +143,6 @@ public class PlayerIndicator : MonoBehaviour
     private IEnumerator HideAfterDelay()
     {
         yield return new WaitForSeconds(displayDuration);
-        if (indicatorImage != null) indicatorImage.enabled = false;
+        if (indicatorImage != null) indicatorImage.gameObject.SetActive(false);
     }
 }

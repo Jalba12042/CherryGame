@@ -67,7 +67,7 @@ public class PlayerJoinController : MonoBehaviour
     public Animator paperTransitionAnimator;
     public GameObject fakeMainMenuBackground;
     [Tooltip("Type the EXACT name of your reverse parameter from the Animator here!")]
-    public string paperReverseTriggerName = "PaperReverseTrigger"; // <-- NEW VARIABLE!
+    public string paperReverseTriggerName = "PaperReverseTrigger";
     public float paperAnimationDuration = 1.0f;
 
     void Start()
@@ -691,7 +691,6 @@ public class PlayerJoinController : MonoBehaviour
         if (paperTransitionAnimator != null)
         {
             paperTransitionAnimator.gameObject.SetActive(true);
-            yield return null; // Wake up frame
 
             Image paperImg = paperTransitionAnimator.GetComponent<Image>();
             if (paperImg != null)
@@ -701,11 +700,12 @@ public class PlayerJoinController : MonoBehaviour
                 paperImg.color = c;
             }
 
-            // USE OUR NEW VARIABLE INSTEAD OF GUESSING THE NAME!
             if (!string.IsNullOrEmpty(paperReverseTriggerName))
             {
                 paperTransitionAnimator.SetTrigger(paperReverseTriggerName);
             }
+
+            paperTransitionAnimator.Update(0f);
 
             yield return new WaitForSeconds(paperAnimationDuration);
         }
@@ -744,6 +744,12 @@ public class PlayerJoinController : MonoBehaviour
         {
             curtainAnimator.gameObject.SetActive(true);
             curtainAnimator.SetTrigger(curtainTriggerName);
+        }
+
+        // THE FIX: Trigger the music fade out right as the curtains close!
+        if (MainMenuMusic.Instance != null)
+        {
+            MainMenuMusic.Instance.FadeOutAndStop();
         }
 
         yield return new WaitForSeconds(curtainCloseDuration);
