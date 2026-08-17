@@ -7,6 +7,9 @@ public class UFOEvent : GameEvent
     public GameObject UFOPrefab;
     public Transform[] spawnLocations;
 
+    [Tooltip("Uncheck for rounds like Mountain where an abduction should be a permanent elimination, not a respawn.")]
+    public bool respawnOnKill = true;
+
     public override IEnumerator Trigger()
     {
         if (RoundManager.Instance.currRoundActive) {
