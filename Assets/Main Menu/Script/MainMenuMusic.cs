@@ -1,65 +1,84 @@
-using UnityEngine;
-using UnityEngine.SceneManagement;
 using System.Collections;
+using UnityEngine;
 
 public class MainMenuMusic : MonoBehaviour
 {
-    private static MainMenuMusic instance;
-    private AudioSource audioSource;
+    // This makes the script a "Singleton" so other scripts can talk to it easily
+    public static MainMenuMusic Instance;
+
+    public AudioSource audioSource;
 
     [Header("Fade Settings")]
     public float fadeDuration = 1.5f;
 
-    void Awake()
+    [Header("Gang Beasts Style Ducking")]
+    [Tooltip("How much to lower the volume. 0.85 means it drops by 15%")]
+    public float duckedVolumeMultiplier = 0.85f;
+    [Tooltip("How fast the volume dips down when you press a button")]
+    public float duckTransitionSpeed = 0.5f;
+
+    private float startingVolume;
+    private Coroutine volumeCoroutine;
+
+    private void Awake()
     {
-        // 1. The Singleton Pattern: Ensures only ONE music manager ever exists.
-        // If we load back into the Title Screen, it destroys the duplicate.
-        if (instance != null && instance != this)
+        // Check if a music manager already exists from a previous scene
+        if (Instance == null)
         {
-            Destroy(this.gameObject);
-            return;
+            Instance = this;
+            // Tell Unity NOT to destroy this object when loading the lobby scenes!
+            DontDestroyOnLoad(gameObject);
+
+            if (audioSource == null) audioSource = GetComponent<AudioSource>();
+            startingVolume = audioSource.volume;
         }
-
-        instance = this;
-        DontDestroyOnLoad(this.gameObject); // Keeps this object alive between scenes
-
-        audioSource = GetComponent<AudioSource>();
-    }
-
-    void OnEnable()
-    {
-        // Subscribe to the scene loaded event
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
-
-    void OnDisable()
-    {
-        // Unsubscribe when disabled to prevent memory leaks
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-
-    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        // Check if the scene we just loaded into is your Loading Screen
-        // IMPORTANT: Make sure this string exactly matches your loading scene's name!
-        if (scene.name == "RossTestScene")
+        else
         {
-            StartCoroutine(FadeOut());
+            // If one already exists (like returning to the main menu), destroy this duplicate
+            Destroy(gameObject);
         }
     }
 
-    IEnumerator FadeOut()
+    // Call this from your "Press Any Button" script!
+    public void DuckMusicVolume()
     {
-        float startVolume = audioSource.volume;
+        if (volumeCoroutine != null) StopCoroutine(volumeCoroutine);
+        volumeCoroutine = StartCoroutine(LerpVolume(startingVolume * duckedVolumeMultiplier, duckTransitionSpeed));
+    }
 
-        // Gradually reduce volume to 0
-        while (audioSource.volume > 0)
+    // Call this if you press Back and return to the Title Screen
+    public void RestoreMusicVolume()
+    {
+        if (volumeCoroutine != null) StopCoroutine(volumeCoroutine);
+        volumeCoroutine = StartCoroutine(LerpVolume(startingVolume, duckTransitionSpeed));
+    }
+
+    // Call this from your Loading Screen when the game is about to start
+    public void FadeOutAndStop()
+    {
+        if (volumeCoroutine != null) StopCoroutine(volumeCoroutine);
+        volumeCoroutine = StartCoroutine(LerpVolume(0f, fadeDuration));
+    }
+
+    private IEnumerator LerpVolume(float targetVolume, float duration)
+    {
+        float currentVol = audioSource.volume;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
         {
-            audioSource.volume -= startVolume * Time.deltaTime / fadeDuration;
+            elapsed += Time.deltaTime;
+            audioSource.volume = Mathf.Lerp(currentVol, targetVolume, elapsed / duration);
             yield return null;
         }
 
-        audioSource.Stop();
-        audioSource.volume = startVolume; // Reset volume in case we go back to the main menu later
+        audioSource.volume = targetVolume;
+
+        // If the volume hit 0, stop the music completely and destroy the manager so it doesn't linger
+        if (targetVolume == 0f)
+        {
+            audioSource.Stop();
+            Destroy(gameObject);
+        }
     }
 }

@@ -577,6 +577,7 @@ MonoBehaviour:
   isQuitButton: 0
   quitDelay: 0.5
   sceneName: Main Menu
+  useMultiplayerTransition: 0
   exitOrchestrator: {fileID: 0}
 --- !u!114 &364541989
 MonoBehaviour:
@@ -791,6 +792,7 @@ MonoBehaviour:
   isQuitButton: 0
   quitDelay: 0.5
   sceneName: Main Menu
+  useMultiplayerTransition: 0
   exitOrchestrator: {fileID: 0}
 --- !u!114 &554507504
 MonoBehaviour:
@@ -929,7 +931,8 @@ MonoBehaviour:
   highlightImage: {fileID: 21300000, guid: dbc6b35ddc78e87428917cc5565b3f4f, type: 3}
   isQuitButton: 0
   quitDelay: 1
-  sceneName: Main Menu
+  sceneName: 
+  useMultiplayerTransition: 0
   exitOrchestrator: {fileID: 0}
 --- !u!114 &558269195
 MonoBehaviour:
@@ -974,7 +977,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 558269196}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 97304307}
+        m_TargetAssemblyTypeName: MultiplayerBackTransition, Assembly-CSharp
+        m_MethodName: PlayBackTransition
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &558269196
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1360,7 +1375,8 @@ MonoBehaviour:
   highlightImage: {fileID: 21300000, guid: bc7b513894d4fab49b0c61230565726d, type: 3}
   isQuitButton: 0
   quitDelay: 1
-  sceneName: Main Menu
+  sceneName: 
+  useMultiplayerTransition: 0
   exitOrchestrator: {fileID: 0}
 --- !u!114 &757161286
 MonoBehaviour:
@@ -1405,7 +1421,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 757161287}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 97304307}
+        m_TargetAssemblyTypeName: MultiplayerBackTransition, Assembly-CSharp
+        m_MethodName: PlayBackTransition
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &757161287
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1653,11 +1681,11 @@ AudioSource:
   m_GameObject: {fileID: 910669656}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -6528223651065312789, guid: 54e82fe3da01e834fb158a66ea97067a, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.447
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -1771,7 +1799,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee332d5046ec0bb438f87b92a965ade2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  audioSource: {fileID: 930841467}
   fadeDuration: 1.5
+  duckedVolumeMultiplier: 0.85
+  duckTransitionSpeed: 0.5
 --- !u!82 &930841467
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1785,7 +1816,7 @@ AudioSource:
   m_audioClip: {fileID: 8300000, guid: e0dc94910aebe9943b865f4caad8d60a, type: 3}
   m_Resource: {fileID: 8300000, guid: e0dc94910aebe9943b865f4caad8d60a, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.845
+  m_Volume: 0.81
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -2049,6 +2080,7 @@ MonoBehaviour:
   isQuitButton: 0
   quitDelay: 0.5
   sceneName: Main Menu
+  useMultiplayerTransition: 0
   exitOrchestrator: {fileID: 0}
 --- !u!114 &1167449225
 MonoBehaviour:
@@ -2361,6 +2393,7 @@ MonoBehaviour:
   isQuitButton: 0
   quitDelay: 0.5
   sceneName: Main Menu
+  useMultiplayerTransition: 0
   exitOrchestrator: {fileID: 0}
 --- !u!114 &1573682770
 MonoBehaviour:

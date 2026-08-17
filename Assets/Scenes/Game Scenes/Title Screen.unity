@@ -553,7 +553,8 @@ MonoBehaviour:
   isQuitButton: 0
   quitDelay: 0.5
   sceneName: ControllerLayoutScreen
-  exitOrchestrator: {fileID: 0}
+  useMultiplayerTransition: 0
+  exitOrchestrator: {fileID: 2147308734}
 --- !u!95 &383966648
 Animator:
   serializedVersion: 7
@@ -1033,6 +1034,7 @@ MonoBehaviour:
   isQuitButton: 0
   quitDelay: 0.5
   sceneName: 
+  useMultiplayerTransition: 0
   exitOrchestrator: {fileID: 0}
 --- !u!114 &864570930
 MonoBehaviour:
@@ -1269,6 +1271,7 @@ MonoBehaviour:
   - {fileID: 864570929}
   - {fileID: 383966647}
   - {fileID: 2035146404}
+  backTransition: {fileID: 0}
   navigateSound: {fileID: 8300000, guid: a81c90d61989f9944a00320a38b399ef, type: 3}
   selectSound: {fileID: 8300000, guid: a81c90d61989f9944a00320a38b399ef, type: 3}
   backSound: {fileID: 8300000, guid: a81c90d61989f9944a00320a38b399ef, type: 3}
@@ -1285,7 +1288,7 @@ AudioSource:
   m_audioClip: {fileID: 8300000, guid: 1f9f7924a97aae544b76bb19283acdd2, type: 3}
   m_Resource: {fileID: 8300000, guid: 1f9f7924a97aae544b76bb19283acdd2, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.066
+  m_Volume: 0.447
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -1779,6 +1782,7 @@ MonoBehaviour:
   isQuitButton: 0
   quitDelay: 0.5
   sceneName: ControllerConnectScene
+  useMultiplayerTransition: 0
   exitOrchestrator: {fileID: 2147308734}
 --- !u!95 &1100925531
 Animator:
@@ -1837,7 +1841,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee332d5046ec0bb438f87b92a965ade2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fadeDuration: 1.5
+  audioSource: {fileID: 1169658708}
+  fadeDuration: 1
+  duckedVolumeMultiplier: 0.85
+  duckTransitionSpeed: 1.25
 --- !u!82 &1169658708
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1848,10 +1855,10 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 9198869056092993592, guid: 54e82fe3da01e834fb158a66ea97067a, type: 2}
-  m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 0}
+  m_audioClip: {fileID: 8300000, guid: e0dc94910aebe9943b865f4caad8d60a, type: 3}
+  m_Resource: {fileID: 8300000, guid: e0dc94910aebe9943b865f4caad8d60a, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.845
+  m_Volume: 0.29
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -2927,6 +2934,7 @@ MonoBehaviour:
   isQuitButton: 1
   quitDelay: 1
   sceneName: 
+  useMultiplayerTransition: 0
   exitOrchestrator: {fileID: 0}
 --- !u!114 &2035146405
 MonoBehaviour:
@@ -3116,7 +3124,7 @@ MonoBehaviour:
   fadeOutWaitSeconds: 0
   inputDelaySeconds: 2
   armInputOnStart: 1
-  audioSource: {fileID: 1033598924}
+  audioSource: {fileID: 1169658708}
   startSound: {fileID: 8300000, guid: 1f9f7924a97aae544b76bb19283acdd2, type: 3}
 --- !u!1001 &5831605058926235341
 PrefabInstance:
@@ -3210,6 +3218,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7532386420905393287, guid: 63e18606f33b74f4f9d54c06bea45739, type: 3}
+      propertyPath: OutputAudioMixerGroup
+      value: 
+      objectReference: {fileID: 5929294501029441076, guid: 54e82fe3da01e834fb158a66ea97067a, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

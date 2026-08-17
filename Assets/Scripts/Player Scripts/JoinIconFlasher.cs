@@ -1,8 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.DualShock;
+using UnityEngine.InputSystem.XInput;
+using System.Collections.Generic;
 
-[RequireComponent(typeof(Image))]
 public class JoinIconFlasher : MonoBehaviour
 {
     [Header("The Icons")]
@@ -13,72 +15,67 @@ public class JoinIconFlasher : MonoBehaviour
     [Header("Timing")]
     public float flashInterval = 3f;
 
-    private Image buttonImage;
+    private Image imageComponent;
+    private List<Sprite> activeIcons = new List<Sprite>();
+    private float timer;
+    private int currentIndex;
 
-    void Awake()
+    void Start()
     {
-        buttonImage = GetComponent<Image>();
+        imageComponent = GetComponent<Image>();
+        DetermineActiveIcons();
     }
 
-    void OnEnable()
+    void Update()
     {
-        StartCoroutine(FlashIconRoutine());
-    }
+        // If we only have 1 icon type loaded (e.g. only Xbox controllers are plugged in),
+        // there is no need to flash! It just stays on that one icon constantly.
+        if (activeIcons.Count <= 1) return;
 
-    private IEnumerator FlashIconRoutine()
-    {
-        int iconState = 0;
-
-        while (true)
+        timer += Time.deltaTime;
+        if (timer >= flashInterval)
         {
-            // --- THE FIX: Check if anyone is already using the keyboard ---
-            bool isKeyboardTaken = false;
-            if (InputManager.Instance != null)
+            timer = 0f;
+            currentIndex = (currentIndex + 1) % activeIcons.Count;
+            if (imageComponent != null)
             {
-                for (int i = 1; i <= 4; i++)
-                {
-                    if (InputManager.Instance.IsKeyboardPlayer(i))
-                    {
-                        isKeyboardTaken = true;
-                        break;
-                    }
-                }
+                imageComponent.sprite = activeIcons[currentIndex];
             }
+        }
+    }
 
-            // If it's the keyboard's turn to flash (2), but it's already taken, skip straight back to Xbox (0)!
-            if (iconState == 2 && isKeyboardTaken)
-            {
-                iconState = 0;
-            }
-            // --------------------------------------------------------------
+    public void DetermineActiveIcons()
+    {
+        activeIcons.Clear();
+        bool hasXbox = false;
+        bool hasPS = false;
+        bool hasKeyboard = false;
 
-            if (buttonImage != null)
-            {
-                if (iconState == 0 && xboxIcon != null)
-                {
-                    buttonImage.sprite = xboxIcon;
-                }
-                else if (iconState == 1 && playstationIcon != null)
-                {
-                    buttonImage.sprite = playstationIcon;
-                }
-                else if (iconState == 2 && keyboardIcon != null)
-                {
-                    buttonImage.sprite = keyboardIcon;
-                }
-            }
+        // Scan all connected hardware devices
+        foreach (var device in InputSystem.devices)
+        {
+            if (device is Keyboard) hasKeyboard = true;
+            else if (device is DualShockGamepad) hasPS = true; // Catches PlayStation 4/5 Controllers
+            else if (device is Gamepad) hasXbox = true; // Catches Xbox and generic XInput PC Gamepads
+        }
 
-            // Wait 3 seconds
-            yield return new WaitForSeconds(flashInterval);
+        // If for some reason nothing is detected, fallback to the Xbox icon
+        if (!hasXbox && !hasPS && !hasKeyboard) hasXbox = true;
 
-            // Move to the next icon for the next loop
-            iconState++;
+        // Add the relevant icons to our flashing list
+        if (hasXbox && xboxIcon != null) activeIcons.Add(xboxIcon);
+        if (hasPS && playstationIcon != null) activeIcons.Add(playstationIcon);
 
-            // If we've gone past the keyboard (2), reset back to Xbox (0)
-            if (iconState > 2)
-            {
-                iconState = 0;
-            }
+        // You can check GameManager here too if you only want the keyboard icon 
+        // to show when a player explicitly picked keyboard in the lobby
+        if (hasKeyboard && keyboardIcon != null) activeIcons.Add(keyboardIcon);
+
+        // Set the starting icon immediately
+        if (activeIcons.Count > 0 && imageComponent != null)
+        {
+            currentIndex = 0;
+            imageComponent.sprite = activeIcons[0];
+            timer = 0f;
         }
     }
 }

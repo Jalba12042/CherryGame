@@ -17,6 +17,10 @@ public class MenuSelectable : MonoBehaviour
     [Header("Scene To Load (Leave empty to use On Click list)")]
     public string sceneName;
 
+    [Header("--- NEW: Transition Type ---")]
+    [Tooltip("Check this box if this is the Online/Multiplayer button!")]
+    public bool useMultiplayerTransition = false;
+
     [Header("Optional: play exit animation before loading")]
     [Tooltip("Drag the object holding your MenuExitOrchestrator here!")]
     public MenuExitOrchestrator exitOrchestrator;
@@ -72,7 +76,15 @@ public class MenuSelectable : MonoBehaviour
 
         if (exitOrchestrator != null)
         {
-            exitOrchestrator.ExitThenLoad(sceneName);
+            // THE FIX: Route to the correct transition based on the checkbox!
+            if (useMultiplayerTransition)
+            {
+                exitOrchestrator.ExitToMultiplayer(sceneName);
+            }
+            else
+            {
+                exitOrchestrator.ExitThenLoad(sceneName);
+            }
         }
         else
         {
