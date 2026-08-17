@@ -124,6 +124,12 @@ public class PlayerKill : MonoBehaviour
 
         GetComponentInChildren<Animator>().enabled = false;
 
+        // Hide immediately — respawnTimer() (below) also does this, but only runs when respawn
+        // is true, so a permanent death (respawn=false, e.g. Mountain's Killzone) needs this too,
+        // otherwise the player stays frozen but fully visible back at their spawn point.
+        foreach (Renderer r in playerRenderers)
+            r.enabled = false;
+
         //StartCoroutine(BlinkWhileDead());
 
         PlayerInteract interact = GetComponent<PlayerInteract>();
