@@ -9,7 +9,6 @@ public class CherryRound : Round
 {
     [SerializeField] private GameObject cherryPrefab;
     [SerializeField] private GameObject cherryBombPrefab;
-    [SerializeField] private GameObject cratePrefab;
     [SerializeField] private GameObject goldenCherry;
     [SerializeField] private float goldenCherryTime = 70f;
     [SerializeField] private float spawnInterval;
@@ -17,9 +16,9 @@ public class CherryRound : Round
     [SerializeField] private int maxCherrySpawns;
     [SerializeField] private float cherryBombChance;
     [SerializeField, Range(0, 100)] private int powerupSpawnRate;
+    [SerializeField] private PowerupSpawner powerupSpawner;
 
     private GameObject spawnArea;
-    private GameObject powerupSpawnArea; // temp power up spawn area
     private GameObject goldenSpawnArea;
     private BasketContainer bc;
 
@@ -32,9 +31,8 @@ public class CherryRound : Round
 
         // get the bounds of the area of where we want cherries to spawn
         spawnArea = GameObject.FindWithTag("SpawnArea");
-        
-        // temp the bounds of power up spawn area
-        powerupSpawnArea = GameObject.FindWithTag("PowerUpSpawnArea");
+
+        powerupSpawner.Init();
 
         goldenSpawnArea = GameObject.FindWithTag("GoldenSpawn");
 
@@ -48,9 +46,6 @@ public class CherryRound : Round
         bool goldenCherrySpawned = false;
         Collider spawnCollider = spawnArea.GetComponent<Collider>();
         Bounds b = spawnCollider.bounds;
-
-        Collider puSpawnCollider = powerupSpawnArea.GetComponent<Collider>();
-        Bounds puB = puSpawnCollider.bounds;
 
         // while the round is going, spawn a random amount of cherry prefabs in random spots in the spawn area every n seconds
         while (RoundManager.Instance.currRoundActive)
@@ -74,18 +69,9 @@ public class CherryRound : Round
             int randPUSpawn = Random.Range(0, 100);
             if (randPUSpawn <= powerupSpawnRate)
             {
-                float randX = Random.Range(puB.min.x, puB.max.x);
-                float randZ = Random.Range(puB.min.z, puB.max.z);
-
-                if (RoundManager.Instance.powerUpsInRotation != null)
-                {
-                    if (RoundManager.Instance.powerUpsInRotation.Count != 0)
-                    {
-                        Instantiate(cratePrefab, new Vector3(randX, powerupSpawnArea.transform.position.y, randZ), Quaternion.identity);
-                    }
-                }
+                powerupSpawner.SpawnCrate();
             }
-            
+
             if (RoundManager.Instance.currRoundProgress > goldenCherryTime && !goldenCherrySpawned)
             {
                 goldenCherrySpawned = true;

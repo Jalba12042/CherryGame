@@ -7,6 +7,10 @@ public class BeachRound : Round
 {
     [SerializeField] private GameObject[] shellPrefabs;
 
+    [SerializeField] private float spawnInterval;
+    [SerializeField, Range(0, 100)] private int powerupSpawnRate;
+    [SerializeField] private PowerupSpawner powerupSpawner;
+
     private Ocean ocean;
     private BasketContainer bc;
 
@@ -24,6 +28,8 @@ public class BeachRound : Round
         bc = FindFirstObjectByType<BasketContainer>();
         if (bc == null)
             Debug.LogError($"[BeachRound] '{name}' could not find a BasketContainer in the scene.");
+
+        powerupSpawner.Init();
     }
 
     public override IEnumerator StartGoal()
@@ -32,7 +38,14 @@ public class BeachRound : Round
 
         while (RoundManager.Instance.currRoundActive)
         {
-            yield return null;
+            // powerup spawn logic
+            int randPUSpawn = Random.Range(0, 100);
+            if (randPUSpawn <= powerupSpawnRate)
+            {
+                powerupSpawner.SpawnCrate();
+            }
+
+            yield return new WaitForSeconds(spawnInterval);
         }
     }
 
