@@ -38,8 +38,10 @@ public class TacoBlaster : Powerup
         }
     }
 
-    public void EquipTacoBlaster(Transform hand)
+    public void EquipTacoBlaster(Transform hand, PlayerPowerupHandler owner)
     {
+        powerupHandler = owner;
+
         playerAnimator = hand.root.GetComponent<Animator>();
 
         if (playerAnimator != null)
@@ -87,7 +89,14 @@ public class TacoBlaster : Powerup
 
         // Fire projectile
         GameObject projectile =
-            Instantiate(tacoProjectilePrefab, barrel.position, barrel.rotation);
+     Instantiate(tacoProjectilePrefab, barrel.position, barrel.rotation);
+
+        TacoProjectile tacoProjectile = projectile.GetComponent<TacoProjectile>();
+
+        if (tacoProjectile != null)
+        {
+            tacoProjectile.SetOwner(powerupHandler);
+        }
 
         Rigidbody rb = projectile.GetComponent<Rigidbody>();
 
