@@ -692,8 +692,6 @@ public class PlayerJoinController : MonoBehaviour
         {
             paperTransitionAnimator.gameObject.SetActive(true);
 
-            // THE FIX: We removed 'yield return null;' so there is zero delay!
-
             Image paperImg = paperTransitionAnimator.GetComponent<Image>();
             if (paperImg != null)
             {
@@ -707,7 +705,6 @@ public class PlayerJoinController : MonoBehaviour
                 paperTransitionAnimator.SetTrigger(paperReverseTriggerName);
             }
 
-            // THE FIX: Force the Animator to instantly calculate frame 1 before rendering to the screen
             paperTransitionAnimator.Update(0f);
 
             yield return new WaitForSeconds(paperAnimationDuration);
@@ -747,6 +744,12 @@ public class PlayerJoinController : MonoBehaviour
         {
             curtainAnimator.gameObject.SetActive(true);
             curtainAnimator.SetTrigger(curtainTriggerName);
+        }
+
+        // THE FIX: Trigger the music fade out right as the curtains close!
+        if (MainMenuMusic.Instance != null)
+        {
+            MainMenuMusic.Instance.FadeOutAndStop();
         }
 
         yield return new WaitForSeconds(curtainCloseDuration);

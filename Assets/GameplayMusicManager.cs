@@ -1,201 +1,102 @@
-using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
+using UnityEngine;
 
-[RequireComponent(typeof(AudioSource))]
 public class GameplayMusicManager : MonoBehaviour
 {
-    public static GameplayMusicManager Instance; // Makes this easy to call from WinScript!
+    public static GameplayMusicManager Instance;
 
     [Header("Music Tracks")]
     public AudioClip[] musicTracks;
 
     [Header("Fade Settings")]
-    public float crossfadeDuration = 3f; // How long tracks blend into each other
-    public float maxVolume = 0.181f;     // The normal volume for your music
+    public float crossfadeDuration = 3f;
+    public float maxVolume = 0.181f;
 
-    private AudioSource[] audioSources;
-    private int activeSourceIndex = 0;
+    private AudioSource audioSource;
 
-    private List<AudioClip> shuffledPlaylist = new List<AudioClip>();
-    private int currentTrackIndex = 0;
-    private bool isPlayingMusic = true;
-    private bool isCrossfading = false;
-
-    private float pausedVolume0;
-    private float pausedVolume1;
-
-    void Awake()
+    private void Awake()
     {
-        // 1. Keep the music alive when the Win Scene loads!
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
+        Instance = this;
+        audioSource = GetComponent<AudioSource>();
 
-        // 2. Set up the Double Audio Source trick
-        audioSources = new AudioSource[2];
-        audioSources[0] = GetComponent<AudioSource>(); // The one you already have
-        audioSources[1] = gameObject.AddComponent<AudioSource>(); // The secret backup one!
-
-        // Make sure the backup source has the exact same Audio Mixer settings
-        audioSources[1].outputAudioMixerGroup = audioSources[0].outputAudioMixerGroup;
-
-        audioSources[0].loop = false;
-        audioSources[1].loop = false;
-        audioSources[1].volume = 0f; // Start silent
-    }
-
-    void Start()
-    {
-        if (musicTracks.Length > 0)
+        // Ensure it doesn't play immediately while the fake loading screen is up
+        if (audioSource != null)
         {
-            CreateShuffledPlaylist();
-            PlayNextTrack(true); // True means start instantly, no fade
-        }
-        else
-        {
-            Debug.LogWarning("No music tracks assigned!");
+            audioSource.playOnAwake = false;
+            audioSource.volume = 0f;
         }
     }
 
-    void Update()
+    // Called by FakeLoadingScreen when the round officially begins
+    public void StartMusic()
     {
-        if (!isPlayingMusic) return;
+        if (audioSource == null || musicTracks.Length == 0) return;
 
-        AudioSource activeSource = audioSources[activeSourceIndex];
+        // Pick a random track from the array
+        int randomIndex = Random.Range(0, musicTracks.Length);
+        audioSource.clip = musicTracks[randomIndex];
 
-        // 3. Start the crossfade right before the current song ends!
-        if (activeSource.isPlaying && !isCrossfading)
-        {
-            float timeRemaining = activeSource.clip.length - activeSource.time;
-            if (timeRemaining <= crossfadeDuration)
-            {
-                PlayNextTrack(false); // False means do a smooth crossfade
-            }
-        }
+        audioSource.Play();
+        StartCoroutine(FadeVolume(audioSource, maxVolume, crossfadeDuration));
     }
 
-    void CreateShuffledPlaylist()
+    // Called by EndOfRoundTransition when the timer hits zero
+    public void StopMusicAndAmbience(AudioSource ambienceSource)
     {
-        shuffledPlaylist.Clear();
-        shuffledPlaylist.AddRange(musicTracks);
-
-        for (int i = 0; i < shuffledPlaylist.Count; i++)
-        {
-            AudioClip temp = shuffledPlaylist[i];
-            int randomIndex = Random.Range(i, shuffledPlaylist.Count);
-            shuffledPlaylist[i] = shuffledPlaylist[randomIndex];
-            shuffledPlaylist[randomIndex] = temp;
-        }
-
-        currentTrackIndex = 0;
+        if (audioSource != null) StartCoroutine(FadeVolume(audioSource, 0f, 1.5f));
+        if (ambienceSource != null) StartCoroutine(FadeVolume(ambienceSource, 0f, 1.5f));
     }
 
-    void PlayNextTrack(bool instantStart)
-    {
-        if (currentTrackIndex >= shuffledPlaylist.Count)
-        {
-            CreateShuffledPlaylist();
-        }
+    // ==========================================
+    // --- RESTORED FUNCTIONS TO FIX ERRORS ---
+    // ==========================================
 
-        int nextSourceIndex = 1 - activeSourceIndex; // Swaps between 0 and 1
-        AudioSource nextSource = audioSources[nextSourceIndex];
-        AudioSource currentSource = audioSources[activeSourceIndex];
-
-        nextSource.clip = shuffledPlaylist[currentTrackIndex];
-        currentTrackIndex++;
-
-        if (instantStart)
-        {
-            nextSource.volume = maxVolume;
-            nextSource.Play();
-            activeSourceIndex = nextSourceIndex;
-        }
-        else
-        {
-            StartCoroutine(Crossfade(currentSource, nextSource, crossfadeDuration));
-        }
-    }
-
-    IEnumerator Crossfade(AudioSource fadeOutSource, AudioSource fadeInSource, float duration)
-    {
-        isCrossfading = true;
-        fadeInSource.Play();
-        fadeInSource.volume = 0f;
-
-        float elapsed = 0f;
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float t = elapsed / duration;
-
-            // Blend the volumes
-            fadeOutSource.volume = Mathf.Lerp(maxVolume, 0f, t);
-            fadeInSource.volume = Mathf.Lerp(0f, maxVolume, t);
-
-            yield return null;
-        }
-
-        fadeOutSource.volume = 0f;
-        fadeOutSource.Stop();
-        fadeInSource.volume = maxVolume;
-
-        activeSourceIndex = System.Array.IndexOf(audioSources, fadeInSource);
-        isCrossfading = false;
-    }
-
-    // --- NEW: Triggered when everyone hits A in the Win Scene! ---
+    // Called by WinScript to transition to the Shop
     public void FadeOutToShop(float duration)
     {
-        if (!isPlayingMusic) return;
-        StartCoroutine(FadeOutAndDestroy(duration));
+        if (audioSource != null)
+        {
+            StartCoroutine(FadeVolume(audioSource, 0f, duration));
+        }
     }
 
-    IEnumerator FadeOutAndDestroy(float duration)
+    // Called by PlayerPowerupHandler when the Taco Dance starts!
+    public void PauseGameplayMusic()
     {
-        isPlayingMusic = false;
+        if (audioSource != null && audioSource.isPlaying)
+        {
+            audioSource.Pause();
+        }
+    }
+
+    // Called by PlayerPowerupHandler when the Taco Dance ends!
+    public void ResumeGameplayMusic()
+    {
+        if (audioSource != null && !audioSource.isPlaying)
+        {
+            audioSource.UnPause();
+        }
+    }
+
+    // ==========================================
+
+    private IEnumerator FadeVolume(AudioSource source, float targetVol, float duration)
+    {
+        float startVol = source.volume;
         float elapsed = 0f;
 
-        float startVol0 = audioSources[0].volume;
-        float startVol1 = audioSources[1].volume;
-
-        // Fade both sources out over time
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
-            float t = elapsed / duration;
-
-            audioSources[0].volume = Mathf.Lerp(startVol0, 0f, t);
-            audioSources[1].volume = Mathf.Lerp(startVol1, 0f, t);
+            source.volume = Mathf.Lerp(startVol, targetVol, elapsed / duration);
             yield return null;
         }
 
-        audioSources[0].Stop();
-        audioSources[1].Stop();
+        source.volume = targetVol;
 
-        // Destroy this object completely so it doesn't overlap when the next round starts!
-        Destroy(gameObject);
-    }
-
-    public void PauseGameplayMusic()
-    {
-        pausedVolume0 = audioSources[0].volume;
-        pausedVolume1 = audioSources[1].volume;
-
-        audioSources[0].volume = 0f;
-        audioSources[1].volume = 0f;
-    }
-
-    public void ResumeGameplayMusic()
-    {
-        audioSources[0].volume = pausedVolume0;
-        audioSources[1].volume = pausedVolume1;
+        if (targetVol == 0f)
+        {
+            source.Stop();
+        }
     }
 }

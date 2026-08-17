@@ -3,19 +3,34 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class GameWinScript : MonoBehaviour
 {
     [Header("UI & Stage")]
     public Animator stageAnimator;
     public TMP_Text winText;
+    [Tooltip("The exact name of the animation that opens the curtains")]
+    public string curtainsOpenAnimName = "CurtainsOpen";
 
-    [Header("--- DEMO Marquee Sign (Single Object) ---")]
+    [Header("--- Main Award Sign (CINEMA Board) ---")]
+    [Tooltip("Drag the big AwardSign object here!")]
+    public Animator mainAwardSignAnimator;
+    [Tooltip("How long does the CINEMA sign's entire animation take? Set this so the player signs wait for it to finish!")]
+    public float awardSignFullDuration = 8.5f;
+
+    [Header("--- DEMO Marquee Sign & Puppet Outros ---")]
     [Tooltip("Drag your 1stplaceSigns object here")]
     public Animator marqueeAnimator;
+    [Tooltip("The exact name of the sign's outro animation state")]
+    public string signOutroAnimName = "1stplaceoutro";
+    [Tooltip("The exact name of the puppet's outro animation state")]
+    public string puppetOutroAnimName = "1splaceoutro";
+    [Tooltip("How long to wait for the sign/puppet to slide out before the curtains open")]
+    public float signOutroDuration = 1.0f;
     [Tooltip("Drag the Image component from 1stplaceSigns here")]
     public Image marqueeImage;
-    [Tooltip("How long to wait after the puppet pops up before playing the Outro")]
+    [Tooltip("How long to wait after the puppet pops up before showing buttons")]
     public float postRevealWaitTime = 3f;
 
     [Header("Marquee Sprites (To swap on the single board)")]
@@ -52,6 +67,27 @@ public class GameWinScript : MonoBehaviour
     public AudioClip cheerSound;
     public AudioClip booSound;
 
+    [Header("--- Post-Game Options (Images) ---")]
+    public GameObject playAgainImage;
+    public GameObject leaveImage;
+    public string playAgainSceneName = "ControllerConnectScene";
+
+    [Header("--- Leave Transition (Background Swap & Paper) ---")]
+    public string leaveSceneName = "MainMenu";
+    public GameObject redPanelBackground;
+    public GameObject skyMainMenuBackground;
+    public Animator paperTransitionAnimator;
+    public string paperReverseTriggerName = "PaperReverseTrigger";
+    public float paperAnimationDuration = 1.0f;
+
+    private bool canSelectPostGame = false;
+    private bool isTransitioning = false;
+
+    void Awake()
+    {
+        if (marqueeAnimator != null) marqueeAnimator.gameObject.SetActive(false);
+    }
+
     void Start()
     {
         if (winText != null) winText.gameObject.SetActive(false);
@@ -60,19 +96,33 @@ public class GameWinScript : MonoBehaviour
         if (thirdPlacePuppet != null) thirdPlacePuppet.SetActive(false);
         if (fourthPlacePuppet != null) fourthPlacePuppet.SetActive(false);
 
-        // Ensure the single sign starts turned off
-        if (marqueeAnimator != null) marqueeAnimator.gameObject.SetActive(false);
+        if (playAgainImage != null) playAgainImage.SetActive(false);
+        if (leaveImage != null) leaveImage.SetActive(false);
+
+        if (mainAwardSignAnimator != null) mainAwardSignAnimator.gameObject.SetActive(false);
+
+        if (redPanelBackground != null) redPanelBackground.SetActive(true);
+        if (skyMainMenuBackground != null) skyMainMenuBackground.SetActive(false);
 
         StartCoroutine(AwardSequence());
     }
 
     private IEnumerator AwardSequence()
     {
-        yield return new WaitForSeconds(1f);
-        if (stageAnimator != null) stageAnimator.Play("CurtainsIntro");
-        yield return new WaitForSeconds(5f);
+        // 1. Drop the curtains immediately
+        if (stageAnimator != null) stageAnimator.Play("CurtainsClose");
+        yield return new WaitForSeconds(1.5f);
 
-        // Sort players
+        // 2. Turn on the big CINEMA sign (its 100-frame animation will play automatically)
+        if (mainAwardSignAnimator != null) mainAwardSignAnimator.gameObject.SetActive(true);
+
+        // 3. Wait for the ENTIRE duration of the CINEMA sign's animation
+        yield return new WaitForSeconds(awardSignFullDuration);
+
+        // 4. Turn the CINEMA sign OFF completely so the screen is clear!
+        if (mainAwardSignAnimator != null) mainAwardSignAnimator.gameObject.SetActive(false);
+
+        // 5. Start sorting and revealing players (No overlapping!)
         List<int> sortedPlayers = new List<int>();
         int pCount = 0;
         if (GameManager.Instance != null)
@@ -87,46 +137,26 @@ public class GameWinScript : MonoBehaviour
         int thirdPlaceID = sortedPlayers.Count > 2 ? sortedPlayers[2] : 0;
         int fourthPlaceID = sortedPlayers.Count > 3 ? sortedPlayers[3] : 0;
 
-        // Reveal 4th Place
-        if (pCount >= 4)
-        {
-            yield return StartCoroutine(RevealRoutine(sign4thPlace, fourthPlacePuppet, fourthPlaceID, pCount == 4));
-        }
-
-        // Reveal 3rd Place
-        if (pCount >= 3)
-        {
-            yield return StartCoroutine(RevealRoutine(sign3rdPlace, thirdPlacePuppet, thirdPlaceID, pCount == 3));
-        }
-
-        // Reveal 2nd Place
-        if (pCount >= 2)
-        {
-            yield return StartCoroutine(RevealRoutine(sign2ndPlace, secondPlacePuppet, secondPlaceID, pCount == 2));
-        }
-
-        // Reveal 1st Place
+        if (pCount >= 4) yield return StartCoroutine(RevealRoutine(sign4thPlace, fourthPlacePuppet, fourthPlaceID, pCount == 4));
+        if (pCount >= 3) yield return StartCoroutine(RevealRoutine(sign3rdPlace, thirdPlacePuppet, thirdPlaceID, pCount == 3));
+        if (pCount >= 2) yield return StartCoroutine(RevealRoutine(sign2ndPlace, secondPlacePuppet, secondPlaceID, pCount == 2));
         yield return StartCoroutine(RevealRoutine(sign1stPlace, firstPlacePuppet, winnerID, false, true));
     }
 
     private IEnumerator RevealRoutine(Sprite signSprite, GameObject puppetObj, int playerID, bool isSadLoser, bool isWinner = false)
     {
-        // 1. Swap the image to the correct placement and turn the sign ON (Plays Intro automatically)
         if (marqueeImage != null) marqueeImage.sprite = signSprite;
         if (marqueeAnimator != null) marqueeAnimator.gameObject.SetActive(true);
 
-        // 2. Play Drumroll and wait in suspense (Sign is looping in Idle)
         if (drumrollAudio != null) drumrollAudio.Play();
         yield return new WaitForSeconds(drumrollWaitTime);
 
-        // 3. THE REVEAL: Pop up the puppet!
         if (puppetObj != null)
         {
             puppetObj.SetActive(true);
             Image puppetImg = puppetObj.GetComponent<Image>();
             Animator puppetAnim = puppetObj.GetComponent<Animator>();
 
-            // Assign proper color
             if (puppetImg != null && GameManager.Instance != null)
             {
                 int colorIndex = GameManager.Instance.playerCustomizations[playerID].colorIndex;
@@ -144,7 +174,6 @@ public class GameWinScript : MonoBehaviour
                 if (colorIndex < targetArray.Length) puppetImg.sprite = targetArray[colorIndex];
             }
 
-            // Play correct animation and sound
             if (isSadLoser)
             {
                 if (puppetAnim != null) puppetAnim.Play(puppetObj == secondPlacePuppet ? "PuppetSad_2ndPlace" : puppetObj == thirdPlacePuppet ? "PuppetSad_3rdPlace" : "PuppetSad_4thPlace");
@@ -157,7 +186,6 @@ public class GameWinScript : MonoBehaviour
             }
         }
 
-        // Update the Win Text
         if (winText != null)
         {
             if (isWinner) winText.text = "1ST PLACE!";
@@ -166,17 +194,117 @@ public class GameWinScript : MonoBehaviour
             winText.gameObject.SetActive(true);
         }
 
-        // 4. Bask in the glory/shame before putting the sign away
         yield return new WaitForSeconds(postRevealWaitTime);
 
-        // 5. Trigger Outro on the sign
-        if (marqueeAnimator != null)
+        if (!isWinner)
         {
-            marqueeAnimator.SetTrigger("PlayOutro");
-            // Wait a second for the outro animation to physically slide off screen
-            yield return new WaitForSeconds(1f);
-            // Turn it off so it resets for the next player
-            marqueeAnimator.gameObject.SetActive(false);
+            if (marqueeAnimator != null) marqueeAnimator.Play(signOutroAnimName);
+            yield return new WaitForSeconds(signOutroDuration);
+
+            if (marqueeAnimator != null) marqueeAnimator.gameObject.SetActive(false);
+            if (puppetObj != null) puppetObj.SetActive(false);
+            if (winText != null) winText.gameObject.SetActive(false);
+        }
+        else
+        {
+            if (playAgainImage != null) playAgainImage.SetActive(true);
+            if (leaveImage != null) leaveImage.SetActive(true);
+            canSelectPostGame = true;
+        }
+    }
+
+    public void SelectPlayAgain()
+    {
+        if (!canSelectPostGame || isTransitioning) return;
+        StartCoroutine(PlayAgainTransition());
+    }
+
+    public void SelectLeave()
+    {
+        if (!canSelectPostGame || isTransitioning) return;
+        StartCoroutine(LeaveTransition());
+    }
+
+    private IEnumerator PlayAgainTransition()
+    {
+        isTransitioning = true;
+
+        if (playAgainImage != null) playAgainImage.SetActive(false);
+        if (leaveImage != null) leaveImage.SetActive(false);
+        if (winText != null) winText.gameObject.SetActive(false);
+
+        if (marqueeAnimator != null) marqueeAnimator.Play(signOutroAnimName);
+
+        Animator firstPuppetAnim = firstPlacePuppet != null ? firstPlacePuppet.GetComponent<Animator>() : null;
+        if (firstPuppetAnim != null) firstPuppetAnim.Play(puppetOutroAnimName);
+
+        yield return new WaitForSeconds(signOutroDuration);
+
+        if (firstPlacePuppet != null) firstPlacePuppet.SetActive(false);
+        if (marqueeAnimator != null) marqueeAnimator.gameObject.SetActive(false);
+
+        if (stageAnimator != null) stageAnimator.Play(curtainsOpenAnimName);
+        yield return new WaitForSeconds(1.5f);
+
+        if (!string.IsNullOrEmpty(playAgainSceneName))
+        {
+            SceneManager.LoadSceneAsync(playAgainSceneName);
+        }
+    }
+
+    private IEnumerator LeaveTransition()
+    {
+        isTransitioning = true;
+
+        if (playAgainImage != null) playAgainImage.SetActive(false);
+        if (leaveImage != null) leaveImage.SetActive(false);
+        if (winText != null) winText.gameObject.SetActive(false);
+
+        if (marqueeAnimator != null) marqueeAnimator.Play(signOutroAnimName);
+
+        Animator firstPuppetAnim = firstPlacePuppet != null ? firstPlacePuppet.GetComponent<Animator>() : null;
+        if (firstPuppetAnim != null) firstPuppetAnim.Play(puppetOutroAnimName);
+
+        yield return new WaitForSeconds(signOutroDuration);
+
+        if (firstPlacePuppet != null) firstPlacePuppet.SetActive(false);
+        if (marqueeAnimator != null) marqueeAnimator.gameObject.SetActive(false);
+
+        if (stageAnimator != null) stageAnimator.Play(curtainsOpenAnimName);
+
+        yield return new WaitForSeconds(1.5f);
+
+        if (redPanelBackground != null) redPanelBackground.SetActive(false);
+        if (skyMainMenuBackground != null) skyMainMenuBackground.SetActive(true);
+
+        if (paperTransitionAnimator != null)
+        {
+            paperTransitionAnimator.gameObject.SetActive(true);
+
+            Image paperImg = paperTransitionAnimator.GetComponent<Image>();
+            if (paperImg != null)
+            {
+                Color c = paperImg.color;
+                c.a = 1f;
+                paperImg.color = c;
+            }
+
+            if (!string.IsNullOrEmpty(paperReverseTriggerName))
+            {
+                paperTransitionAnimator.SetTrigger(paperReverseTriggerName);
+            }
+
+            paperTransitionAnimator.Update(0f);
+            yield return new WaitForSeconds(paperAnimationDuration);
+        }
+        else
+        {
+            yield return new WaitForSeconds(1.5f);
+        }
+
+        if (!string.IsNullOrEmpty(leaveSceneName))
+        {
+            SceneManager.LoadSceneAsync(leaveSceneName);
         }
     }
 }

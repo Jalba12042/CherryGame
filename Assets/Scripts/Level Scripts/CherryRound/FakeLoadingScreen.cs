@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
 
 public class FakeLoadingScreen : MonoBehaviour
 {
@@ -66,6 +67,9 @@ public class FakeLoadingScreen : MonoBehaviour
 
     [Header("Timing")]
     public float loadDuration = 10f;
+    [Tooltip("How long the player waits at the Start Point before running")]
+    public float startDelay = 1.0f;
+    private float currentDelay = 0f;
     private float timer = 0f;
     private bool loadingComplete = false;
     private float tipTimer = 0f;
@@ -75,9 +79,12 @@ public class FakeLoadingScreen : MonoBehaviour
     [Header("Color Icons")]
     public Sprite[] colorIcons;
 
+    [Header("Audio Polish")]
+    [Tooltip("Drag your Ambience_Manager object here so it starts when the round begins!")]
+    public AudioSource levelAmbience;
+
     private void Start()
     {
-        // OPEN THE CURTAINS INSTANTLY
         if (curtainAnimator != null)
         {
             curtainAnimator.SetTrigger("OpenCurtains");
@@ -95,6 +102,7 @@ public class FakeLoadingScreen : MonoBehaviour
         if (loadingBarFill != null) loadingBarFill.fillAmount = 0;
 
         timer = 0f;
+        currentDelay = 0f;
         loadingComplete = false;
 
         if (tips != null && tips.Length > 0)
@@ -106,6 +114,7 @@ public class FakeLoadingScreen : MonoBehaviour
         {
             playerIcon.sprite = activeRunSprite;
             playerIcon.rectTransform.localScale = activeRunScale;
+            if (startPoint != null) playerIcon.rectTransform.position = startPoint.position;
         }
 
         if (cherries != null)
@@ -191,10 +200,22 @@ public class FakeLoadingScreen : MonoBehaviour
 
     private void Update()
     {
+        bool skipTip = false;
+
+        if (Keyboard.current != null && Keyboard.current.xKey.wasPressedThisFrame)
+        {
+            skipTip = true;
+        }
+        if (Gamepad.current != null && Gamepad.current.buttonNorth.wasPressedThisFrame)
+        {
+            skipTip = true;
+        }
+
         if (tips != null && tips.Length > 0)
         {
             tipTimer += Time.deltaTime;
-            if (tipTimer >= tipInterval)
+
+            if (tipTimer >= tipInterval || skipTip)
             {
                 tipTimer = 0f;
                 currentTip = (currentTip + 1) % tips.Length;
@@ -204,6 +225,18 @@ public class FakeLoadingScreen : MonoBehaviour
 
         if (!loadingComplete)
         {
+            if (currentDelay < startDelay)
+            {
+                currentDelay += Time.deltaTime;
+
+                if (playerIcon != null && startPoint != null)
+                {
+                    playerIcon.rectTransform.position = startPoint.position;
+                }
+
+                return;
+            }
+
             timer += Time.deltaTime;
             float progress = timer / loadDuration;
 
@@ -279,6 +312,18 @@ public class FakeLoadingScreen : MonoBehaviour
 
         GameObject canvas = GameObject.Find("PlayerCanvas");
         if (canvas != null) canvas.SetActive(true);
+
+        // Start playing the ambience sound right here!
+        if (levelAmbience != null)
+        {
+            levelAmbience.Play();
+        }
+
+        // --- NEW: Start playing the Background Music right here! ---
+        if (GameplayMusicManager.Instance != null)
+        {
+            GameplayMusicManager.Instance.StartMusic();
+        }
 
         if (RoundManager.Instance != null)
         {

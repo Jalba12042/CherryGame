@@ -1284,7 +1284,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
-  m_Volume: 0.066
+  m_Volume: 0.447
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -1535,7 +1535,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee332d5046ec0bb438f87b92a965ade2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  audioSource: {fileID: 1169658708}
   fadeDuration: 1.5
+  duckedVolumeMultiplier: 0.85
+  duckTransitionSpeed: 0.5
 --- !u!82 &1169658708
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1549,7 +1552,7 @@ AudioSource:
   m_audioClip: {fileID: 8300000, guid: e0dc94910aebe9943b865f4caad8d60a, type: 3}
   m_Resource: {fileID: 8300000, guid: e0dc94910aebe9943b865f4caad8d60a, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.364
+  m_Volume: 0.81
   m_Pitch: 1
   Loop: 1
   Mute: 0
