@@ -382,19 +382,11 @@ public class Playermovement : MonoBehaviour
         if (dashSmoke != null) { dashSmoke.Clear(); dashSmoke.Play(); }
         if (dashSource != null)
         {
-            int rand = Random.Range(0, fartChance);
-            if (rand == 0)
-            {
-                float randPitch = Random.Range(1.3f, 2f);
-                dashSource.pitch = randPitch;
-                dashSource.PlayOneShot(fartSound);
-                StartCoroutine(ResetPitchAfter(fartSound.length / randPitch, initialPitch));
-            }
-            else
-            {
-                dashSource.pitch = initialPitch; // normal dash sound plays at normal pitch immediately
-                if (dashSound != null) dashSource.PlayOneShot(dashSound);
-            }
+           
+            float randPitch = Random.Range(1.3f, 2f);
+            dashSource.pitch = randPitch;
+            dashSource.PlayOneShot(fartSound);
+            StartCoroutine(ResetPitchAfter(fartSound.length / randPitch, initialPitch));
         }
 
         Vector3 velocity = transform.forward * dashForce;

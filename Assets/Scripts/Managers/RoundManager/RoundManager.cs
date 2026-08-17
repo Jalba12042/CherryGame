@@ -43,7 +43,7 @@ public class RoundManager : MonoBehaviour
     public GameObject[] playerObjects;
     public List<GameObject> powerupsInPlay;
     public PlayerSpawn currPlayerSpawn;
-    private int currRoundIndex;
+    private int currRoundIndex = -1; // -1 = no round played yet, so nothing gets excluded on the first pick
 
     public RenderTexture[] playerFaceRenderTextures;
 
@@ -61,6 +61,7 @@ public class RoundManager : MonoBehaviour
             currRoundActive = false;
             currRound = null;
             currPlayerSpawn = null;
+            currRoundIndex = -1;
         }
         else
         {
