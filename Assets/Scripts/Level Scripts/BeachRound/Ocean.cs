@@ -201,7 +201,11 @@ public class Ocean : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (((1 << other.gameObject.layer) & draggableLayers) == 0) return;
+        // Zombies are always caught regardless of layer (they're on Default, not draggableLayers),
+        // so they get dragged and killed by the wave the same way players do.
+        bool isDraggableLayer = ((1 << other.gameObject.layer) & draggableLayers) != 0;
+        bool isZombie = other.GetComponent<Zombie>() != null;
+        if (!isDraggableLayer && !isZombie) return;
 
         Rigidbody rb = other.GetComponent<Rigidbody>();
         if (rb != null && !caughtObjects.Contains(rb))
