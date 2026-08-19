@@ -7813,7 +7813,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerID: 0
   playerIndex: 0
-  moveSpeed: 14
+  moveSpeed: 16
   jumpForce: 9
   isSlowed: 0
   fallMultiplier: 9
@@ -7910,7 +7910,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerInteract: {fileID: 2050650156954134365}
   animator: {fileID: 8956192246315906919}
-  throwSpeed: 50
+  handHoldPoint: {fileID: 136122321391519697}
+  throwSpeed: 60
+  initialThrowDelay: 0.5
 --- !u!114 &3618199223766623653
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8272,7 +8274,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pickupRange: 2
-  grabbedSpeedMultiplier: 0.35
+  grabbedSpeedMultiplier: 0.289
   escapeCooldownTime: 1
   grabCooldownTime: 1
   grabPoint: {fileID: 3166076261134975489}

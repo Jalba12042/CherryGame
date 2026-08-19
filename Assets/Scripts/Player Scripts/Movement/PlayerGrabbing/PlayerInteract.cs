@@ -1472,6 +1472,8 @@ public class PlayerInteract : MonoBehaviour
 
         Debug.Log("Player received 3 snowballs.");
 
+        snowballThrow.ResetFirstSnowball();
+
         SpawnSnowballInHand(true);
     }
 

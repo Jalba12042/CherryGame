@@ -6,11 +6,16 @@ public class SnowballThrow : MonoBehaviour
     [Header("References")]
     [SerializeField] private PlayerInteract playerInteract;
     [SerializeField] private Animator animator;
+    [SerializeField] private Transform handHoldPoint;
 
     [Header("Throw")]
     [SerializeField] private float throwSpeed = 50f;
 
     private GameObject heldSnowball;
+
+    [SerializeField] private float initialThrowDelay = 0.5f;
+    private float throwDelayTimer = 0f;
+    private bool firstSnowball = true;
 
     private void Awake()
     {
@@ -19,11 +24,26 @@ public class SnowballThrow : MonoBehaviour
 
         if (playerInteract == null)
             playerInteract = GetComponent<PlayerInteract>();
+
+        if (handHoldPoint == null)
+            handHoldPoint = playerInteract.handHoldPoint;
     }
 
     public void PickUpSnowball(GameObject snowball)
     {
         heldSnowball = snowball;
+
+        if (firstSnowball)
+        {
+            throwDelayTimer = initialThrowDelay;
+            firstSnowball = false;
+        }
+    }
+
+    private void Update()
+    {
+        if (throwDelayTimer > 0f)
+            throwDelayTimer -= Time.deltaTime;
     }
 
     public void ThrowSnowball()
@@ -31,13 +51,18 @@ public class SnowballThrow : MonoBehaviour
         if (heldSnowball == null)
             return;
 
+        if (throwDelayTimer > 0f)
+            return;
+
+
         if (animator != null)
         {
             animator.SetBool("isAiming", false);
             animator.SetTrigger("doThrow");
         }
 
-        StartCoroutine(DelayedThrow());
+        Vector3 throwDirection = transform.forward;
+        StartCoroutine(DelayedThrow(throwDirection));
     }
 
     public void CancelAim()
@@ -47,14 +72,18 @@ public class SnowballThrow : MonoBehaviour
             animator.SetBool("isAiming", false);
     }
 
-    private IEnumerator DelayedThrow()
+    private IEnumerator DelayedThrow(Vector3 throwDirection)
     {
-        yield return new WaitForSeconds(0.25f);
+        yield return new WaitForSeconds(0.05f);
 
         if (heldSnowball == null)
             yield break;
 
-        heldSnowball.transform.SetParent(null);
+        GameObject thrownSnowball = heldSnowball;
+
+        // Stop being held
+        thrownSnowball.transform.SetParent(null);
+
 
         Rigidbody rb = heldSnowball.GetComponent<Rigidbody>();
 
@@ -70,9 +99,15 @@ public class SnowballThrow : MonoBehaviour
 
             rb.isKinematic = false;
 
+            rb.useGravity = false;
+
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
 
             // Straight throw
-            rb.linearVelocity = transform.forward * throwSpeed;
+            rb.linearVelocity = handHoldPoint.forward * throwSpeed;
+
+            StartCoroutine(ReenableSnowballCollision(thrownSnowball));
 
             if (animator != null)
             {
@@ -88,13 +123,43 @@ public class SnowballThrow : MonoBehaviour
             pickup.playerHolding = null;
         }
 
-        GameObject thrownSnowball = heldSnowball;
-
         heldSnowball = null;
 
         playerInteract.NotifyThrowEnded();
         playerInteract.OnSnowballThrown();
 
         
+    }
+
+
+    private IEnumerator ReenableSnowballCollision(GameObject snowball)
+    {
+        yield return new WaitForSeconds(0.15f);
+
+        if (snowball == null)
+            yield break;
+
+        Collider[] playerColliders =
+            GetComponentsInChildren<Collider>();
+
+        Collider[] snowballColliders =
+            snowball.GetComponentsInChildren<Collider>();
+
+        foreach (Collider playerCollider in playerColliders)
+        {
+            foreach (Collider snowballCollider in snowballColliders)
+            {
+                Physics.IgnoreCollision(
+                    playerCollider,
+                    snowballCollider,
+                    false
+                );
+            }
+        }
+    }
+
+    public void ResetFirstSnowball()
+    {
+        firstSnowball = true;
     }
 }
