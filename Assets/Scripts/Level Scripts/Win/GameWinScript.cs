@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 public class GameWinScript : MonoBehaviour
 {
@@ -89,6 +90,10 @@ public class GameWinScript : MonoBehaviour
     private bool canSelectPostGame = false;
     private bool isTransitioning = false;
 
+    // --- NEW: Controller Navigation Variables ---
+    private int postGameSelectedIndex = 0; // 0 = Play Again, 1 = Leave
+    private float stickCooldown = 0f;
+
     void Awake()
     {
         if (marqueeAnimator != null) marqueeAnimator.gameObject.SetActive(false);
@@ -111,6 +116,77 @@ public class GameWinScript : MonoBehaviour
         if (skyMainMenuBackground != null) skyMainMenuBackground.SetActive(false);
 
         StartCoroutine(AwardSequence());
+    }
+
+    // --- NEW: Handle Controller Input for Post-Game Buttons ---
+    void Update()
+    {
+        if (canSelectPostGame && !isTransitioning)
+        {
+            float moveX = 0f;
+            bool confirmPressed = false;
+
+            // Keyboard support
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.aKey.wasPressedThisFrame || Keyboard.current.leftArrowKey.wasPressedThisFrame) moveX = -1f;
+                if (Keyboard.current.dKey.wasPressedThisFrame || Keyboard.current.rightArrowKey.wasPressedThisFrame) moveX = 1f;
+                if (Keyboard.current.enterKey.wasPressedThisFrame || Keyboard.current.spaceKey.wasPressedThisFrame) confirmPressed = true;
+            }
+
+            // Gamepad support (Any connected gamepad can navigate)
+            foreach (var pad in Gamepad.all)
+            {
+                if (pad.dpad.left.wasPressedThisFrame) moveX = -1f;
+                if (pad.dpad.right.wasPressedThisFrame) moveX = 1f;
+
+                // Stick support with a small cooldown so it doesn't flicker wildly
+                if (Time.unscaledTime > stickCooldown)
+                {
+                    if (pad.leftStick.ReadValue().x < -0.5f) { moveX = -1f; stickCooldown = Time.unscaledTime + 0.2f; }
+                    if (pad.leftStick.ReadValue().x > 0.5f) { moveX = 1f; stickCooldown = Time.unscaledTime + 0.2f; }
+                }
+
+                if (pad.buttonSouth.wasPressedThisFrame) confirmPressed = true;
+            }
+
+            // Apply navigation logic
+            if (moveX < -0.1f)
+            {
+                postGameSelectedIndex = 0; // Play Again
+                UpdatePostGameHighlight();
+            }
+            else if (moveX > 0.1f)
+            {
+                postGameSelectedIndex = 1; // Leave
+                UpdatePostGameHighlight();
+            }
+
+            // Execute button
+            if (confirmPressed)
+            {
+                if (postGameSelectedIndex == 0) SelectPlayAgain();
+                else SelectLeave();
+            }
+        }
+    }
+
+    private void UpdatePostGameHighlight()
+    {
+        // Visually scale and tint the selected option Yellow
+        if (playAgainImage != null)
+        {
+            playAgainImage.transform.localScale = (postGameSelectedIndex == 0) ? new Vector3(1.1f, 1.1f, 1.1f) : Vector3.one;
+            Image img = playAgainImage.GetComponent<Image>();
+            if (img != null) img.color = (postGameSelectedIndex == 0) ? Color.yellow : Color.white;
+        }
+
+        if (leaveImage != null)
+        {
+            leaveImage.transform.localScale = (postGameSelectedIndex == 1) ? new Vector3(1.1f, 1.1f, 1.1f) : Vector3.one;
+            Image img = leaveImage.GetComponent<Image>();
+            if (img != null) img.color = (postGameSelectedIndex == 1) ? Color.yellow : Color.white;
+        }
     }
 
     private IEnumerator AwardSequence()
@@ -223,6 +299,11 @@ public class GameWinScript : MonoBehaviour
         {
             if (playAgainImage != null) playAgainImage.SetActive(true);
             if (leaveImage != null) leaveImage.SetActive(true);
+
+            // --- NEW: Trigger the visual highlight the moment the buttons appear ---
+            postGameSelectedIndex = 0;
+            UpdatePostGameHighlight();
+
             canSelectPostGame = true;
         }
     }
@@ -328,7 +409,6 @@ public class GameWinScript : MonoBehaviour
         }
     }
 
-    // --- Custom Audio Fader ---
     private IEnumerator FadeAudio(AudioSource source, float targetVol, float duration)
     {
         float startVol = source.volume;
