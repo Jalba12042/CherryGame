@@ -134,6 +134,7 @@ public class PlayerPowerupHandler : MonoBehaviour
         if (nearbyPowerup is Taser taser)
         {
             taser.EquipTaser(handHoldPoint);
+            taser.StopDespawn();
             nearbyPowerup = null;
             return;
         }

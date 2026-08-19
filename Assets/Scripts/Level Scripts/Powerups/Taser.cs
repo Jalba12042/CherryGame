@@ -65,7 +65,10 @@ public class Taser : Powerup
                 handler.ApplyTase(2f); // or your stun duration
             }
 
-            OnDestroy();
+            // Actually destroy it — calling OnDestroy() directly only ran the cleanup logic
+            // without removing the object, so PowerUpFloat kept running and snapped it back
+            // to its cached spawn position the moment SetHeld(false) re-enabled its Update().
+            Destroy(gameObject);
         }
     }
 
