@@ -31,6 +31,9 @@ public class Zombie : MonoBehaviour
     [SerializeField] private float detectionRange = 6f;
 
     [Header("Rising")]
+    // Overridden per-spawn by ZombieEvent (set to the chosen spawn zone's actual height) since
+    // a single fixed value only matches whichever scene it was tuned in — e.g. Mountain's terrain
+    // sits ~50 units away from the value that was tuned for the (much flatter) park scene.
     [SerializeField] private float groundY;
     [SerializeField] private float riseWaitTime = 1f;
     [SerializeField] private float spawnDepth = 2f;
@@ -225,6 +228,13 @@ public class Zombie : MonoBehaviour
     public void SetDirtFinished()
     {
         dirtFinished = true;
+    }
+
+    // Called by ZombieEvent right after spawning, before InitNormalZombie(), so the rise target
+    // matches this specific scene's terrain instead of whatever groundY was tuned for.
+    public void SetGroundY(float y)
+    {
+        groundY = y;
     }
 
     void Dig()
