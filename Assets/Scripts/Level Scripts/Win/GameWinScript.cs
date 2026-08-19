@@ -16,8 +16,14 @@ public class GameWinScript : MonoBehaviour
     [Header("--- Main Award Sign (CINEMA Board) ---")]
     [Tooltip("Drag the big AwardSign object here!")]
     public Animator mainAwardSignAnimator;
-    [Tooltip("How long does the CINEMA sign's entire animation take? Set this so the player signs wait for it to finish!")]
+    [Tooltip("How long does the CINEMA sign's entire animation take?")]
     public float awardSignFullDuration = 8.5f;
+
+    [Header("--- Award Show Music ---")]
+    [Tooltip("Drag your AudioSound object with the music here!")]
+    public AudioSource awardShowMusic;
+    [Tooltip("How many seconds it takes to fade the music out to silence")]
+    public float musicFadeDuration = 1.5f;
 
     [Header("--- DEMO Marquee Sign & Puppet Outros ---")]
     [Tooltip("Drag your 1stplaceSigns object here")]
@@ -73,7 +79,7 @@ public class GameWinScript : MonoBehaviour
     public string playAgainSceneName = "ControllerConnectScene";
 
     [Header("--- Leave Transition (Background Swap & Paper) ---")]
-    public string leaveSceneName = "MainMenu";
+    public string leaveSceneName = "Title Screen";
     public GameObject redPanelBackground;
     public GameObject skyMainMenuBackground;
     public Animator paperTransitionAnimator;
@@ -113,16 +119,24 @@ public class GameWinScript : MonoBehaviour
         if (stageAnimator != null) stageAnimator.Play("CurtainsClose");
         yield return new WaitForSeconds(1.5f);
 
-        // 2. Turn on the big CINEMA sign (its 100-frame animation will play automatically)
+        // 2. Turn on the big CINEMA sign AND play the music!
         if (mainAwardSignAnimator != null) mainAwardSignAnimator.gameObject.SetActive(true);
+        if (awardShowMusic != null) awardShowMusic.Play();
 
-        // 3. Wait for the ENTIRE duration of the CINEMA sign's animation
-        yield return new WaitForSeconds(awardSignFullDuration);
+        // 3. Wait for the CINEMA sign animation, but stop early to start the audio fade!
+        float initialWait = Mathf.Max(0, awardSignFullDuration - musicFadeDuration);
+        yield return new WaitForSeconds(initialWait);
+
+        // Start fading the music down to 0 volume
+        if (awardShowMusic != null) StartCoroutine(FadeAudio(awardShowMusic, 0f, musicFadeDuration));
+
+        // Wait for the remainder of the sign's animation
+        yield return new WaitForSeconds(Mathf.Min(musicFadeDuration, awardSignFullDuration));
 
         // 4. Turn the CINEMA sign OFF completely so the screen is clear!
         if (mainAwardSignAnimator != null) mainAwardSignAnimator.gameObject.SetActive(false);
 
-        // 5. Start sorting and revealing players (No overlapping!)
+        // 5. Start sorting and revealing players
         List<int> sortedPlayers = new List<int>();
         int pCount = 0;
         if (GameManager.Instance != null)
@@ -229,6 +243,9 @@ public class GameWinScript : MonoBehaviour
     {
         isTransitioning = true;
 
+        // Safety fade-out if the music is still playing somehow
+        if (awardShowMusic != null && awardShowMusic.isPlaying) StartCoroutine(FadeAudio(awardShowMusic, 0f, signOutroDuration));
+
         if (playAgainImage != null) playAgainImage.SetActive(false);
         if (leaveImage != null) leaveImage.SetActive(false);
         if (winText != null) winText.gameObject.SetActive(false);
@@ -255,6 +272,9 @@ public class GameWinScript : MonoBehaviour
     private IEnumerator LeaveTransition()
     {
         isTransitioning = true;
+
+        // Safety fade-out if the music is still playing somehow
+        if (awardShowMusic != null && awardShowMusic.isPlaying) StartCoroutine(FadeAudio(awardShowMusic, 0f, signOutroDuration));
 
         if (playAgainImage != null) playAgainImage.SetActive(false);
         if (leaveImage != null) leaveImage.SetActive(false);
@@ -306,5 +326,22 @@ public class GameWinScript : MonoBehaviour
         {
             SceneManager.LoadSceneAsync(leaveSceneName);
         }
+    }
+
+    // --- Custom Audio Fader ---
+    private IEnumerator FadeAudio(AudioSource source, float targetVol, float duration)
+    {
+        float startVol = source.volume;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            source.volume = Mathf.Lerp(startVol, targetVol, elapsed / duration);
+            yield return null;
+        }
+
+        source.volume = targetVol;
+        if (targetVol == 0f) source.Stop();
     }
 }
