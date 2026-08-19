@@ -9,17 +9,16 @@ public class CherryRound : Round
 {
     [SerializeField] private GameObject cherryPrefab;
     [SerializeField] private GameObject cherryBombPrefab;
-    [SerializeField] private GameObject goldenCherry;
-    [SerializeField] private float goldenCherryTime = 70f;
+    [SerializeField] private GameObject goldenCherryPrefab;
     [SerializeField] private float spawnInterval;
     [SerializeField] private int minCherrySpawns;
     [SerializeField] private int maxCherrySpawns;
     [SerializeField] private float cherryBombChance;
+    [SerializeField] private float goldenCherryChance = 0.1f;
     [SerializeField, Range(0, 100)] private int powerupSpawnRate;
     [SerializeField] private PowerupSpawner powerupSpawner;
 
     private GameObject spawnArea;
-    private GameObject goldenSpawnArea;
     private BasketContainer bc;
 
     public override void setValues()
@@ -34,8 +33,6 @@ public class CherryRound : Round
 
         powerupSpawner.Init();
 
-        goldenSpawnArea = GameObject.FindWithTag("GoldenSpawn");
-
         if (goalObjects == null)
         {
             goalObjects = new List<GameObject>();
@@ -43,7 +40,6 @@ public class CherryRound : Round
     }
     public override IEnumerator StartGoal()
     {
-        bool goldenCherrySpawned = false;
         Collider spawnCollider = spawnArea.GetComponent<Collider>();
         Bounds b = spawnCollider.bounds;
 
@@ -56,13 +52,17 @@ public class CherryRound : Round
             {
                 float randX = Random.Range(b.min.x, b.max.x);
                 float randZ = Random.Range(b.min.z, b.max.z);
+                Vector3 spawnPos = new Vector3(randX, spawnArea.transform.position.y, randZ);
 
-                float randBombChance = Random.Range(0f, 1f);
+                // roll which cherry variant spawns in this slot: golden (rare), bomb, or a plain cherry
+                float randCherryType = Random.Range(0f, 1f);
 
-                if (randBombChance < cherryBombChance)
-                    goalObjects.Add(Instantiate(cherryBombPrefab, new Vector3(randX, spawnArea.transform.position.y, randZ), Quaternion.identity));
-                else 
-                    goalObjects.Add(Instantiate(cherryPrefab, new Vector3(randX, spawnArea.transform.position.y, randZ), Quaternion.identity));
+                if (randCherryType < goldenCherryChance)
+                    goalObjects.Add(Instantiate(goldenCherryPrefab, spawnPos, Quaternion.identity));
+                else if (randCherryType < goldenCherryChance + cherryBombChance)
+                    goalObjects.Add(Instantiate(cherryBombPrefab, spawnPos, Quaternion.identity));
+                else
+                    goalObjects.Add(Instantiate(cherryPrefab, spawnPos, Quaternion.identity));
             }
 
             // powerup spawn logic
@@ -70,13 +70,6 @@ public class CherryRound : Round
             if (randPUSpawn <= powerupSpawnRate)
             {
                 powerupSpawner.SpawnCrate();
-            }
-
-            if (RoundManager.Instance.currRoundProgress > goldenCherryTime && !goldenCherrySpawned)
-            {
-                goldenCherrySpawned = true;
-                Vector3 spawnPos = new Vector3(goldenSpawnArea.transform.position.x, goldenSpawnArea.transform.position.y, goldenSpawnArea.transform.position.z);
-                Instantiate(goldenCherry, spawnPos, Quaternion.identity);
             }
 
             yield return new WaitForSeconds(spawnInterval);

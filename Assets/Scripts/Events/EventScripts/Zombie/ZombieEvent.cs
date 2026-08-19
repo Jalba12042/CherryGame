@@ -9,6 +9,9 @@ public class ZombieEvent : GameEvent
     public GameObject spawnLocation;
     public int amountOfZombies = 10;
 
+    [Tooltip("Uncheck for rounds like Mountain where a zombie kill should be a permanent elimination, not a respawn.")]
+    public bool respawnOnKill = true;
+
     public List<GameObject> activeDirtMounds = new List<GameObject>();
 
     public override IEnumerator Trigger()
