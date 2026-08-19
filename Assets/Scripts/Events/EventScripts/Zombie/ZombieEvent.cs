@@ -27,6 +27,7 @@ public class ZombieEvent : GameEvent
             for (int i = 0; i < amountOfZombies; i++)
             {
                 Vector3 spawnPos;
+                GameObject chosenZone = null;
                 int maxAttempts = 30;
                 int attempts = 0;
                 bool validPosition = false;
@@ -34,7 +35,7 @@ public class ZombieEvent : GameEvent
                 do
                 {
                     // pick a random zone
-                    GameObject chosenZone = spawnZones[Random.Range(0, spawnZones.Length)];
+                    chosenZone = spawnZones[Random.Range(0, spawnZones.Length)];
                     Collider col = chosenZone.GetComponent<Collider>();
 
                     Bounds b = col.bounds;
@@ -64,6 +65,8 @@ public class ZombieEvent : GameEvent
                 {
                     Zombie zombie = Instantiate(zombiePrefab, spawnPos, Quaternion.identity).GetComponent<Zombie>();
                     zombie.myEvent = this;
+                    // Rise toward THIS scene's spawn zone height, not whatever groundY was tuned for
+                    zombie.SetGroundY(chosenZone.transform.position.y);
                     zombie.InitNormalZombie();
                     spawnedPositions.Add(spawnPos);
                 }
