@@ -215,7 +215,15 @@ public class UFO : MonoBehaviour
         // fight the Rigidbody's own physics step, making the "bump into them to free them" touch
         // detection register inconsistently.
         if (targetRb != null)
+        {
+            // Taco dance / taser stuns freeze the rigidbody's position via constraints, which also
+            // blocks a kinematic body's MovePosition on the frozen axes — clear it every frame so a
+            // stunned target (or one re-hit mid-lift) can still be lifted off the ground.
+            if (targetRb.constraints != RigidbodyConstraints.None)
+                targetRb.constraints = RigidbodyConstraints.None;
+
             targetRb.MovePosition(targetRb.position + liftDirection * abductSpeed * Time.deltaTime);
+        }
         else
             targetPlayer.transform.position += liftDirection * abductSpeed * Time.deltaTime;
 
