@@ -7,6 +7,11 @@ public class Snowball : LevelPickup
 
     private GameObject owner;
 
+    [Header("Audio Settings")]
+    [Tooltip("Add your 2 random hit sounds here!")]
+    public AudioClip[] impactSounds;
+    [Range(0f, 1f)] public float impactVolume = 1f;
+
     protected override void Awake()
     {
         base.Awake();
@@ -48,6 +53,9 @@ public class Snowball : LevelPickup
 
             if (movement != null)
             {
+                // --- NEW: Play a random impact sound before the snowball is destroyed! ---
+                PlayRandomImpactSound();
+
                 Vector3 pushDirection = collision.transform.position - transform.position;
                 pushDirection.y = 0f;
                 pushDirection.Normalize();
@@ -60,5 +68,22 @@ public class Snowball : LevelPickup
         }
 
         Destroy(gameObject);
+    }
+
+    private void PlayRandomImpactSound()
+    {
+        // Make sure we actually have sounds loaded in the array
+        if (impactSounds != null && impactSounds.Length > 0)
+        {
+            // Pick a random number between 0 and the amount of sounds you added
+            int randomIndex = Random.Range(0, impactSounds.Length);
+            AudioClip clipToPlay = impactSounds[randomIndex];
+
+            if (clipToPlay != null)
+            {
+                // This spawns a temporary audio player at the hit location that deletes itself when the sound finishes!
+                AudioSource.PlayClipAtPoint(clipToPlay, transform.position, impactVolume);
+            }
+        }
     }
 }

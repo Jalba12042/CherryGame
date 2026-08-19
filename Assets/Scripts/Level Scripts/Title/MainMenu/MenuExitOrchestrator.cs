@@ -29,6 +29,15 @@ public class MenuExitOrchestrator : MonoBehaviour
     public float delayBeforeSnowStarts = 1.0f;
     public float snowCoverDuration = 2.0f;
 
+    void Awake()
+    {
+        // --- NEW: Auto-find the controller so it always locks automatically! ---
+        if (menuControllerToDisable == null)
+        {
+            menuControllerToDisable = GetComponent<MainMenuController>();
+        }
+    }
+
     public void ExitThenLoad(string sceneName)
     {
         StartCoroutine(Routine(sceneName, false));
@@ -41,6 +50,7 @@ public class MenuExitOrchestrator : MonoBehaviour
 
     private IEnumerator Routine(string sceneName, bool isMultiplayer)
     {
+        // Instantly turn off the inputs so no more sounds can play!
         if (menuControllerToDisable != null)
             menuControllerToDisable.enabled = false;
 

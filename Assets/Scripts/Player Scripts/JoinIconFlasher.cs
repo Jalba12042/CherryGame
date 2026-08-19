@@ -17,8 +17,6 @@ public class JoinIconFlasher : MonoBehaviour
 
     private Image imageComponent;
     private List<Sprite> activeIcons = new List<Sprite>();
-    private float timer;
-    private int currentIndex;
 
     void Start()
     {
@@ -28,19 +26,15 @@ public class JoinIconFlasher : MonoBehaviour
 
     void Update()
     {
-        // If we only have 1 icon type loaded (e.g. only Xbox controllers are plugged in),
-        // there is no need to flash! It just stays on that one icon constantly.
+        // If we only have 1 icon type loaded, no need to flash!
         if (activeIcons.Count <= 1) return;
 
-        timer += Time.deltaTime;
-        if (timer >= flashInterval)
+        // THE FIX: Use the global game clock so all flashers in the scene are perfectly synced!
+        int currentIndex = Mathf.FloorToInt(Time.time / flashInterval) % activeIcons.Count;
+
+        if (imageComponent != null)
         {
-            timer = 0f;
-            currentIndex = (currentIndex + 1) % activeIcons.Count;
-            if (imageComponent != null)
-            {
-                imageComponent.sprite = activeIcons[currentIndex];
-            }
+            imageComponent.sprite = activeIcons[currentIndex];
         }
     }
 
@@ -51,31 +45,22 @@ public class JoinIconFlasher : MonoBehaviour
         bool hasPS = false;
         bool hasKeyboard = false;
 
-        // Scan all connected hardware devices
         foreach (var device in InputSystem.devices)
         {
             if (device is Keyboard) hasKeyboard = true;
-            else if (device is DualShockGamepad) hasPS = true; // Catches PlayStation 4/5 Controllers
-            else if (device is Gamepad) hasXbox = true; // Catches Xbox and generic XInput PC Gamepads
+            else if (device is DualShockGamepad) hasPS = true;
+            else if (device is Gamepad) hasXbox = true;
         }
 
-        // If for some reason nothing is detected, fallback to the Xbox icon
         if (!hasXbox && !hasPS && !hasKeyboard) hasXbox = true;
 
-        // Add the relevant icons to our flashing list
         if (hasXbox && xboxIcon != null) activeIcons.Add(xboxIcon);
         if (hasPS && playstationIcon != null) activeIcons.Add(playstationIcon);
-
-        // You can check GameManager here too if you only want the keyboard icon 
-        // to show when a player explicitly picked keyboard in the lobby
         if (hasKeyboard && keyboardIcon != null) activeIcons.Add(keyboardIcon);
 
-        // Set the starting icon immediately
         if (activeIcons.Count > 0 && imageComponent != null)
         {
-            currentIndex = 0;
             imageComponent.sprite = activeIcons[0];
-            timer = 0f;
         }
     }
 }
