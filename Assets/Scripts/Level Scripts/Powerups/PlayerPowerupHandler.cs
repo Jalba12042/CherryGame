@@ -88,6 +88,18 @@ public class PlayerPowerupHandler : MonoBehaviour
 
         if (rtPressed)
         {
+            PlayerInteract interact = GetComponent<PlayerInteract>();
+
+            // If we're holding a level pickup, don't allow
+            // powerup pickup/equip on this press.
+            if (interact != null &&
+                interact.IsHoldingPickup &&
+                activeTacoBlaster == null &&
+                activeGun == null)
+            {
+                return;
+            }
+
             if (nearbyPowerup != null || activeGun != null || activeTacoBlaster != null)
             {
                 rtConsumedThisFrame = true;
@@ -319,7 +331,7 @@ public class PlayerPowerupHandler : MonoBehaviour
             hasTacoBlasterEquipped = true;
 
             if (tbHoldPoint != null)
-                activeTacoBlaster.EquipTacoBlaster(tbHoldPoint);
+                activeTacoBlaster.EquipTacoBlaster(tbHoldPoint, this);
 
             return;
         }
