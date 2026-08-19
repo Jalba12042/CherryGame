@@ -17,7 +17,10 @@ public class ZombieAttack : MonoBehaviour
             {
                 Vector3 deathPos = other.transform.position;
 
-                pk.killPlayer(true);
+                Zombie attacker = GetComponentInParent<Zombie>();
+                bool respawnOnKill = attacker != null && attacker.myEvent != null ? attacker.myEvent.respawnOnKill : true;
+
+                pk.killPlayer(respawnOnKill);
 
                 // NEW: Play the bite sound right where the player died
                 if (biteKillSound != null)
@@ -32,6 +35,9 @@ public class ZombieAttack : MonoBehaviour
 
                 Zombie newZombie = Instantiate(zombiePrefab, spawnPos, Quaternion.identity)
                     .GetComponent<Zombie>();
+
+                if (attacker != null)
+                    newZombie.myEvent = attacker.myEvent;
 
                 newZombie.InitAsPlayerZombie();
             }
