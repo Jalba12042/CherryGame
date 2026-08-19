@@ -120,6 +120,7 @@ public class PlayerInteract : MonoBehaviour
 
     private GameObject heldPickup;
     private float cherryPickupCooldown = 0f;
+    public bool IsHoldingPickup => heldPickup != null;
 
     private void Awake()
     {
@@ -320,6 +321,21 @@ public class PlayerInteract : MonoBehaviour
 
     private void OnInteractPressed()
     {
+        if (heldPickup == null)
+        {
+            TacoBlaster nearbyTaco = FindNearbyTacoBlaster();
+
+            if (nearbyTaco != null)
+            {
+                powerupHandler.activeTacoBlaster = nearbyTaco;
+                nearbyTaco.StopDespawn();
+
+                return;
+            }
+        }
+
+
+
         if (nearbySnowPile != null && snowballsRemaining == 0)
         {
             GiveSnowballs();
@@ -1519,5 +1535,43 @@ public class PlayerInteract : MonoBehaviour
         foreach (var p in playerCols)
             foreach (var c in cherryCols)
                 Physics.IgnoreCollision(p, c, !enabled);
+    }
+
+    private TacoBlaster FindNearbyTacoBlaster()
+    {
+        Collider[] hits =
+            Physics.OverlapSphere(transform.position, pickupRadius);
+
+        TacoBlaster closestTaco = null;
+        float closestDistance = Mathf.Infinity;
+
+        foreach (Collider hit in hits)
+        {
+            TacoBlaster taco =
+                hit.GetComponent<TacoBlaster>() ??
+                hit.GetComponentInParent<TacoBlaster>();
+
+            if (taco == null)
+                continue;
+
+            // Don't pick up a Taco Blaster that's already being held
+            if (powerupHandler != null &&
+                powerupHandler.activeTacoBlaster == taco)
+                continue;
+
+            float distance =
+                Vector3.Distance(
+                    transform.position,
+                    hit.ClosestPoint(transform.position)
+                );
+
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closestTaco = taco;
+            }
+        }
+
+        return closestTaco;
     }
 }

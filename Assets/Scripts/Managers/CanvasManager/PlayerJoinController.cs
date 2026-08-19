@@ -24,6 +24,8 @@ public class PlayerJoinController : MonoBehaviour
     public float fadeDuration = 0.5f;
     private bool canInteract = false;
 
+    private float inputCooldown = 0f;
+
     [Header("Leave Lobby Prompt")]
     public GameObject leaveLobbyPromptPanel;
     public GameObject yesButton;
@@ -39,6 +41,7 @@ public class PlayerJoinController : MonoBehaviour
     public KeyCode addPlayersKey = KeyCode.Equals;
     public int currentAllowedPlayers = 2;
     private bool isExpanding = false;
+    public string slotOutroTriggerName = "Outro";
 
     [Header("Outro Transition Settings (Ready Up)")]
     public Animator boxAnimator;
@@ -66,7 +69,6 @@ public class PlayerJoinController : MonoBehaviour
     [Header("Paper Transition Settings")]
     public Animator paperTransitionAnimator;
     public GameObject fakeMainMenuBackground;
-    [Tooltip("Type the EXACT name of your reverse parameter from the Animator here!")]
     public string paperReverseTriggerName = "PaperReverseTrigger";
     public float paperAnimationDuration = 1.0f;
 
@@ -178,16 +180,13 @@ public class PlayerJoinController : MonoBehaviour
     {
         if (!canInteract) return;
 
-        // --- Leave Lobby Prompt Intercept ---
+        if (Time.unscaledTime < inputCooldown) return;
+
         if (isLeavePromptActive)
         {
             if (InputManager.Instance.GetMenuBackDown())
             {
                 CancelLeaveLobby();
-            }
-            else if (InputManager.Instance.GetMenuConfirmDown())
-            {
-                ConfirmLeaveLobby();
             }
             return;
         }
@@ -216,6 +215,13 @@ public class PlayerJoinController : MonoBehaviour
                 Gamepad pad = Gamepad.all[c];
                 if (pad != null && pad.startButton.wasPressedThisFrame)
                 {
+                    // --- NEW FIX: Block expansion if the player who pressed start is already ready! ---
+                    int pIndex = GetPlayerIndexFromController(c);
+                    if (pIndex != -1 && isReady[pIndex])
+                    {
+                        continue;
+                    }
+
                     triggerExpansion = true;
                     break;
                 }
@@ -241,7 +247,7 @@ public class PlayerJoinController : MonoBehaviour
                         HandleBackPress(p);
                         playerBackedOutThisFrame = true;
                     }
-                    else if (GetAssignedPlayerCount() == 0 && !playerBackedOutThisFrame) ShowLeavePrompt();
+                    else if (!playerBackedOutThisFrame) TryShrinkLobbyOrLeave();
                 }
                 if (assignedControllers[p] != -1) HandleCustomizationInputArcade(p);
             }
@@ -276,9 +282,9 @@ public class PlayerJoinController : MonoBehaviour
         {
             TryAssignKeyboardPlayer();
         }
-        else if (InputManager.Instance.GetUnassignedKeyboardBack() && GetAssignedPlayerCount() == 0 && !playerBackedOutThisFrame)
+        else if (InputManager.Instance.GetUnassignedKeyboardBack() && !playerBackedOutThisFrame)
         {
-            ShowLeavePrompt();
+            TryShrinkLobbyOrLeave();
         }
 
         for (int c = 0; c < Gamepad.all.Count; c++)
@@ -287,9 +293,86 @@ public class PlayerJoinController : MonoBehaviour
             if (pad == null || GetPlayerIndexFromController(c) != -1) continue;
 
             if (pad.buttonSouth.wasPressedThisFrame) TryAssignController(c);
-            if (pad.buttonEast.wasPressedThisFrame && GetAssignedPlayerCount() == 0 && !playerBackedOutThisFrame)
-                ShowLeavePrompt();
+            if (pad.buttonEast.wasPressedThisFrame && !playerBackedOutThisFrame)
+                TryShrinkLobbyOrLeave();
         }
+    }
+
+    void TryShrinkLobbyOrLeave()
+    {
+        if (isExpanding) return;
+
+        if (currentAllowedPlayers == 4 && assignedControllers[3] == -1)
+        {
+            StartCoroutine(ShrinkLayoutSequence(3));
+        }
+        else if (currentAllowedPlayers == 3 && assignedControllers[2] == -1)
+        {
+            StartCoroutine(ShrinkLayoutSequence(2));
+        }
+        else
+        {
+            ShowLeavePrompt();
+        }
+    }
+
+    private IEnumerator ShrinkLayoutSequence(int playerIndexToRemove)
+    {
+        isExpanding = true;
+
+        if (sfxSource != null && slideSound != null)
+            sfxSource.PlayOneShot(slideSound);
+
+        CanvasGroup cg = slots[playerIndexToRemove].joinPanel.GetComponent<CanvasGroup>();
+        if (cg != null)
+            StartCoroutine(FadeOutGroup(cg, fadeDuration));
+
+        Animator[] animsToPlay = (playerIndexToRemove == 2) ? p3Animators : p4Animators;
+
+        if (animsToPlay != null)
+        {
+            foreach (Animator anim in animsToPlay)
+            {
+                if (anim != null) anim.SetTrigger(slotOutroTriggerName);
+            }
+        }
+
+        yield return new WaitForSeconds(0.9f);
+
+        slots[playerIndexToRemove].joinPanel.SetActive(false);
+
+        if (animsToPlay != null)
+        {
+            foreach (Animator anim in animsToPlay)
+            {
+                if (anim != null) anim.gameObject.SetActive(false);
+            }
+        }
+
+        currentAllowedPlayers--;
+
+        GameObject promptObj = (playerIndexToRemove == 2) ? p3StartPrompt : p4StartPrompt;
+        if (promptObj != null)
+        {
+            promptObj.SetActive(true);
+            CanvasGroup promptCg = promptObj.GetComponent<CanvasGroup>();
+            if (promptCg == null) promptCg = promptObj.AddComponent<CanvasGroup>();
+            StartCoroutine(FadeInGroup(promptCg, fadeDuration));
+        }
+
+        isExpanding = false;
+    }
+
+    private IEnumerator FadeOutGroup(CanvasGroup cg, float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            cg.alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
+            yield return null;
+        }
+        cg.alpha = 0f;
     }
 
     void ShowLeavePrompt()
@@ -315,8 +398,16 @@ public class PlayerJoinController : MonoBehaviour
 
     public void CancelLeaveLobby()
     {
-        isLeavePromptActive = false;
+        StartCoroutine(CancelLeaveRoutine());
+    }
+
+    private IEnumerator CancelLeaveRoutine()
+    {
         if (leaveLobbyPromptPanel != null) leaveLobbyPromptPanel.SetActive(false);
+
+        yield return new WaitForSeconds(0.15f);
+
+        isLeavePromptActive = false;
     }
 
     private IEnumerator ExpandLayoutSequence()
@@ -746,7 +837,6 @@ public class PlayerJoinController : MonoBehaviour
             curtainAnimator.SetTrigger(curtainTriggerName);
         }
 
-        // THE FIX: Trigger the music fade out right as the curtains close!
         if (MainMenuMusic.Instance != null)
         {
             MainMenuMusic.Instance.FadeOutAndStop();

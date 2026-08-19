@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 public class GameWinScript : MonoBehaviour
 {
@@ -16,8 +17,14 @@ public class GameWinScript : MonoBehaviour
     [Header("--- Main Award Sign (CINEMA Board) ---")]
     [Tooltip("Drag the big AwardSign object here!")]
     public Animator mainAwardSignAnimator;
-    [Tooltip("How long does the CINEMA sign's entire animation take? Set this so the player signs wait for it to finish!")]
+    [Tooltip("How long does the CINEMA sign's entire animation take?")]
     public float awardSignFullDuration = 8.5f;
+
+    [Header("--- Award Show Music ---")]
+    [Tooltip("Drag your AudioSound object with the music here!")]
+    public AudioSource awardShowMusic;
+    [Tooltip("How many seconds it takes to fade the music out to silence")]
+    public float musicFadeDuration = 1.5f;
 
     [Header("--- DEMO Marquee Sign & Puppet Outros ---")]
     [Tooltip("Drag your 1stplaceSigns object here")]
@@ -73,7 +80,7 @@ public class GameWinScript : MonoBehaviour
     public string playAgainSceneName = "ControllerConnectScene";
 
     [Header("--- Leave Transition (Background Swap & Paper) ---")]
-    public string leaveSceneName = "MainMenu";
+    public string leaveSceneName = "Title Screen";
     public GameObject redPanelBackground;
     public GameObject skyMainMenuBackground;
     public Animator paperTransitionAnimator;
@@ -82,6 +89,10 @@ public class GameWinScript : MonoBehaviour
 
     private bool canSelectPostGame = false;
     private bool isTransitioning = false;
+
+    // --- NEW: Controller Navigation Variables ---
+    private int postGameSelectedIndex = 0; // 0 = Play Again, 1 = Leave
+    private float stickCooldown = 0f;
 
     void Awake()
     {
@@ -107,22 +118,101 @@ public class GameWinScript : MonoBehaviour
         StartCoroutine(AwardSequence());
     }
 
+    // --- NEW: Handle Controller Input for Post-Game Buttons ---
+    void Update()
+    {
+        if (canSelectPostGame && !isTransitioning)
+        {
+            float moveX = 0f;
+            bool confirmPressed = false;
+
+            // Keyboard support
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.aKey.wasPressedThisFrame || Keyboard.current.leftArrowKey.wasPressedThisFrame) moveX = -1f;
+                if (Keyboard.current.dKey.wasPressedThisFrame || Keyboard.current.rightArrowKey.wasPressedThisFrame) moveX = 1f;
+                if (Keyboard.current.enterKey.wasPressedThisFrame || Keyboard.current.spaceKey.wasPressedThisFrame) confirmPressed = true;
+            }
+
+            // Gamepad support (Any connected gamepad can navigate)
+            foreach (var pad in Gamepad.all)
+            {
+                if (pad.dpad.left.wasPressedThisFrame) moveX = -1f;
+                if (pad.dpad.right.wasPressedThisFrame) moveX = 1f;
+
+                // Stick support with a small cooldown so it doesn't flicker wildly
+                if (Time.unscaledTime > stickCooldown)
+                {
+                    if (pad.leftStick.ReadValue().x < -0.5f) { moveX = -1f; stickCooldown = Time.unscaledTime + 0.2f; }
+                    if (pad.leftStick.ReadValue().x > 0.5f) { moveX = 1f; stickCooldown = Time.unscaledTime + 0.2f; }
+                }
+
+                if (pad.buttonSouth.wasPressedThisFrame) confirmPressed = true;
+            }
+
+            // Apply navigation logic
+            if (moveX < -0.1f)
+            {
+                postGameSelectedIndex = 0; // Play Again
+                UpdatePostGameHighlight();
+            }
+            else if (moveX > 0.1f)
+            {
+                postGameSelectedIndex = 1; // Leave
+                UpdatePostGameHighlight();
+            }
+
+            // Execute button
+            if (confirmPressed)
+            {
+                if (postGameSelectedIndex == 0) SelectPlayAgain();
+                else SelectLeave();
+            }
+        }
+    }
+
+    private void UpdatePostGameHighlight()
+    {
+        // Visually scale and tint the selected option Yellow
+        if (playAgainImage != null)
+        {
+            playAgainImage.transform.localScale = (postGameSelectedIndex == 0) ? new Vector3(1.1f, 1.1f, 1.1f) : Vector3.one;
+            Image img = playAgainImage.GetComponent<Image>();
+            if (img != null) img.color = (postGameSelectedIndex == 0) ? Color.yellow : Color.white;
+        }
+
+        if (leaveImage != null)
+        {
+            leaveImage.transform.localScale = (postGameSelectedIndex == 1) ? new Vector3(1.1f, 1.1f, 1.1f) : Vector3.one;
+            Image img = leaveImage.GetComponent<Image>();
+            if (img != null) img.color = (postGameSelectedIndex == 1) ? Color.yellow : Color.white;
+        }
+    }
+
     private IEnumerator AwardSequence()
     {
         // 1. Drop the curtains immediately
         if (stageAnimator != null) stageAnimator.Play("CurtainsClose");
         yield return new WaitForSeconds(1.5f);
 
-        // 2. Turn on the big CINEMA sign (its 100-frame animation will play automatically)
+        // 2. Turn on the big CINEMA sign AND play the music!
         if (mainAwardSignAnimator != null) mainAwardSignAnimator.gameObject.SetActive(true);
+        if (awardShowMusic != null) awardShowMusic.Play();
 
-        // 3. Wait for the ENTIRE duration of the CINEMA sign's animation
-        yield return new WaitForSeconds(awardSignFullDuration);
+        // 3. Wait for the CINEMA sign animation, but stop early to start the audio fade!
+        float initialWait = Mathf.Max(0, awardSignFullDuration - musicFadeDuration);
+        yield return new WaitForSeconds(initialWait);
+
+        // Start fading the music down to 0 volume
+        if (awardShowMusic != null) StartCoroutine(FadeAudio(awardShowMusic, 0f, musicFadeDuration));
+
+        // Wait for the remainder of the sign's animation
+        yield return new WaitForSeconds(Mathf.Min(musicFadeDuration, awardSignFullDuration));
 
         // 4. Turn the CINEMA sign OFF completely so the screen is clear!
         if (mainAwardSignAnimator != null) mainAwardSignAnimator.gameObject.SetActive(false);
 
-        // 5. Start sorting and revealing players (No overlapping!)
+        // 5. Start sorting and revealing players
         List<int> sortedPlayers = new List<int>();
         int pCount = 0;
         if (GameManager.Instance != null)
@@ -209,6 +299,11 @@ public class GameWinScript : MonoBehaviour
         {
             if (playAgainImage != null) playAgainImage.SetActive(true);
             if (leaveImage != null) leaveImage.SetActive(true);
+
+            // --- NEW: Trigger the visual highlight the moment the buttons appear ---
+            postGameSelectedIndex = 0;
+            UpdatePostGameHighlight();
+
             canSelectPostGame = true;
         }
     }
@@ -228,6 +323,9 @@ public class GameWinScript : MonoBehaviour
     private IEnumerator PlayAgainTransition()
     {
         isTransitioning = true;
+
+        // Safety fade-out if the music is still playing somehow
+        if (awardShowMusic != null && awardShowMusic.isPlaying) StartCoroutine(FadeAudio(awardShowMusic, 0f, signOutroDuration));
 
         if (playAgainImage != null) playAgainImage.SetActive(false);
         if (leaveImage != null) leaveImage.SetActive(false);
@@ -255,6 +353,9 @@ public class GameWinScript : MonoBehaviour
     private IEnumerator LeaveTransition()
     {
         isTransitioning = true;
+
+        // Safety fade-out if the music is still playing somehow
+        if (awardShowMusic != null && awardShowMusic.isPlaying) StartCoroutine(FadeAudio(awardShowMusic, 0f, signOutroDuration));
 
         if (playAgainImage != null) playAgainImage.SetActive(false);
         if (leaveImage != null) leaveImage.SetActive(false);
@@ -306,5 +407,21 @@ public class GameWinScript : MonoBehaviour
         {
             SceneManager.LoadSceneAsync(leaveSceneName);
         }
+    }
+
+    private IEnumerator FadeAudio(AudioSource source, float targetVol, float duration)
+    {
+        float startVol = source.volume;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            source.volume = Mathf.Lerp(startVol, targetVol, elapsed / duration);
+            yield return null;
+        }
+
+        source.volume = targetVol;
+        if (targetVol == 0f) source.Stop();
     }
 }
