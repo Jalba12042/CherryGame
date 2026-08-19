@@ -65,9 +65,10 @@ public class Taser : Powerup
                 handler.ApplyTase(2f); // or your stun duration
             }
 
-            // Actually destroy it — calling OnDestroy() directly only ran the cleanup logic
-            // without removing the object, so PowerUpFloat kept running and snapped it back
-            // to its cached spawn position the moment SetHeld(false) re-enabled its Update().
+            // Clean up (unparent etc.) BEFORE destroying — Unity disallows reparenting a
+            // GameObject once it's actually mid-destruction, so this can't happen from
+            // inside the real OnDestroy() callback, only right before Destroy() is called.
+            Cleanup();
             Destroy(gameObject);
         }
     }

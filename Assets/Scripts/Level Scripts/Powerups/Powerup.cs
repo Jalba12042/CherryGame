@@ -23,6 +23,11 @@ public class Powerup : MonoBehaviour
     private bool isActive;
     protected Coroutine despawnRoutine;
 
+    [Header("Despawn Blink")]
+    [SerializeField] private float blinkStartInterval = 0.5f;  // blink speed right as the countdown starts
+    [SerializeField] private float blinkEndInterval = 0.05f;   // blink speed right before it despawns
+    private Coroutine blinkRoutine;
+
     private void Awake()
     {
         despawnRoutine = StartCoroutine(despawnTimer());
@@ -30,6 +35,8 @@ public class Powerup : MonoBehaviour
 
     public IEnumerator despawnTimer()
     {
+        blinkRoutine = StartCoroutine(BlinkWhileDespawning());
+
         yield return new WaitForSeconds(despawnTimerInSecs);
         if (canDespawn)
         {
@@ -37,15 +44,32 @@ public class Powerup : MonoBehaviour
             Destroy(gameObject);
         }
     }
-    public void Activate(PlayerPowerupHandler handler)
+
+    // Blinks faster and faster as the despawn timer runs out, same idea as the UFO's tractor beam flash.
+    private IEnumerator BlinkWhileDespawning()
     {
-        if (despawnRoutine != null)
+        MeshRenderer mr = GetComponent<MeshRenderer>();
+        if (mr == null) yield break;
+
+        float elapsed = 0f;
+        while (elapsed < despawnTimerInSecs)
         {
-            StopCoroutine(despawnRoutine);
-            despawnRoutine = null;
+            float progress = despawnTimerInSecs > 0f ? Mathf.Clamp01(elapsed / despawnTimerInSecs) : 1f;
+            float interval = Mathf.Lerp(blinkStartInterval, blinkEndInterval, progress);
+
+            mr.enabled = !mr.enabled;
+            yield return new WaitForSeconds(interval);
+            elapsed += interval;
         }
 
-        canDespawn = false;
+        mr.enabled = true;
+        blinkRoutine = null;
+    }
+
+    public void Activate(PlayerPowerupHandler handler)
+    {
+        StopDespawn();
+
         powerupHandler = handler;
         pc = handler.GetComponent<Playermovement>();
         pe = handler.GetComponent<PlayerEffects>();
@@ -212,6 +236,15 @@ public class Powerup : MonoBehaviour
         {
             StopCoroutine(despawnRoutine);
             despawnRoutine = null;
+        }
+
+        if (blinkRoutine != null)
+        {
+            StopCoroutine(blinkRoutine);
+            blinkRoutine = null;
+
+            MeshRenderer mr = GetComponent<MeshRenderer>();
+            if (mr != null) mr.enabled = true;
         }
     }
 }
