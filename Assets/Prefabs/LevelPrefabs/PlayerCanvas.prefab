@@ -356,7 +356,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7079392961105632925
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3001,11 +3001,11 @@ MonoBehaviour:
   pressAButtonPrompt: {fileID: 1892135577890990912}
   tipsText: {fileID: 8618094122311185406}
   tips:
-  - Tap RT to Pick up nearby cherrys, powerups or players! Tap again to drop!
-  - 'While holding a cherry or a player hold down RT to aim and let go to throw '
+  - Tap RT near the snowball pile to get snowballs!
+  - Tap RT to throw at other players! Becareful you only pickup 3!
   - 'Press X to Dash, Combine it with a jump and dash even farther '
-  - Grabbed? Mash Y to escape the hold! Be careful if thrown you'll be stunned for
-    5 seconds!
+  - Hold RT near other players to grab them and pull them with you!
+  - Grabbed? Mash Y to escape the hold! Your speed will increase back to normal!
   - 'Angry and want to unleash frustrations in the game? Press B to scream your hearts
     out! '
   tipInterval: 5
@@ -3034,8 +3034,8 @@ MonoBehaviour:
   - {fileID: 7629270663579424769}
   - {fileID: 2735326397172324693}
   parkCherrySprite: {fileID: 21300000, guid: 55e06427bb4af4d45ab824ba762bc5e6, type: 3}
-  runningSprite: {fileID: 21300000, guid: 379c75a0a39caf8439bc283ab89cdf95, type: 3}
-  sittingSprite: {fileID: 21300000, guid: 8ac9ada5e7cdb9047b1bd116a952b7d3, type: 3}
+  runningSprite: {fileID: 21300000, guid: f387c849ad165d74bb4b18faf68b2135, type: 3}
+  sittingSprite: {fileID: 21300000, guid: dff4b9cd22bd48a44bdf04b3f24ce478, type: 3}
   parkItemScale: {x: 0.5427328, y: 0.5427328, z: 0.5427328}
   parkRunScale: {x: 0.8712263, y: 0.8712263, z: 0.8712263}
   parkSitScale: {x: 0.73484, y: 0.73484, z: 0.73484}
