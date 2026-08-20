@@ -86,6 +86,13 @@ public class Ocean : MonoBehaviour
                 foreach (Rigidbody rb in caughtObjects)
                 {
                     if (rb == null) continue;
+
+                    // Someone else may have killed/respawned this player while the wave still had
+                    // them — without this check we keep dragging their (now kinematic, already
+                    // spawn-positioned) rigidbody away from their spawn point while they're invisible.
+                    PlayerKill deadCheck = rb.GetComponent<PlayerKill>();
+                    if (deadCheck != null && deadCheck.currDead) continue;
+
                     rb.MovePosition(rb.position + tideMovement * dragStrength);
                 }
                 yield return null;
@@ -150,6 +157,12 @@ public class Ocean : MonoBehaviour
                 foreach (Rigidbody rb in caughtObjects)
                 {
                     if (rb == null) continue;
+
+                    // Same as the roll-in drag loop above — don't keep dragging a player who was
+                    // already killed/respawned elsewhere while still caught by the wave.
+                    PlayerKill deadCheck = rb.GetComponent<PlayerKill>();
+                    if (deadCheck != null && deadCheck.currDead) continue;
+
                     Playermovement pm = rb.GetComponent<Playermovement>();
                     if (pm != null) pm.canMove = false;
                     rb.MovePosition(rb.position + tideMovement * dragStrength);
@@ -164,6 +177,7 @@ public class Ocean : MonoBehaviour
                 Playermovement pm = caughtObjects[i].GetComponent<Playermovement>();
                 if (pk != null && pm != null)
                 {
+                    if (pk.currDead) continue;
                     pm.canMove = true;
                     pk.killPlayer(true);
                 }
@@ -201,7 +215,11 @@ public class Ocean : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (((1 << other.gameObject.layer) & draggableLayers) == 0) return;
+        // Zombies are always caught regardless of layer (they're on Default, not draggableLayers),
+        // so they get dragged and killed by the wave the same way players do.
+        bool isDraggableLayer = ((1 << other.gameObject.layer) & draggableLayers) != 0;
+        bool isZombie = other.GetComponent<Zombie>() != null;
+        if (!isDraggableLayer && !isZombie) return;
 
         Rigidbody rb = other.GetComponent<Rigidbody>();
         if (rb != null && !caughtObjects.Contains(rb))

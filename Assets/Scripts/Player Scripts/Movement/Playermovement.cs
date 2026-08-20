@@ -89,6 +89,16 @@ public class Playermovement : MonoBehaviour
     private Rigidbody rb;
     public Animator animator;
     private Vector2 moveInput;
+    // Last camera-relative direction the stick was actually pushed toward — kept separate from
+    // transform.forward because HandleRotation() stops Slerping the instant input hits zero, so
+    // the model can freeze mid-turn; this always holds the true last-steered direction instead.
+    private Vector3 lastAimDirection;
+
+    // Aim direction is used unsmoothed (unlike HandleRotation()'s Slerp, which barely reacts to a
+    // small blip), so it needs a much bigger deadzone than the 0.01 used for rotation — otherwise
+    // ordinary analog stick drift/noise while "standing still" can cross that tiny threshold and
+    // get converted directly into a full, essentially random throw direction.
+    private const float aimInputDeadzoneSqr = 0.09f; // ~0.3 magnitude
     public Vector3 initialSpawnPosition;
     private string currentSurface = "";
 
@@ -98,6 +108,7 @@ public class Playermovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
+        lastAimDirection = transform.forward;
         gc = GetComponent<GroundCheck>();
         playerInteract = GetComponent<PlayerInteract>();
 
@@ -140,6 +151,9 @@ public class Playermovement : MonoBehaviour
         Vector3 camForward = Vector3.Scale(cam.forward, new Vector3(1, 0, 1)).normalized;
         Vector3 camRight = Vector3.Scale(cam.right, new Vector3(1, 0, 1)).normalized;
         Vector3 move = (camForward * moveInput.y + camRight * moveInput.x).normalized;
+
+        if (moveInput.sqrMagnitude > aimInputDeadzoneSqr)
+            lastAimDirection = move;
 
         rb.linearVelocity = new Vector3(move.x * moveSpeed, rb.linearVelocity.y, move.z * moveSpeed);
 
@@ -281,6 +295,23 @@ public class Playermovement : MonoBehaviour
                 Quaternion.LookRotation(targetDir, Vector3.up), Time.deltaTime * speed);
         }
     }*/
+
+    // Camera-relative direction the stick is currently (or was last) pointing, used for throws so
+    // they track real steering input instead of transform.forward, which lags behind while
+    // HandleRotation() is still Slerping the model — and freezes mid-turn the instant input drops
+    // to zero, so transform.forward alone isn't reliable even right after releasing the stick.
+    public Vector3 GetAimDirection()
+    {
+        if (moveInput.sqrMagnitude > aimInputDeadzoneSqr)
+        {
+            Transform cam = Camera.main.transform;
+            Vector3 camForward = Vector3.Scale(cam.forward, new Vector3(1, 0, 1)).normalized;
+            Vector3 camRight = Vector3.Scale(cam.right, new Vector3(1, 0, 1)).normalized;
+            return (camForward * moveInput.y + camRight * moveInput.x).normalized;
+        }
+
+        return lastAimDirection.sqrMagnitude > 0.0001f ? lastAimDirection : transform.forward;
+    }
 
     public void DoJump()
     {
