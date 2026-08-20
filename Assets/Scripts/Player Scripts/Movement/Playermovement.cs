@@ -93,6 +93,12 @@ public class Playermovement : MonoBehaviour
     // transform.forward because HandleRotation() stops Slerping the instant input hits zero, so
     // the model can freeze mid-turn; this always holds the true last-steered direction instead.
     private Vector3 lastAimDirection;
+
+    // Aim direction is used unsmoothed (unlike HandleRotation()'s Slerp, which barely reacts to a
+    // small blip), so it needs a much bigger deadzone than the 0.01 used for rotation — otherwise
+    // ordinary analog stick drift/noise while "standing still" can cross that tiny threshold and
+    // get converted directly into a full, essentially random throw direction.
+    private const float aimInputDeadzoneSqr = 0.09f; // ~0.3 magnitude
     public Vector3 initialSpawnPosition;
     private string currentSurface = "";
 
@@ -146,7 +152,7 @@ public class Playermovement : MonoBehaviour
         Vector3 camRight = Vector3.Scale(cam.right, new Vector3(1, 0, 1)).normalized;
         Vector3 move = (camForward * moveInput.y + camRight * moveInput.x).normalized;
 
-        if (moveInput.sqrMagnitude > 0.01f)
+        if (moveInput.sqrMagnitude > aimInputDeadzoneSqr)
             lastAimDirection = move;
 
         rb.linearVelocity = new Vector3(move.x * moveSpeed, rb.linearVelocity.y, move.z * moveSpeed);
@@ -296,7 +302,7 @@ public class Playermovement : MonoBehaviour
     // to zero, so transform.forward alone isn't reliable even right after releasing the stick.
     public Vector3 GetAimDirection()
     {
-        if (moveInput.sqrMagnitude > 0.01f)
+        if (moveInput.sqrMagnitude > aimInputDeadzoneSqr)
         {
             Transform cam = Camera.main.transform;
             Vector3 camForward = Vector3.Scale(cam.forward, new Vector3(1, 0, 1)).normalized;

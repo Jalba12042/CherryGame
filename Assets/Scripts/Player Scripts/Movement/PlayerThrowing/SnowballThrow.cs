@@ -13,6 +13,13 @@ public class SnowballThrow : MonoBehaviour
     [SerializeField] private float throwSpeed = 50f;
 
     private GameObject heldSnowball;
+    private GameObject lastThrownSnowball;
+
+    // Lets PlayerInteract ignore collision between this and the next snowball it spawns — the
+    // replacement spawns at handHoldPoint in the same frame this one's velocity is set, before
+    // physics has had a chance to move it away, so without this the fast just-thrown snowball
+    // slams into the new stationary one and its velocity gets killed by the collision.
+    public GameObject GetLastThrownSnowball() => lastThrownSnowball;
 
     [SerializeField] private float initialThrowDelay = 0.5f;
     private float throwDelayTimer = 0f;
@@ -66,6 +73,14 @@ public class SnowballThrow : MonoBehaviour
         }
 
         Vector3 throwDirection = playerMovement != null ? playerMovement.GetAimDirection() : transform.forward;
+
+        // Detach from the hand bone right now, before the "doThrow" windup animation gets a
+        // chance to swing/dip it — it just stays exactly where it already is (still kinematic,
+        // not yet given velocity) instead of continuing to follow the animated bone through the
+        // delay below. This avoids teleporting it later, which was leaving the rigidbody in a
+        // bad state (floating/drifting instead of a clean launch).
+        heldSnowball.transform.SetParent(null);
+
         StartCoroutine(DelayedThrow(throwDirection));
     }
 
@@ -85,9 +100,6 @@ public class SnowballThrow : MonoBehaviour
 
         GameObject thrownSnowball = heldSnowball;
 
-        // Stop being held
-        thrownSnowball.transform.SetParent(null);
-
 
         Rigidbody rb = heldSnowball.GetComponent<Rigidbody>();
 
@@ -100,6 +112,8 @@ public class SnowballThrow : MonoBehaviour
             {
                 snowball.MarkThrown();
             }
+
+            lastThrownSnowball = thrownSnowball;
 
             rb.isKinematic = false;
 
