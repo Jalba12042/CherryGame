@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class Taser : Powerup
 {
+    [SerializeField] private float stunDuration = 4f;
+
     private Animator playerAnimator;
     private bool isEquipped = false;
     private GameObject owner;
@@ -62,7 +64,7 @@ public class Taser : Powerup
 
             if (handler != null)
             {
-                handler.ApplyTase(2f); // or your stun duration
+                handler.ApplyTase(stunDuration);
             }
 
             // Clean up (unparent etc.) BEFORE destroying — Unity disallows reparenting a
