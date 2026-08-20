@@ -76,6 +76,14 @@ public class DirtMound : MonoBehaviour
 
     void Update()
     {
+        // Same self-cleanup Zombie/UFO already do — the event's own cleanup only runs if its
+        // Trigger() coroutine reaches its natural end, which it won't if the round ends early
+        // (SoftReset() force-stops it), and exit mounds spawn even later than that regardless.
+        if (RoundManager.Instance != null && !RoundManager.Instance.currRoundActive)
+        {
+            Destroy(gameObject);
+            return;
+        }
 
         if (hasFinished) return;
 

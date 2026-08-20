@@ -182,6 +182,17 @@ public class GameManager : MonoBehaviour
     // ==========================================
     // --- THE TRUE REBOOT SYSTEM (SOFT RESET) ---
     // ==========================================
+    // "Play Again" keeps the same players/customizations (unlike HardResetForMainMenu), it just
+    // needs a fresh first-to-maxScore race — without this, a new game starts with the previous
+    // game's final scores still in place, so it can end after just one round.
+    public void ResetScoresForNewGame()
+    {
+        if (playerTotalScores != null)
+        {
+            for (int i = 0; i < playerTotalScores.Length; i++) playerTotalScores[i] = 0;
+        }
+    }
+
     public void HardResetForMainMenu()
     {
         // 1. Wipe player data cleanly
