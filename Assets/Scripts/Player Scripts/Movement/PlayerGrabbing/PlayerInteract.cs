@@ -120,6 +120,11 @@ public class PlayerInteract : MonoBehaviour
 
     private GameObject heldPickup;
     private float cherryPickupCooldown = 0f;
+
+
+    private bool pickupJustGrabbed = false;
+    [SerializeField]
+    private float pickupGraceTime = 0.15f;
     public bool IsHoldingPickup => heldPickup != null;
 
     private void Awake()
@@ -172,6 +177,7 @@ public class PlayerInteract : MonoBehaviour
                 if (heldPickup != null)
                 {
                     ignoreNextRelease = true;
+                    pickupJustGrabbed = true;
                 }
             }
 
@@ -197,6 +203,12 @@ public class PlayerInteract : MonoBehaviour
         if (rt)
         {
             rtHoldTime += Time.deltaTime;
+
+            if (pickupJustGrabbed && rtHoldTime >= pickupGraceTime)
+            {
+                pickupJustGrabbed = false;
+                ignoreNextRelease = false;
+            }
         }
 
         // HANDLE RELEASE
@@ -228,6 +240,7 @@ public class PlayerInteract : MonoBehaviour
             if (ignoreNextRelease)
             {
                 ignoreNextRelease = false;
+                pickupJustGrabbed = false;
                 rtHoldTime = 0f;
                 rtWasDown = rt;
                 return;
