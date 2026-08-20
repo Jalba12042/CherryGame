@@ -163,7 +163,14 @@ public class UFO : MonoBehaviour
     {
         // Release whoever we were carrying/tracking so a mid-lift retarget doesn't leave them frozen
         if (playerMove != null) playerMove.canMove = true;
-        if (targetRb != null) targetRb.isKinematic = false;
+        if (targetRb != null)
+        {
+            targetRb.isKinematic = false;
+            // HandleAbduct() clears constraints to let a stunned target still be lifted — restore
+            // the normal FreezeRotation now that we're letting go, or they're left free to physically
+            // tip over from then on instead of staying upright.
+            targetRb.constraints = RigidbodyConstraints.FreezeRotation;
+        }
 
         targetPlayer = newTarget;
         playerMove = targetPlayer.GetComponentInChildren<Playermovement>();
@@ -233,6 +240,10 @@ public class UFO : MonoBehaviour
 
         if (stateTimer > 3f)
         {
+            // Same reason as the release in SetTarget() — the lift clears rotation constraints
+            // to allow a stunned target to be lifted, so restore them before this player respawns.
+            if (targetRb != null) targetRb.constraints = RigidbodyConstraints.FreezeRotation;
+
             playerKill.killPlayer(myEvent.respawnOnKill);
             myEvent.isRunning = false;
             Destroy(gameObject);
