@@ -146,6 +146,7 @@ public class PlayerPowerupHandler : MonoBehaviour
         if (nearbyPowerup is Taser taser)
         {
             taser.EquipTaser(handHoldPoint);
+            taser.StopDespawn();
             nearbyPowerup = null;
             return;
         }
@@ -361,14 +362,15 @@ public class PlayerPowerupHandler : MonoBehaviour
 
         SpawnTacos();
 
-        if (sombrero != null)
+        //Customizations
+        /*if (sombrero != null)
             sombrero.SetActive(true);
 
         if (mustache != null)
             mustache.SetActive(true);
 
         if (poncho != null)
-            poncho.SetActive(true);
+            poncho.SetActive(true);*/
 
         Rigidbody rb = GetComponent<Rigidbody>();
 

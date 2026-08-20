@@ -163,7 +163,14 @@ public class UFO : MonoBehaviour
     {
         // Release whoever we were carrying/tracking so a mid-lift retarget doesn't leave them frozen
         if (playerMove != null) playerMove.canMove = true;
-        if (targetRb != null) targetRb.isKinematic = false;
+        if (targetRb != null)
+        {
+            targetRb.isKinematic = false;
+            // HandleAbduct() clears constraints to let a stunned target still be lifted — restore
+            // the normal FreezeRotation now that we're letting go, or they're left free to physically
+            // tip over from then on instead of staying upright.
+            targetRb.constraints = RigidbodyConstraints.FreezeRotation;
+        }
 
         targetPlayer = newTarget;
         playerMove = targetPlayer.GetComponentInChildren<Playermovement>();
@@ -215,7 +222,15 @@ public class UFO : MonoBehaviour
         // fight the Rigidbody's own physics step, making the "bump into them to free them" touch
         // detection register inconsistently.
         if (targetRb != null)
+        {
+            // Taco dance / taser stuns freeze the rigidbody's position via constraints, which also
+            // blocks a kinematic body's MovePosition on the frozen axes — clear it every frame so a
+            // stunned target (or one re-hit mid-lift) can still be lifted off the ground.
+            if (targetRb.constraints != RigidbodyConstraints.None)
+                targetRb.constraints = RigidbodyConstraints.None;
+
             targetRb.MovePosition(targetRb.position + liftDirection * abductSpeed * Time.deltaTime);
+        }
         else
             targetPlayer.transform.position += liftDirection * abductSpeed * Time.deltaTime;
 
@@ -225,6 +240,10 @@ public class UFO : MonoBehaviour
 
         if (stateTimer > 3f)
         {
+            // Same reason as the release in SetTarget() — the lift clears rotation constraints
+            // to allow a stunned target to be lifted, so restore them before this player respawns.
+            if (targetRb != null) targetRb.constraints = RigidbodyConstraints.FreezeRotation;
+
             playerKill.killPlayer(myEvent.respawnOnKill);
             myEvent.isRunning = false;
             Destroy(gameObject);

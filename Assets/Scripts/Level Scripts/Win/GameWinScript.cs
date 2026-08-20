@@ -311,6 +311,9 @@ public class GameWinScript : MonoBehaviour
     {
         isTransitioning = true;
 
+        if (GameManager.Instance != null) GameManager.Instance.ResetScoresForNewGame();
+
+        // Safety fade-out if the music is still playing somehow
         if (awardShowMusic != null && awardShowMusic.isPlaying) StartCoroutine(FadeAudio(awardShowMusic, 0f, signOutroDuration));
 
         if (playAgainImage != null) playAgainImage.SetActive(false);

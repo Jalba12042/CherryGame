@@ -23,6 +23,13 @@ public class Powerup : MonoBehaviour
     private bool isActive;
     protected Coroutine despawnRoutine;
 
+    [Header("Despawn Blink")]
+    [Tooltip("How long before despawning the blink warning starts — stays fully solid before that.")]
+    [SerializeField] private float blinkWarningDuration = 3f;
+    [SerializeField] private float blinkStartInterval = 0.5f;  // blink speed right as the warning starts
+    [SerializeField] private float blinkEndInterval = 0.05f;   // blink speed right before it despawns
+    private Coroutine blinkRoutine;
+
     private void Awake()
     {
         despawnRoutine = StartCoroutine(despawnTimer());
@@ -30,6 +37,8 @@ public class Powerup : MonoBehaviour
 
     public IEnumerator despawnTimer()
     {
+        blinkRoutine = StartCoroutine(BlinkWhileDespawning());
+
         yield return new WaitForSeconds(despawnTimerInSecs);
         if (canDespawn)
         {
@@ -37,15 +46,38 @@ public class Powerup : MonoBehaviour
             Destroy(gameObject);
         }
     }
-    public void Activate(PlayerPowerupHandler handler)
+
+    // Stays solid for most of the despawn timer, then blinks faster and faster as it closes in on
+    // despawning — same idea as the UFO's tractor beam flash, just delayed to only warn near the end.
+    private IEnumerator BlinkWhileDespawning()
     {
-        if (despawnRoutine != null)
+        MeshRenderer mr = GetComponent<MeshRenderer>();
+        if (mr == null) yield break;
+
+        float warningDuration = Mathf.Min(blinkWarningDuration, despawnTimerInSecs);
+        float solidTime = despawnTimerInSecs - warningDuration;
+        if (solidTime > 0f)
+            yield return new WaitForSeconds(solidTime);
+
+        float elapsed = 0f;
+        while (elapsed < warningDuration)
         {
-            StopCoroutine(despawnRoutine);
-            despawnRoutine = null;
+            float progress = warningDuration > 0f ? Mathf.Clamp01(elapsed / warningDuration) : 1f;
+            float interval = Mathf.Lerp(blinkStartInterval, blinkEndInterval, progress);
+
+            mr.enabled = !mr.enabled;
+            yield return new WaitForSeconds(interval);
+            elapsed += interval;
         }
 
-        canDespawn = false;
+        mr.enabled = true;
+        blinkRoutine = null;
+    }
+
+    public void Activate(PlayerPowerupHandler handler)
+    {
+        StopDespawn();
+
         powerupHandler = handler;
         pc = handler.GetComponent<Playermovement>();
         pe = handler.GetComponent<PlayerEffects>();
@@ -212,6 +244,15 @@ public class Powerup : MonoBehaviour
         {
             StopCoroutine(despawnRoutine);
             despawnRoutine = null;
+        }
+
+        if (blinkRoutine != null)
+        {
+            StopCoroutine(blinkRoutine);
+            blinkRoutine = null;
+
+            MeshRenderer mr = GetComponent<MeshRenderer>();
+            if (mr != null) mr.enabled = true;
         }
     }
 }

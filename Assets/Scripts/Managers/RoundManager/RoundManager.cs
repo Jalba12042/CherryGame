@@ -322,8 +322,10 @@ public class RoundManager : MonoBehaviour
                 highestRoundScore = currRoundScores[i];
         }
 
-        // 2. Give a permanent point in GameManager to anyone who tied for highest score
-        if (GameManager.Instance != null)
+        // 2. Give a permanent point in GameManager to anyone who tied for highest score —
+        // unless nobody actually scored (e.g. a simultaneous full wipe in Mountain), in which
+        // case nobody should get a point just for tying at 0.
+        if (GameManager.Instance != null && highestRoundScore > 0)
         {
             for (int i = 0; i < currRoundScores.Length; i++)
             {

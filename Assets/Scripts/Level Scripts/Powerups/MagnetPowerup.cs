@@ -4,7 +4,6 @@ using System.Collections;
 public class MagnetPowerup : Powerup
 {
     [Header("Magnet Settings")]
-    public string targetTag = "Collectible";
     public float pullRadius = 5f;
     public float pullForce = 10f;
 
@@ -70,7 +69,7 @@ public class MagnetPowerup : Powerup
             Collider[] hits = Physics.OverlapSphere(playerModel.transform.position, pullRadius);
             foreach (Collider hit in hits)
             {
-                if (hit.CompareTag(targetTag))
+                if (hit.GetComponent<LevelPickup>() != null)
                 {
                     Rigidbody rb = hit.GetComponent<Rigidbody>();
                     if (rb != null)
