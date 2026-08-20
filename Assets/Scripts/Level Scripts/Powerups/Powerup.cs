@@ -24,7 +24,9 @@ public class Powerup : MonoBehaviour
     protected Coroutine despawnRoutine;
 
     [Header("Despawn Blink")]
-    [SerializeField] private float blinkStartInterval = 0.5f;  // blink speed right as the countdown starts
+    [Tooltip("How long before despawning the blink warning starts — stays fully solid before that.")]
+    [SerializeField] private float blinkWarningDuration = 3f;
+    [SerializeField] private float blinkStartInterval = 0.5f;  // blink speed right as the warning starts
     [SerializeField] private float blinkEndInterval = 0.05f;   // blink speed right before it despawns
     private Coroutine blinkRoutine;
 
@@ -45,16 +47,22 @@ public class Powerup : MonoBehaviour
         }
     }
 
-    // Blinks faster and faster as the despawn timer runs out, same idea as the UFO's tractor beam flash.
+    // Stays solid for most of the despawn timer, then blinks faster and faster as it closes in on
+    // despawning — same idea as the UFO's tractor beam flash, just delayed to only warn near the end.
     private IEnumerator BlinkWhileDespawning()
     {
         MeshRenderer mr = GetComponent<MeshRenderer>();
         if (mr == null) yield break;
 
+        float warningDuration = Mathf.Min(blinkWarningDuration, despawnTimerInSecs);
+        float solidTime = despawnTimerInSecs - warningDuration;
+        if (solidTime > 0f)
+            yield return new WaitForSeconds(solidTime);
+
         float elapsed = 0f;
-        while (elapsed < despawnTimerInSecs)
+        while (elapsed < warningDuration)
         {
-            float progress = despawnTimerInSecs > 0f ? Mathf.Clamp01(elapsed / despawnTimerInSecs) : 1f;
+            float progress = warningDuration > 0f ? Mathf.Clamp01(elapsed / warningDuration) : 1f;
             float interval = Mathf.Lerp(blinkStartInterval, blinkEndInterval, progress);
 
             mr.enabled = !mr.enabled;
