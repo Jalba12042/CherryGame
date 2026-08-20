@@ -38,6 +38,11 @@ public class Projectile : MonoBehaviour
     public int linePoints = 50;
     public float timeStep = 0.1f;
 
+    private float releaseBuffer = 0f;
+
+    [SerializeField]
+    private float releaseBufferTime = 0.08f;
+
     [SerializeField] private LayerMask groundLayer;
 
     private Playermovement owner;
@@ -105,6 +110,8 @@ public class Projectile : MonoBehaviour
         // HOLD throw button
         if (InputManager.Instance.GetButton1Held(ownerPlayerID))
         {
+            releaseBuffer = 0f;
+
             rtHoldTime += Time.deltaTime;
 
             if (rtHoldTime >= aimThreshold)
@@ -119,25 +126,31 @@ public class Projectile : MonoBehaviour
         // RELEASE throw button
         else
         {
-            rtHoldTime = 0f;
+            releaseBuffer += Time.deltaTime;
 
-            if (isAiming)
+            if (releaseBuffer >= releaseBufferTime)
             {
-                if (landingMarkerInstance != null)
-                    landingMarkerInstance.SetActive(false);
+                rtHoldTime = 0f;
+                releaseBuffer = 0f;
 
-                float finalPower = Mathf.Max(currentPower, 0.25f);
+                if (isAiming)
+                {
+                    if (landingMarkerInstance != null)
+                        landingMarkerInstance.SetActive(false);
 
-                pendingThrow = true;
+                    float finalPower = Mathf.Max(currentPower, 0.25f);
 
-                owner.animator.SetTrigger("doThrow");
-                owner.animator.SetBool("isAiming", false);
-                owner.animator.SetBool("isPickingUp", false);
+                    pendingThrow = true;
 
-                owner.StartCoroutine(DelayedThrow(finalPower));
+                    owner.animator.SetTrigger("doThrow");
+                    owner.animator.SetBool("isAiming", false);
+                    owner.animator.SetBool("isPickingUp", false);
 
-                isAiming = false;
-                currentPower = 0f;
+                    owner.StartCoroutine(DelayedThrow(finalPower));
+
+                    isAiming = false;
+                    currentPower = 0f;
+                }
             }
         }
     }
