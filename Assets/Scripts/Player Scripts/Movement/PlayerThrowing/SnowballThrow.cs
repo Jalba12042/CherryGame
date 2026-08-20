@@ -7,6 +7,7 @@ public class SnowballThrow : MonoBehaviour
     [SerializeField] private PlayerInteract playerInteract;
     [SerializeField] private Animator animator;
     [SerializeField] private Transform handHoldPoint;
+    [SerializeField] private Playermovement playerMovement;
 
     [Header("Throw")]
     [SerializeField] private float throwSpeed = 50f;
@@ -27,6 +28,9 @@ public class SnowballThrow : MonoBehaviour
 
         if (handHoldPoint == null)
             handHoldPoint = playerInteract.handHoldPoint;
+
+        if (playerMovement == null)
+            playerMovement = GetComponent<Playermovement>();
     }
 
     public void PickUpSnowball(GameObject snowball)
@@ -61,7 +65,7 @@ public class SnowballThrow : MonoBehaviour
             animator.SetTrigger("doThrow");
         }
 
-        Vector3 throwDirection = transform.forward;
+        Vector3 throwDirection = playerMovement != null ? playerMovement.GetAimDirection() : transform.forward;
         StartCoroutine(DelayedThrow(throwDirection));
     }
 
@@ -104,8 +108,11 @@ public class SnowballThrow : MonoBehaviour
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
 
-            // Straight throw
-            rb.linearVelocity = handHoldPoint.forward * throwSpeed;
+            // Straight throw — use the direction captured when the throw was pressed, not
+            // handHoldPoint.forward read now: the hand bone is mid-swing from the throw
+            // animation by this point, so its live forward is animation-timing dependent
+            // and produces inconsistent/weird throw angles.
+            rb.linearVelocity = throwDirection * throwSpeed;
 
             StartCoroutine(ReenableSnowballCollision(thrownSnowball));
 
