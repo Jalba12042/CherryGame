@@ -11,33 +11,22 @@ public class GameWinScript : MonoBehaviour
     [Header("UI & Stage")]
     public Animator stageAnimator;
     public TMP_Text winText;
-    [Tooltip("The exact name of the animation that opens the curtains")]
     public string curtainsOpenAnimName = "CurtainsOpen";
 
     [Header("--- Main Award Sign (CINEMA Board) ---")]
-    [Tooltip("Drag the big AwardSign object here!")]
     public Animator mainAwardSignAnimator;
-    [Tooltip("How long does the CINEMA sign's entire animation take?")]
     public float awardSignFullDuration = 8.5f;
 
     [Header("--- Award Show Music ---")]
-    [Tooltip("Drag your AudioSound object with the music here!")]
     public AudioSource awardShowMusic;
-    [Tooltip("How many seconds it takes to fade the music out to silence")]
     public float musicFadeDuration = 1.5f;
 
     [Header("--- DEMO Marquee Sign & Puppet Outros ---")]
-    [Tooltip("Drag your 1stplaceSigns object here")]
     public Animator marqueeAnimator;
-    [Tooltip("The exact name of the sign's outro animation state")]
     public string signOutroAnimName = "1stplaceoutro";
-    [Tooltip("The exact name of the puppet's outro animation state")]
     public string puppetOutroAnimName = "1splaceoutro";
-    [Tooltip("How long to wait for the sign/puppet to slide out before the curtains open")]
     public float signOutroDuration = 1.0f;
-    [Tooltip("Drag the Image component from 1stplaceSigns here")]
     public Image marqueeImage;
-    [Tooltip("How long to wait after the puppet pops up before showing buttons")]
     public float postRevealWaitTime = 3f;
 
     [Header("Marquee Sprites (To swap on the single board)")]
@@ -90,9 +79,12 @@ public class GameWinScript : MonoBehaviour
     private bool canSelectPostGame = false;
     private bool isTransitioning = false;
 
-    // --- NEW: Controller Navigation Variables ---
-    private int postGameSelectedIndex = 0; // 0 = Play Again, 1 = Leave
+    private int postGameSelectedIndex = 0;
     private float stickCooldown = 0f;
+
+    // --- THE FIX: Variables to memorize your custom Inspector scales! ---
+    private Vector3 playAgainOriginalScale;
+    private Vector3 leaveOriginalScale;
 
     void Awake()
     {
@@ -107,8 +99,17 @@ public class GameWinScript : MonoBehaviour
         if (thirdPlacePuppet != null) thirdPlacePuppet.SetActive(false);
         if (fourthPlacePuppet != null) fourthPlacePuppet.SetActive(false);
 
-        if (playAgainImage != null) playAgainImage.SetActive(false);
-        if (leaveImage != null) leaveImage.SetActive(false);
+        if (playAgainImage != null)
+        {
+            playAgainImage.SetActive(false);
+            playAgainOriginalScale = playAgainImage.transform.localScale; // Memorize scale
+        }
+
+        if (leaveImage != null)
+        {
+            leaveImage.SetActive(false);
+            leaveOriginalScale = leaveImage.transform.localScale; // Memorize scale
+        }
 
         if (mainAwardSignAnimator != null) mainAwardSignAnimator.gameObject.SetActive(false);
 
@@ -118,7 +119,6 @@ public class GameWinScript : MonoBehaviour
         StartCoroutine(AwardSequence());
     }
 
-    // --- NEW: Handle Controller Input for Post-Game Buttons ---
     void Update()
     {
         if (canSelectPostGame && !isTransitioning)
@@ -126,7 +126,6 @@ public class GameWinScript : MonoBehaviour
             float moveX = 0f;
             bool confirmPressed = false;
 
-            // Keyboard support
             if (Keyboard.current != null)
             {
                 if (Keyboard.current.aKey.wasPressedThisFrame || Keyboard.current.leftArrowKey.wasPressedThisFrame) moveX = -1f;
@@ -134,13 +133,11 @@ public class GameWinScript : MonoBehaviour
                 if (Keyboard.current.enterKey.wasPressedThisFrame || Keyboard.current.spaceKey.wasPressedThisFrame) confirmPressed = true;
             }
 
-            // Gamepad support (Any connected gamepad can navigate)
             foreach (var pad in Gamepad.all)
             {
                 if (pad.dpad.left.wasPressedThisFrame) moveX = -1f;
                 if (pad.dpad.right.wasPressedThisFrame) moveX = 1f;
 
-                // Stick support with a small cooldown so it doesn't flicker wildly
                 if (Time.unscaledTime > stickCooldown)
                 {
                     if (pad.leftStick.ReadValue().x < -0.5f) { moveX = -1f; stickCooldown = Time.unscaledTime + 0.2f; }
@@ -150,19 +147,17 @@ public class GameWinScript : MonoBehaviour
                 if (pad.buttonSouth.wasPressedThisFrame) confirmPressed = true;
             }
 
-            // Apply navigation logic
             if (moveX < -0.1f)
             {
-                postGameSelectedIndex = 0; // Play Again
+                postGameSelectedIndex = 0;
                 UpdatePostGameHighlight();
             }
             else if (moveX > 0.1f)
             {
-                postGameSelectedIndex = 1; // Leave
+                postGameSelectedIndex = 1;
                 UpdatePostGameHighlight();
             }
 
-            // Execute button
             if (confirmPressed)
             {
                 if (postGameSelectedIndex == 0) SelectPlayAgain();
@@ -173,17 +168,17 @@ public class GameWinScript : MonoBehaviour
 
     private void UpdatePostGameHighlight()
     {
-        // Visually scale and tint the selected option Yellow
+        // THE FIX: Multiply your original scale by 1.1 instead of forcing it to 1!
         if (playAgainImage != null)
         {
-            playAgainImage.transform.localScale = (postGameSelectedIndex == 0) ? new Vector3(1.1f, 1.1f, 1.1f) : Vector3.one;
+            playAgainImage.transform.localScale = (postGameSelectedIndex == 0) ? playAgainOriginalScale * 1.1f : playAgainOriginalScale;
             Image img = playAgainImage.GetComponent<Image>();
             if (img != null) img.color = (postGameSelectedIndex == 0) ? Color.yellow : Color.white;
         }
 
         if (leaveImage != null)
         {
-            leaveImage.transform.localScale = (postGameSelectedIndex == 1) ? new Vector3(1.1f, 1.1f, 1.1f) : Vector3.one;
+            leaveImage.transform.localScale = (postGameSelectedIndex == 1) ? leaveOriginalScale * 1.1f : leaveOriginalScale;
             Image img = leaveImage.GetComponent<Image>();
             if (img != null) img.color = (postGameSelectedIndex == 1) ? Color.yellow : Color.white;
         }
@@ -191,28 +186,21 @@ public class GameWinScript : MonoBehaviour
 
     private IEnumerator AwardSequence()
     {
-        // 1. Drop the curtains immediately
         if (stageAnimator != null) stageAnimator.Play("CurtainsClose");
         yield return new WaitForSeconds(1.5f);
 
-        // 2. Turn on the big CINEMA sign AND play the music!
         if (mainAwardSignAnimator != null) mainAwardSignAnimator.gameObject.SetActive(true);
         if (awardShowMusic != null) awardShowMusic.Play();
 
-        // 3. Wait for the CINEMA sign animation, but stop early to start the audio fade!
         float initialWait = Mathf.Max(0, awardSignFullDuration - musicFadeDuration);
         yield return new WaitForSeconds(initialWait);
 
-        // Start fading the music down to 0 volume
         if (awardShowMusic != null) StartCoroutine(FadeAudio(awardShowMusic, 0f, musicFadeDuration));
 
-        // Wait for the remainder of the sign's animation
         yield return new WaitForSeconds(Mathf.Min(musicFadeDuration, awardSignFullDuration));
 
-        // 4. Turn the CINEMA sign OFF completely so the screen is clear!
         if (mainAwardSignAnimator != null) mainAwardSignAnimator.gameObject.SetActive(false);
 
-        // 5. Start sorting and revealing players
         List<int> sortedPlayers = new List<int>();
         int pCount = 0;
         if (GameManager.Instance != null)
@@ -300,7 +288,6 @@ public class GameWinScript : MonoBehaviour
             if (playAgainImage != null) playAgainImage.SetActive(true);
             if (leaveImage != null) leaveImage.SetActive(true);
 
-            // --- NEW: Trigger the visual highlight the moment the buttons appear ---
             postGameSelectedIndex = 0;
             UpdatePostGameHighlight();
 
@@ -324,7 +311,6 @@ public class GameWinScript : MonoBehaviour
     {
         isTransitioning = true;
 
-        // Safety fade-out if the music is still playing somehow
         if (awardShowMusic != null && awardShowMusic.isPlaying) StartCoroutine(FadeAudio(awardShowMusic, 0f, signOutroDuration));
 
         if (playAgainImage != null) playAgainImage.SetActive(false);
@@ -354,7 +340,6 @@ public class GameWinScript : MonoBehaviour
     {
         isTransitioning = true;
 
-        // Safety fade-out if the music is still playing somehow
         if (awardShowMusic != null && awardShowMusic.isPlaying) StartCoroutine(FadeAudio(awardShowMusic, 0f, signOutroDuration));
 
         if (playAgainImage != null) playAgainImage.SetActive(false);

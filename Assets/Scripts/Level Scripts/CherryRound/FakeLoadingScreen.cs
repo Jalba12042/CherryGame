@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.DualShock; // <-- Added to detect PlayStation controllers
 
 public class FakeLoadingScreen : MonoBehaviour
 {
@@ -12,9 +13,22 @@ public class FakeLoadingScreen : MonoBehaviour
     public Image loadingBarFill;
     public GameObject pressAButtonPrompt;
     public TMP_Text tipsText;
-    public string[] tips;
     public float tipInterval = 2f;
     public TMP_Text levelTitleText;
+
+    // ==========================================
+    // --- NEW: DEVICE-SPECIFIC TIPS ---
+    // ==========================================
+    [Header("Device Specific Tips")]
+    public string[] xboxTips;
+    public string[] psTips;
+    public string[] kbTips;
+
+    private string[] currentActiveTips;
+    private string mapSpecificTip = "";
+
+    private enum DeviceMode { Xbox, PlayStation, Keyboard }
+    private DeviceMode currentDeviceMode = DeviceMode.Xbox; // Default
 
     [Header("--- THEATER CURTAINS ---")]
     public Animator curtainAnimator;
@@ -32,9 +46,11 @@ public class FakeLoadingScreen : MonoBehaviour
     public RectTransform endPoint;
     public GameObject[] cherries;
 
-    // ==========================================
-    // --- THEME SETTINGS & SCALES ---
-    // ==========================================
+    [Header("Puppet Show Groups (Parents)")]
+    public GameObject parkShow;
+    public GameObject beachShow;
+    public GameObject mountainShow;
+
     [Header("Park Theme")]
     public Sprite parkCherrySprite;
     public Sprite runningSprite;
@@ -58,7 +74,6 @@ public class FakeLoadingScreen : MonoBehaviour
     public Vector3 mountainItemScale = new Vector3(1f, 1f, 1f);
     public Vector3 mountainRunScale = new Vector3(1f, 1f, 1f);
     public Vector3 mountainSitScale = new Vector3(0.6f, 0.6f, 1f);
-    // ==========================================
 
     private Sprite activeRunSprite;
     private Sprite activeSitSprite;
@@ -80,7 +95,6 @@ public class FakeLoadingScreen : MonoBehaviour
     public Sprite[] colorIcons;
 
     [Header("Audio Polish")]
-    [Tooltip("Drag your Ambience_Manager object here so it starts when the round begins!")]
     public AudioSource levelAmbience;
 
     private void Start()
@@ -91,6 +105,9 @@ public class FakeLoadingScreen : MonoBehaviour
         }
 
         ApplyMapTheme();
+
+        // Force an initial build of the tips array based on Xbox default
+        SwitchDeviceMode(DeviceMode.Xbox);
 
         foreach (var player in FindObjectsByType<Playermovement>(FindObjectsSortMode.None))
         {
@@ -104,11 +121,6 @@ public class FakeLoadingScreen : MonoBehaviour
         timer = 0f;
         currentDelay = 0f;
         loadingComplete = false;
-
-        if (tips != null && tips.Length > 0)
-        {
-            tipsText.text = tips[0];
-        }
 
         if (playerIcon != null && activeRunSprite != null)
         {
@@ -144,6 +156,10 @@ public class FakeLoadingScreen : MonoBehaviour
 
     private void ApplyMapTheme()
     {
+        if (parkShow != null) parkShow.SetActive(false);
+        if (beachShow != null) beachShow.SetActive(false);
+        if (mountainShow != null) mountainShow.SetActive(false);
+
         string sceneName = SceneManager.GetActiveScene().name;
 
         Sprite currentItemSprite = parkCherrySprite;
@@ -164,8 +180,11 @@ public class FakeLoadingScreen : MonoBehaviour
             activeSitSprite = beachSittingSprite;
             activeRunScale = beachRunScale;
             activeSitScale = beachSitScale;
+
+            if (beachShow != null) beachShow.SetActive(true);
+            mapSpecificTip = "Tip: High tides will drag you into the water!"; // Replaced array override with variable assignment
         }
-        else if (sceneName.Contains("Mountain"))
+        else if (sceneName.Contains("Mountain") || sceneName.Contains("Iceberg"))
         {
             if (levelTitleText != null) levelTitleText.text = "Level Loading: Mountain";
             currentItemSprite = mountainSnowballSprite;
@@ -175,10 +194,16 @@ public class FakeLoadingScreen : MonoBehaviour
             activeSitSprite = mountainSittingSprite;
             activeRunScale = mountainRunScale;
             activeSitScale = mountainSitScale;
+
+            if (mountainShow != null) mountainShow.SetActive(true);
+            mapSpecificTip = "Did you know? Snowballs deal extra knockback!"; // Replaced array override with variable assignment
         }
         else
         {
             if (levelTitleText != null) levelTitleText.text = "Level Loading: Park";
+
+            if (parkShow != null) parkShow.SetActive(true);
+            mapSpecificTip = "Watch out for the meteor!"; // Replaced array override with variable assignment
         }
 
         if (cherries != null)
@@ -198,28 +223,75 @@ public class FakeLoadingScreen : MonoBehaviour
         }
     }
 
+    // --- NEW: Function to dynamically swap tips ---
+    private void SwitchDeviceMode(DeviceMode newMode)
+    {
+        currentDeviceMode = newMode;
+        List<string> compiledTips = new List<string>();
+
+        // Always add the map tip first if we have one
+        if (!string.IsNullOrEmpty(mapSpecificTip))
+        {
+            compiledTips.Add(mapSpecificTip);
+        }
+
+        // Append the correct controller tips
+        string[] deviceTips = xboxTips;
+        if (newMode == DeviceMode.PlayStation) deviceTips = psTips;
+        else if (newMode == DeviceMode.Keyboard) deviceTips = kbTips;
+
+        if (deviceTips != null)
+        {
+            compiledTips.AddRange(deviceTips);
+        }
+
+        currentActiveTips = compiledTips.ToArray();
+        currentTip = 0;
+        tipTimer = 0f; // Reset timer so they have time to read the new tip
+
+        if (currentActiveTips.Length > 0 && tipsText != null)
+        {
+            tipsText.text = currentActiveTips[0];
+        }
+    }
+
     private void Update()
     {
+        // ==========================================
+        // --- NEW: DYNAMIC DEVICE DETECTION ---
+        // ==========================================
+        if (Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame)
+        {
+            if (currentDeviceMode != DeviceMode.Keyboard) SwitchDeviceMode(DeviceMode.Keyboard);
+        }
+
+        foreach (var pad in Gamepad.all)
+        {
+            // If ANY main face button or bumper is pressed
+            if (pad.buttonSouth.wasPressedThisFrame || pad.buttonEast.wasPressedThisFrame || pad.buttonWest.wasPressedThisFrame ||
+                pad.buttonNorth.wasPressedThisFrame || pad.leftShoulder.wasPressedThisFrame || pad.rightShoulder.wasPressedThisFrame)
+            {
+                DeviceMode mode = (pad is DualShockGamepad) ? DeviceMode.PlayStation : DeviceMode.Xbox;
+                if (currentDeviceMode != mode) SwitchDeviceMode(mode);
+                break;
+            }
+        }
+        // ==========================================
+
+
         bool skipTip = false;
+        if (Keyboard.current != null && Keyboard.current.xKey.wasPressedThisFrame) skipTip = true;
+        if (Gamepad.current != null && Gamepad.current.buttonNorth.wasPressedThisFrame) skipTip = true;
 
-        if (Keyboard.current != null && Keyboard.current.xKey.wasPressedThisFrame)
-        {
-            skipTip = true;
-        }
-        if (Gamepad.current != null && Gamepad.current.buttonNorth.wasPressedThisFrame)
-        {
-            skipTip = true;
-        }
-
-        if (tips != null && tips.Length > 0)
+        if (currentActiveTips != null && currentActiveTips.Length > 0)
         {
             tipTimer += Time.deltaTime;
 
             if (tipTimer >= tipInterval || skipTip)
             {
                 tipTimer = 0f;
-                currentTip = (currentTip + 1) % tips.Length;
-                tipsText.text = tips[currentTip];
+                currentTip = (currentTip + 1) % currentActiveTips.Length;
+                tipsText.text = currentActiveTips[currentTip];
             }
         }
 
@@ -313,13 +385,11 @@ public class FakeLoadingScreen : MonoBehaviour
         GameObject canvas = GameObject.Find("PlayerCanvas");
         if (canvas != null) canvas.SetActive(true);
 
-        // Start playing the ambience sound right here!
         if (levelAmbience != null)
         {
             levelAmbience.Play();
         }
 
-        // --- NEW: Start playing the Background Music right here! ---
         if (GameplayMusicManager.Instance != null)
         {
             GameplayMusicManager.Instance.StartMusic();
