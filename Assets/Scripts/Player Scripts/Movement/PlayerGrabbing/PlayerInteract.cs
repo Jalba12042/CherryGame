@@ -1536,6 +1536,19 @@ public class PlayerInteract : MonoBehaviour
 
         SetCherryCollision(false);
 
+        // This spawns at the same spot the just-thrown snowball is still sitting at (physics
+        // hasn't stepped yet this frame), so without this the new one blocks it like a wall and
+        // kills its velocity on the next physics step.
+        GameObject lastThrown = snowballThrow?.GetLastThrownSnowball();
+        if (lastThrown != null)
+        {
+            Collider[] newCols = snowball.GetComponentsInChildren<Collider>();
+            Collider[] lastThrownCols = lastThrown.GetComponentsInChildren<Collider>();
+            foreach (var newCol in newCols)
+                foreach (var oldCol in lastThrownCols)
+                    Physics.IgnoreCollision(newCol, oldCol, true);
+        }
+
         snowballThrow?.PickUpSnowball(heldPickup);
 
         if (animator != null)
