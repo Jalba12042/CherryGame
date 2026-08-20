@@ -25,11 +25,11 @@ public class GrowPowerup : Powerup
     private bool wasGrounded;
 
     [Header("Audio")]
-    [SerializeField] private AudioSource fxSource; // NEW: Slot for your AudioSource component!
+    [SerializeField] private AudioSource fxSource;
     public AudioClip growSound;
     public AudioClip shrinkSound;
-    public AudioClip bigJumpSound;
-    [Range(0f, 1f)] public float masterPowerupVolume = 1f; // NEW: Volume slider
+    public AudioClip bigJumpSound; // (We are still using this variable for the Landing sound so your Inspector doesn't break!)
+    [Range(0f, 1f)] public float masterPowerupVolume = 1f;
 
     protected override void powerUpEffect()
     {
@@ -42,12 +42,10 @@ public class GrowPowerup : Powerup
         rb = pc.GetComponent<Rigidbody>();
         if (rb == null) rb = playerModel.GetComponentInParent<Rigidbody>();
 
-        // --- THE FIX: No longer adding a hidden component via code ---
         if (fxSource != null)
         {
             fxSource.playOnAwake = false;
 
-            // Auto-route to the scream mixer if you forgot to set it up
             if (screamScript != null && screamScript.aSource != null && fxSource.outputAudioMixerGroup == null)
             {
                 fxSource.outputAudioMixerGroup = screamScript.aSource.outputAudioMixerGroup;
@@ -95,7 +93,9 @@ public class GrowPowerup : Powerup
         {
             bool currentlyGrounded = gc.isGrounded;
 
-            if (wasGrounded && !currentlyGrounded && rb.linearVelocity.y > 0.1f)
+            // --- THE FIX: Detect LANDING instead of JUMPING ---
+            // If we were NOT grounded last frame, but we ARE grounded this frame, we just hit the floor!
+            if (!wasGrounded && currentlyGrounded)
             {
                 PlayBigJumpSound();
             }
@@ -177,7 +177,6 @@ public class GrowPowerup : Powerup
         playerModel.transform.localScale = originalSize;
         if (playerEffects != null) playerEffects.isBig = false;
 
-        // Let the shrink sound finish before deleting
         Destroy(gameObject, 0.5f);
     }
 
@@ -196,7 +195,6 @@ public class GrowPowerup : Powerup
             screamScript.maxPitch = ogMaxPitch;
         }
 
-        // Hide visuals before shrinking away
         HideVisuals();
         StartCoroutine(Shrink());
     }
